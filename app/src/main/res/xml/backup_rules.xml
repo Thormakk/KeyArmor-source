@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="database" path="keyarmor.db"/>
+    <exclude domain="database" path="keyarmor.db-shm"/>
+    <exclude domain="database" path="keyarmor.db-wal"/>
+
+    <exclude domain="sharedpref" path="expiry_notif_prefs.xml"/>
+    <exclude domain="sharedpref" path="security_prefs.xml"/>
+    <exclude domain="sharedpref" path="auto_lock_prefs.xml"/>
+    <exclude domain="sharedpref" path="auth_prefs.xml"/>
+    <exclude domain="sharedpref" path="login_throttle_prefs.xml"/>
+    <exclude domain="sharedpref" path="drive_prefs.xml"/>
+    <exclude domain="sharedpref" path="backup_key_prefs.xml"/>
+    <exclude domain="sharedpref" path="panic_pin_prefs.xml"/>
+    <exclude domain="sharedpref" path="hidden_entries_prefs.xml"/>
+    <exclude domain="sharedpref" path="breach_result_prefs.xml"/>
+    <exclude domain="sharedpref" path="inheritance_prefs.xml"/>
+
+    <exclude domain="sharedpref" path="calculator_disguise_prefs.xml"/>
+    <exclude domain="sharedpref" path="travel_mode_prefs.xml"/>
+
+    <exclude domain="sharedpref" path="pinned_hub_prefs.xml"/>
+    <exclude domain="sharedpref" path="recent_entries_prefs.xml"/>
+
+    <exclude domain="sharedpref" path="autofill_prefs.xml"/>
+    <exclude domain="sharedpref" path="family_prefs.xml"/>
+    <exclude domain="sharedpref" path="fcm_prefs.xml"/>
+
+    <exclude domain="file" path="."/>
+    <exclude domain="external" path="."/>
+</full-backup-content>

@@ -1,0 +1,65 @@
+KeyArmor Source Available License
+
+Source code published for security audit purposes only.
+
+Summary: The source code of KeyArmor is publicly available solely so that
+security researchers and users can inspect and audit its security practices.
+No rights of any kind are granted. All rights are reserved by the copyright
+holder.
+
+1. Copyright
+
+Copyright (c) 2026 KeyArmor. All Rights Reserved.
+
+The source code, design, architecture, name, logo, and all associated
+intellectual property of KeyArmor are the exclusive property of the copyright
+holder. Publication of the source code does not transfer, waive, or otherwise
+affect any of these rights.
+
+2. Purpose of Publication
+
+The source code is made publicly available for one purpose only: to allow
+independent security inspection and auditing. This transparency is offered as
+a trust measure for users who wish to verify the security and privacy
+properties of the application.
+
+3. What You May Do
+
+- Read and inspect the source code for security research and personal
+  auditing.
+- Report security vulnerabilities to the KeyArmor team through official
+  channels.
+
+4. What You May Not Do
+
+Without explicit prior written permission from the copyright holder, you may
+not:
+
+- Compile, build, use, execute, or run the software or any portion thereof
+  outside of its official distribution.
+- Copy, reproduce, or extract the source code or any portion thereof for any
+  purpose other than reading.
+- Modify, adapt, translate, or create derivative works based on the source
+  code.
+- Distribute, publish, sublicense, sell, or otherwise make the source code or
+  any portion thereof available to third parties.
+- Use the source code, or any portion thereof, as the basis for another
+  product, service, or project.
+- Use the KeyArmor name, logo, or any associated trademarks.
+
+5. No Warranty
+
+The source code is provided "as is", without warranty of any kind, express or
+implied. The copyright holder makes no representations regarding the fitness
+of the code for any particular purpose.
+
+6. Enforcement
+
+Any use of this source code beyond the security audit purpose expressly
+permitted in Section 3 constitutes copyright infringement and may be subject
+to legal action to the fullest extent permitted by applicable law.
+
+7. Contact
+
+For permissions beyond the scope of this license, security disclosures, or any
+other inquiry, please contact the KeyArmor team at support@thormakk.dev.

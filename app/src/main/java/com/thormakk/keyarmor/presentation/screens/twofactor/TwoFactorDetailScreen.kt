@@ -1,0 +1,1099 @@
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
+package com.thormakk.keyarmor.presentation.screens.twofactor
+
+import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
+import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Pin
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Luggage
+import androidx.compose.material.icons.outlined.Visibility
+import com.thormakk.keyarmor.presentation.components.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.thormakk.keyarmor.R
+import com.thormakk.keyarmor.data.prefs.BiometricPrefs
+import com.thormakk.keyarmor.domain.model.EntryCategory
+import com.thormakk.keyarmor.presentation.components.EntryGroupDivider
+import com.thormakk.keyarmor.presentation.components.InfoChip
+import com.thormakk.keyarmor.presentation.components.SectionTitleFontSize
+import com.thormakk.keyarmor.presentation.components.chipCategoryColor
+import com.thormakk.keyarmor.presentation.components.chipTagColor
+import com.thormakk.keyarmor.presentation.components.dangerColor
+import com.thormakk.keyarmor.presentation.components.entryItemShape
+import com.thormakk.keyarmor.presentation.components.infoColor
+import com.thormakk.keyarmor.presentation.components.sectionTitleColor
+import com.thormakk.keyarmor.presentation.components.topBarColors
+import com.thormakk.keyarmor.presentation.screens.bank.DetailRow
+import com.thormakk.keyarmor.presentation.screens.bank.EntryMetadata
+import com.thormakk.keyarmor.presentation.screens.settings.contrastRatio
+import com.thormakk.keyarmor.presentation.screens.vault.ServiceAwareAvatar
+import com.thormakk.keyarmor.presentation.util.BiometricGate
+import com.thormakk.keyarmor.presentation.util.ClipboardUtil
+import com.thormakk.keyarmor.presentation.util.LocalClipboardClearManager
+import com.thormakk.keyarmor.presentation.util.TotpGenerator
+import com.thormakk.keyarmor.presentation.util.rememberBiometricGate
+import com.thormakk.keyarmor.ui.theme.MonoFontFamily
+import com.thormakk.keyarmor.ui.theme.SuccessGreen
+import com.thormakk.keyarmor.ui.theme.SuccessGreenBright
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.thormakk.keyarmor.presentation.components.TextoDeUnaLinea
+import com.thormakk.keyarmor.presentation.components.justified
+
+private val MergedCardRadius     = 14.dp
+private val MergedCardStartInset = 48.dp
+private val MergedCardEndInset   = 15.dp
+
+@Composable
+fun TwoFactorDetailScreen(
+    onBack:       () -> Unit,
+    onEdit:       (String) -> Unit,
+    onDeleted:    () -> Unit,
+    onPlansClick: () -> Unit = {},
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    viewModel:    AddEditTwoFactorViewModel = hiltViewModel()
+) {
+    val uiState   by viewModel.uiState.collectAsStateWithLifecycle()
+    val clipClear = LocalClipboardClearManager.current
+    val clipContext = LocalContext.current
+
+    var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(uiState.id, uiState.secret) {
+        while (true) {
+            nowMillis = System.currentTimeMillis()
+            delay(1_000)
+        }
+    }
+
+    val totp = remember(uiState.secret, uiState.digits, uiState.period, uiState.algorithm, nowMillis) {
+        if (uiState.secret.isNotBlank()) TotpGenerator.generate(
+            secret    = uiState.secret,
+            digits    = uiState.digits,
+            period    = uiState.period,
+            algorithm = uiState.algorithm,
+            nowMillis = nowMillis
+        ) else null
+    }
+
+    val title = uiState.name.ifBlank { uiState.issuer }
+
+    val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
+    val isReadOnly    by viewModel.isReadOnly.collectAsStateWithLifecycle()
+    val otherVaults   by viewModel.otherVaults.collectAsStateWithLifecycle()
+    val availableTags by viewModel.availableTags.collectAsStateWithLifecycle()
+    var showOptionsSheet             by remember { mutableStateOf(false) }
+    var showDeleteDialog             by remember { mutableStateOf(false) }
+    var showMenu                     by remember { mutableStateOf(false) }
+    var showVaultSheet               by remember { mutableStateOf(false) }
+    var showRemoveAttributionDialog  by remember { mutableStateOf(false) }
+    var vaultActionIsMove by remember { mutableStateOf(true) }
+    var premiumFeature    by remember { mutableStateOf<String?>(null) }
+    var protectedNotice    by remember { mutableStateOf<Int?>(null) }
+    var showUnlockDialog   by remember { mutableStateOf(false) }
+    var showProtectPremium by remember { mutableStateOf(false) }
+    val labelArchive       = stringResource(R.string.plans_feature_archive)
+    val pinLimitReached  by viewModel.pinLimitReached.collectAsStateWithLifecycle()
+    val isHubPinned        by viewModel.isHubPinned.collectAsStateWithLifecycle()
+    val hubPinLimitReached by viewModel.hubPinLimitReached.collectAsStateWithLifecycle()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope             = rememberCoroutineScope()
+    val pinMsg            = stringResource(R.string.pin_limit_reached)
+    val hubPinMsg          = stringResource(R.string.hub_pin_limit_toast)
+
+    LaunchedEffect(pinLimitReached) {
+        if (pinLimitReached) {
+            scope.launch { snackbarHostState.showSnackbar(pinMsg) }
+            viewModel.onPinLimitDismissed()
+        }
+    }
+
+    LaunchedEffect(hubPinLimitReached) {
+        if (hubPinLimitReached) {
+            scope.launch { snackbarHostState.showSnackbar(hubPinMsg) }
+            viewModel.clearHubPinLimitReached()
+        }
+    }
+
+    var secretVisible by remember { mutableStateOf(false) }
+    var secretCountdownText by remember { mutableStateOf("") }
+    val secretGate: BiometricGate = rememberBiometricGate(
+        section              = BiometricPrefs.SECTION_TWO_FACTOR,
+        prefs                = viewModel.biometricPrefs,
+        verifyMasterPassword = viewModel::verifyMasterPassword
+    )
+    val secretGateSessionExpiry by secretGate.sessionExpiresAt
+    LaunchedEffect(secretGateSessionExpiry) {
+        if (secretGateSessionExpiry > 0L) {
+            val remaining = secretGateSessionExpiry - System.currentTimeMillis()
+            if (remaining > 0) delay(remaining)
+            secretVisible = false
+        }
+    }
+    LaunchedEffect(secretVisible, secretGateSessionExpiry) {
+        if (!secretVisible || secretGateSessionExpiry <= 0L) { secretCountdownText = ""; return@LaunchedEffect }
+        while (true) {
+            val remaining = secretGateSessionExpiry - System.currentTimeMillis()
+            if (remaining <= 0) { secretCountdownText = "0:00"; break }
+            val totalSecs = (remaining / 1000).toInt()
+            secretCountdownText = "${totalSecs / 60}:${(totalSecs % 60).toString().padStart(2, '0')}"
+            delay(500L)
+        }
+    }
+    val secretGateEnabled by remember {
+        derivedStateOf { viewModel.biometricPrefs.isSectionEnabled(BiometricPrefs.SECTION_TWO_FACTOR) }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor   = MaterialTheme.colorScheme.background,
+            title = {
+                Text(
+                    stringResource(if (uiState.isHidden) R.string.hidden_entries_delete_confirm_title else R.string.dialog_delete_twofactor_title),
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            text = {
+                Text(
+                    stringResource(if (uiState.isHidden) R.string.hidden_entries_delete_confirm_message else R.string.dialog_delete_twofactor_message),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showDeleteDialog = false; viewModel.delete(onDeleted) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)
+                ) {
+                    Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(if (uiState.isHidden) R.string.action_delete else R.string.action_move_to_trash))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground)
+                }
+            }
+        )
+    }
+
+    protectedNotice?.let { msgRes ->
+        AlertDialog(
+            onDismissRequest = { protectedNotice = null },
+            containerColor   = MaterialTheme.colorScheme.background,
+            title = { Text(stringResource(R.string.protect_locked_title), fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground) },
+            text  = { Text(stringResource(msgRes), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            confirmButton = {
+                TextButton(onClick = { protectedNotice = null }) { Text(stringResource(R.string.action_understood)) }
+            }
+        )
+    }
+    if (showUnlockDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnlockDialog = false },
+            containerColor   = MaterialTheme.colorScheme.background,
+            title = { Text(stringResource(R.string.protect_unlock_title), fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground) },
+            text  = { Text(stringResource(if (viewModel.canProtectNew) R.string.protect_unlock_body else R.string.protect_unlock_body_free),
+                color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            confirmButton = {
+                TextButton(onClick = { showUnlockDialog = false; viewModel.setProtected(false) }) {
+                    Text(stringResource(R.string.lock_action_unlock))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUnlockDialog = false }) {
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground)
+                }
+            }
+        )
+    }
+    if (showProtectPremium) {
+        AlertDialog(
+            onDismissRequest = { showProtectPremium = false },
+            containerColor   = MaterialTheme.colorScheme.background,
+            title = { Text(stringResource(R.string.protect_premium_title), fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground) },
+            text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
+            confirmButton = {
+                TextButton(onClick = { showProtectPremium = false; onPlansClick() }) {
+                    Text(stringResource(R.string.plans_upgrade_cta))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showProtectPremium = false }) {
+                    Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground)
+                }
+            }
+        )
+    }
+
+    premiumFeature?.let { featureName ->
+        AlertDialog(
+            onDismissRequest = { premiumFeature = null },
+            containerColor   = MaterialTheme.colorScheme.background,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(featureName, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                }
+            },
+            text = { Text(stringResource(R.string.premium_locked_dialog_message), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            confirmButton = {
+                Button(
+                    onClick = { premiumFeature = null; onPlansClick() },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.premium_gate_cta)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { premiumFeature = null }) {
+                    Text(stringResource(R.string.action_understood), color = MaterialTheme.colorScheme.onBackground)
+                }
+            }
+        )
+    }
+
+    if (showOptionsSheet) {
+        TwoFactorOptionsSheet(
+            initialCategory = uiState.category,
+            initialTags     = uiState.tags,
+            availableTags   = availableTags,
+            onSave          = { cat, tags -> viewModel.saveMetaOnly(cat, tags); showOptionsSheet = false },
+            onDismiss       = { showOptionsSheet = false },
+            onAddTag        = { viewModel.addTag(it) },
+            onRenameTag     = { id, name -> viewModel.renameTag(id, name) },
+            onDeleteTag     = { viewModel.deleteTag(it) },
+            tagConflictKey  = viewModel::tagConflictKey,
+            canCreateTags   = !isFreeUser,
+        )
+    }
+
+    if (showVaultSheet) {
+        MoveToVaultBottomSheet(
+            vaults    = otherVaults,
+            isMove    = vaultActionIsMove,
+            onSelect  = { targetId ->
+                showVaultSheet = false
+                if (vaultActionIsMove) viewModel.moveEntryTo(targetId)
+                else                   viewModel.copyEntryTo(targetId)
+            },
+            onDismiss = { showVaultSheet = false }
+        )
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 40.dp)) },
+        topBar = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsTopHeight(WindowInsets.statusBars)
+                        .background(MaterialTheme.colorScheme.surface)
+                )
+                TopAppBar(
+                    windowInsets = WindowInsets(0),
+                    title = {
+                        TextoDeUnaLinea(
+                            text       = title.ifBlank { stringResource(R.string.twofa_screen_title) },
+                            style      = MaterialTheme.typography.titleLarge.copy(fontSize = SectionTitleFontSize),
+                            fontWeight = FontWeight.SemiBold,
+                            color      = sectionTitleColor()
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.action_back),
+                                tint               = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    actions = {
+                        CaptureAllowedBadge()
+                        ThemeTrialBadge()
+                        IconButton(onClick = { viewModel.togglePin() }) {
+                            Icon(
+                                imageVector        = Icons.Default.PushPin,
+                                contentDescription = null,
+                                tint               = if (uiState.isPinned) MaterialTheme.colorScheme.primary
+                                                      else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if ((!isReadOnly || uiState.isProtected) && !uiState.isNew) {
+                            val greenLock = if (contrastRatio(MaterialTheme.colorScheme.background, SuccessGreen) < 3f)
+                                SuccessGreenBright else SuccessGreen
+                            IconButton(onClick = {
+                                when {
+                                    uiState.isProtected     -> showUnlockDialog = true
+                                    viewModel.canProtectNew -> viewModel.setProtected(true)
+                                    else                    -> showProtectPremium = true
+                                }
+                            }) {
+                                Icon(
+                                    imageVector        = if (uiState.isProtected) Icons.Default.Lock else Icons.Default.LockOpen,
+                                    contentDescription = stringResource(if (uiState.isProtected) R.string.protect_cd_unlock else R.string.protect_cd_lock),
+                                    tint               = if (uiState.isProtected) greenLock else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        IconButton(onClick = {
+                            if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
+                        }) {
+                            Icon(
+                                imageVector        = Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.action_edit),
+                                tint               = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(Icons.Default.MoreVert, contentDescription = null)
+                            }
+                            DropdownMenu(
+                                expanded         = showMenu,
+                                onDismissRequest = { showMenu = false },
+                                containerColor   = MaterialTheme.colorScheme.background
+                            ) {
+                                DropdownMenuItem(
+                                    text        = { Text(if (isHubPinned) stringResource(R.string.hub_unpin_from_hub) else stringResource(R.string.hub_pin_to_hub)) },
+                                    leadingIcon = { Icon(if (isHubPinned) Icons.Default.PushPin else Icons.Outlined.PushPin, null) },
+                                    onClick     = { showMenu = false; viewModel.toggleHubPin() }
+                                )
+                                HorizontalDivider()
+                                if (!isReadOnly) {
+                                    DropdownMenuItem(
+                                        text        = { Text(stringResource(R.string.menu_categories_tags)) },
+                                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null) },
+                                        onClick     = { showMenu = false; showOptionsSheet = true }
+                                    )
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text        = { Text(stringResource(R.string.action_move_to)) },
+                                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.DriveFileMove, null) },
+                                        onClick     = { showMenu = false; vaultActionIsMove = true; showVaultSheet = true }
+                                    )
+                                }
+                                DropdownMenuItem(
+                                    text        = { Text(stringResource(R.string.action_copy_to)) },
+                                    leadingIcon = { Icon(Icons.Default.ContentCopy, null) },
+                                    onClick     = { showMenu = false; vaultActionIsMove = false; showVaultSheet = true }
+                                )
+                                if (!isReadOnly) {
+                                    HorizontalDivider()
+                                    if (!uiState.isHidden) {
+                                        DropdownMenuItem(
+                                            text        = { Text(stringResource(R.string.menu_archive)) },
+                                            leadingIcon = { Icon(Icons.Default.Archive, contentDescription = null) },
+                                            onClick     = {
+                                                showMenu = false
+                                                if (isFreeUser) premiumFeature = labelArchive
+                                                else            viewModel.archive(onDeleted)
+                                            }
+                                        )
+                                    }
+                                }
+                                DropdownMenuItem(
+                                    text        = { Text(stringResource(R.string.menu_delete), color = dangerColor()) },
+                                    leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = dangerColor()) },
+                                    onClick     = {
+                                        showMenu = false
+                                        if (uiState.isProtected) protectedNotice = R.string.protect_locked_delete
+                                        else showDeleteDialog = true
+                                    }
+                                )
+                            }
+                        }
+                    },
+                    colors = topBarColors()
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 7.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val mergedCardColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            val mergedGapColor  = MaterialTheme.colorScheme.background
+            val hasTotpCode     = totp != null
+            val hasSecret       = uiState.secret.isNotBlank()
+            val hasName         = uiState.name.isNotBlank()
+            val hasIssuer       = uiState.issuer.isNotBlank()
+            val hasAccountLabel = uiState.accountLabel.isNotBlank()
+            val hasUrl          = uiState.url.isNotEmpty()
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                shape          = entryItemShape(isFirst = true, isLast = false, radius = MergedCardRadius),
+                color          = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp,
+                modifier       = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier          = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp)
+                    ) {
+                        val avatarModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                            with(sharedTransitionScope) {
+                                Modifier.sharedElement(
+                                    sharedContentState      = rememberSharedContentState("twofa_avatar_${uiState.id}"),
+                                    animatedVisibilityScope = animatedVisibilityScope
+                                )
+                            }
+                        } else Modifier
+                        ServiceAwareAvatar(
+                            title    = title,
+                            url      = uiState.url,
+                            size     = 48.dp,
+                            modifier = avatarModifier
+                        )
+                        Spacer(Modifier.width(14.dp))
+                        Text(
+                            text       = title.ifBlank { stringResource(R.string.twofa_screen_title) },
+                            style      = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.onSurface,
+                            maxLines   = 1
+                        )
+                    }
+                    uiState.inheritedFrom?.let { ownerEmail ->
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+                        Row(
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier              = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                    indication        = null
+                                ) { showRemoveAttributionDialog = true }
+                                .padding(horizontal = 20.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text     = stringResource(R.string.inherited_from_label, ownerEmail),
+                                style    = MaterialTheme.typography.labelSmall,
+                                color    = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector        = Icons.Default.Close,
+                                contentDescription = null,
+                                tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                                modifier           = Modifier.size(12.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            EntryGroupDivider(
+                startInset = 0.dp,
+                endInset   = 0.dp,
+                cardColor  = mergedCardColor,
+                gapColor   = mergedGapColor
+            )
+
+            if (totp != null) {
+                TotpCodeCard(
+                    totp   = totp,
+                    shape  = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius),
+                    onCopy = {
+                        ClipboardUtil.copySensitive(clipContext, totp.code)
+                        clipClear.scheduleClear()
+                    }
+                )
+            }
+            if (hasTotpCode) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+            }
+
+            if (uiState.secret.isNotBlank()) {
+                val maskedSecret = "•".repeat(minOf(uiState.secret.length, 20))
+                Surface(
+                    shape    = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius),
+                    color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier          = Modifier.padding(
+                            start  = 16.dp,
+                            end    = 4.dp,
+                            top    = 10.dp,
+                            bottom = 8.dp
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.Lock,
+                            contentDescription = null,
+                            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier           = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text  = stringResource(R.string.twofa_field_secret),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text  = if (secretVisible) uiState.secret else maskedSecret,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = MonoFontFamily),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        if (secretCountdownText.isNotEmpty()) {
+                            Text(
+                                text  = secretCountdownText,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(
+                            onClick  = {
+                                if (secretVisible) secretVisible = false
+                                else secretGate.launch { secretVisible = true }
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector        = if (secretVisible) Icons.Default.VisibilityOff
+                                                     else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                    alpha = if (secretGateEnabled) 0.7f else 1f
+                                ),
+                                modifier           = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick  = {
+                                if (secretVisible) {
+                                    ClipboardUtil.copySensitive(clipContext, uiState.secret)
+                                    clipClear.scheduleClear()
+                                } else {
+                                    secretGate.launch {
+                                        ClipboardUtil.copySensitive(clipContext, uiState.secret)
+                                        clipClear.scheduleClear()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector        = Icons.Default.ContentCopy,
+                                contentDescription = stringResource(R.string.action_copy),
+                                tint               = MaterialTheme.colorScheme.primary.copy(
+                                    alpha = if (secretGateEnabled) 0.7f else 1f
+                                ),
+                                modifier           = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            if (hasSecret) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+            }
+
+            DetailRow(
+                label   = stringResource(R.string.twofa_field_name),
+                value   = uiState.name,
+                leading = { Icon(Icons.Default.Shield, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
+            )
+            if (hasName) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+            }
+            DetailRow(
+                label   = stringResource(R.string.twofa_field_issuer),
+                value   = uiState.issuer,
+                leading = { Icon(Icons.Default.Business, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
+            )
+            if (hasIssuer) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+            }
+            DetailRow(
+                label   = stringResource(R.string.twofa_field_account_label),
+                value   = uiState.accountLabel,
+                leading = { Icon(Icons.Default.Person, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
+            )
+            if (hasAccountLabel) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+            }
+            if (uiState.url.isNotEmpty()) {
+                DetailRow(
+                    label   = stringResource(R.string.twofa_field_url_hint),
+                    value   = uiState.url,
+                    leading = { Icon(Icons.Default.Link, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                    shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
+                )
+            }
+            if (hasUrl) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+            }
+
+            DetailRow(
+                label   = stringResource(R.string.twofa_field_digits),
+                value   = uiState.digits.toString(),
+                leading = { Icon(Icons.Default.Pin, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
+            )
+            EntryGroupDivider(
+                startInset = MergedCardStartInset,
+                endInset   = MergedCardEndInset,
+                cardColor  = mergedCardColor,
+                gapColor   = mergedGapColor
+            )
+            DetailRow(
+                label   = stringResource(R.string.twofa_field_period),
+                value   = uiState.period.toString(),
+                leading = { Icon(Icons.Default.Timer, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
+            )
+            EntryGroupDivider(
+                startInset = MergedCardStartInset,
+                endInset   = MergedCardEndInset,
+                cardColor  = mergedCardColor,
+                gapColor   = mergedGapColor
+            )
+            DetailRow(
+                label   = stringResource(R.string.twofa_field_algorithm),
+                value   = uiState.algorithm.name,
+                leading = { Icon(Icons.Default.Security, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                shape   = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius)
+            )
+            }
+
+            if (uiState.createdAt > 0L) {
+                EntryMetadata(createdAt = uiState.createdAt, updatedAt = uiState.updatedAt)
+            }
+            Spacer(Modifier.height(8.dp))
+
+            if (showRemoveAttributionDialog) {
+                val ownerEmail = uiState.inheritedFrom
+                if (ownerEmail != null) {
+                    AlertDialog(
+                        onDismissRequest = { showRemoveAttributionDialog = false },
+                        containerColor   = MaterialTheme.colorScheme.background,
+                        title = {
+                            Text(
+                                text       = stringResource(R.string.remove_attribution_title),
+                                fontWeight = FontWeight.Bold,
+                                color      = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        text = {
+                            Text(
+                                text  = stringResource(R.string.remove_attribution_body, ownerEmail),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified())
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = { showRemoveAttributionDialog = false; viewModel.removeInheritedFrom() },
+                                shape   = RoundedCornerShape(8.dp),
+                                colors  = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor   = MaterialTheme.colorScheme.primary
+                                ),
+                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text(stringResource(R.string.action_remove_attribution)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showRemoveAttributionDialog = false }) {
+                                Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground)
+                            }
+                        }
+                    )
+                }
+            }
+
+            FlowRow(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement   = Arrangement.spacedBy(6.dp)
+            ) {
+                if (uiState.category != EntryCategory.SIN_CATEGORIZAR)
+                    InfoChip(stringResource(uiState.category.labelRes), color = chipCategoryColor())
+                uiState.tags.forEach { tag -> InfoChip(tag, color = chipTagColor()) }
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(50))
+                        .clip(RoundedCornerShape(50))
+                        .clickable { showOptionsSheet = true }
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text  = "+ ${stringResource(R.string.options_sheet_tags)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Surface(
+                shape          = RoundedCornerShape(12.dp),
+                color          = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp,
+                modifier       = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    Text(
+                        text       = stringResource(R.string.visibility_section_title).uppercase(),
+                        style      = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = infoColor(),
+                        modifier   = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 6.dp)
+                    )
+                    Row(
+                        modifier          = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Outlined.Luggage,
+                            contentDescription = null,
+                            tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier           = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text       = stringResource(R.string.travel_mode_safe_label),
+                            style      = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                            modifier   = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked         = uiState.isTravelSafe,
+                            onCheckedChange = viewModel::saveTravelSafeOnly
+                        )
+                    }
+                    if (viewModel.isHiddenFeatureEnabled) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+                        Row(
+                            modifier          = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector        = Icons.Outlined.Visibility,
+                                contentDescription = null,
+                                tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier           = Modifier
+                                    .padding(top = 2.dp)
+                                    .size(22.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text       = stringResource(R.string.hidden_entries_toggle_label),
+                                    style      = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text  = stringResource(R.string.hidden_entries_toggle_description),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked         = uiState.isHidden,
+                                onCheckedChange = viewModel::saveHiddenOnly,
+                                enabled         = uiState.isHidden || viewModel.canHideNewEntries
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun TotpCodeCard(
+    totp:   TotpGenerator.TotpCode,
+    onCopy: () -> Unit,
+    shape:  Shape = RoundedCornerShape(12.dp)
+) {
+    val arcColor = if (totp.secondsRemaining <= 5)
+        dangerColor()
+    else
+        MaterialTheme.colorScheme.primary
+
+    val animatedProgress by animateFloatAsState(
+        targetValue   = totp.progress,
+        animationSpec = tween(durationMillis = 900, easing = LinearEasing),
+        label         = "totp_progress_detail"
+    )
+
+    Surface(
+        shape    = shape,
+        color    = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier          = Modifier.padding(start = 20.dp, end = 4.dp, top = 16.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text  = stringResource(R.string.twofa_code_label),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text       = TotpGenerator.formatCode(totp.code),
+                    style      = MaterialTheme.typography.displaySmall.copy(
+                        fontFeatureSettings = "tnum",
+                        fontFamily          = MonoFontFamily
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    color      = arcColor
+                )
+            }
+
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(52.dp)) {
+                Canvas(modifier = Modifier.size(44.dp)) {
+                    drawArc(
+                        color      = arcColor.copy(alpha = 0.15f),
+                        startAngle = -90f,
+                        sweepAngle  = 360f,
+                        useCenter   = false,
+                        style       = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        color       = arcColor,
+                        startAngle  = -90f,
+                        sweepAngle  = 360f * animatedProgress,
+                        useCenter   = false,
+                        style       = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+                Text(
+                    text  = totp.secondsRemaining.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = arcColor
+                )
+            }
+
+            Spacer(modifier = Modifier.width(15.dp))
+            IconButton(onClick = onCopy, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    imageVector        = Icons.Default.ContentCopy,
+                    contentDescription = stringResource(R.string.twofa_copy_code_desc),
+                    tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier           = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun MoveToVaultBottomSheet(
+    vaults:    List<com.thormakk.keyarmor.domain.model.VaultMetadata>,
+    isMove:    Boolean,
+    onSelect:  (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState       = sheetState,
+        containerColor   = MaterialTheme.colorScheme.surface
+    ) {
+        Text(text = if (isMove) stringResource(R.string.action_move_to) else stringResource(R.string.action_copy_to),
+            style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+        Text(text = stringResource(R.string.move_copy_select_vault), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+        HorizontalDivider(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
+        if (vaults.isEmpty()) {
+            Text(text = "—", style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(20.dp))
+        } else {
+            vaults.forEach { vault ->
+                Row(modifier = Modifier.fillMaxWidth()
+                        .clickable { onSelect(vault.id) }
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Icon(imageVector = if (vault.isInherited) Icons.Default.Shield
+                                       else if (vault.isPrivate) Icons.Default.Lock
+                                       else Icons.Default.Folder,
+                        contentDescription = null, tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp))
+                    Text(text = vault.name, style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+    }
+}
