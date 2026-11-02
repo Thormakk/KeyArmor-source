@@ -233,7 +233,8 @@ Without explicit prior written permission from the copyright holder, you may not
 • Use the KeyArmor name, logo, or any associated trademarks
     """.trimIndent()),
     LegalSection("Source Code", """
-KeyArmor's source code is publicly available. Check the app's official channel for the repository link.
+KeyArmor's source code is publicly available.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("No Warranty", """
 The source code is provided "as is", without warranty of any kind, express or implied. The copyright holder makes no representations regarding its fitness for any particular purpose.

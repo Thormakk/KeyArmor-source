@@ -371,7 +371,8 @@ Bez výslovného předchozího písemného souhlasu držitele autorských práv 
 • Používat název, logo nebo jakoukoli přidruženou ochrannou známku KeyArmor
     """.trimIndent()),
     LegalSection("Zdrojový kód", """
-Zdrojový kód KeyArmor je veřejně dostupný. Odkaz na repozitář naleznete na oficiálním kanálu aplikace.
+Zdrojový kód KeyArmor je veřejně dostupný.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("Žádná záruka", """
 Zdrojový kód je poskytován „tak jak je“, bez záruky jakéhokoli druhu, výslovné či předpokládané. Držitel autorských práv neposkytuje žádná prohlášení ohledně jeho vhodnosti pro konkrétní účel.

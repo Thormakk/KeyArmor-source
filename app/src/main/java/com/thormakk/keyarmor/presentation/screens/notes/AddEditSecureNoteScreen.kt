@@ -1,5 +1,9 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.notes
+import androidx.compose.foundation.layout.safeDrawing
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.ui.text.input.KeyboardType
 
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
@@ -80,6 +84,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -265,7 +270,7 @@ fun AddEditSecureNoteScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text(stringResource(R.string.voice_dictation_open_settings), fontWeight = FontWeight.SemiBold)
                     }
@@ -302,6 +307,7 @@ fun AddEditSecureNoteScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(
@@ -412,20 +418,41 @@ fun AddEditSecureNoteScreen(
                 gapColor   = mergedGapColor
             )
 
+            val scrollNota = rememberScrollState()
+            val densidadNota = androidx.compose.ui.platform.LocalDensity.current
+            var alturaTexto by remember { mutableIntStateOf(0) }
+            val sigueNota = com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado()
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .clip(entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .verticalScroll(rememberScrollState())
+                    .sigueAlTeclado(
+                        scrollNota, sigueNota, margen = 16.dp,
+                        habilitado = { nativeState.editText?.hasFocus() == true },
+                        objetivoY = {
+                            val et = nativeState.editText
+                            val lay = et?.layout
+                            if (et == null || lay == null) {
+                                null
+                            } else {
+                                val arriba = with(densidadNota) { 12.dp.toPx() }
+                                val linea = lay.getLineForOffset(et.selectionEnd.coerceAtLeast(0))
+                                arriba + lay.getLineBottom(linea).toFloat()
+                            }
+                        }
+                    )
+                    .verticalScroll(scrollNota)
             ) {
                 NativeRichTextEditor(
                     state                   = nativeState,
+                    onAlturaTexto           = { alturaTexto = it },
                     modifier                = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 80.dp)
-                        .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 40.dp),
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 40.dp)
+                        .heightIn(min = with(densidadNota) { alturaTexto.toDp() }),
                     textColor               = MaterialTheme.colorScheme.onSurface,
                     fontSizeSp              = MaterialTheme.typography.bodyLarge.fontSize.value,
                     lineHeightSp            = MaterialTheme.typography.bodyLarge.lineHeight.value,
@@ -701,7 +728,7 @@ internal fun NoteOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = {
@@ -724,7 +751,7 @@ internal fun NoteOptionsSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -761,7 +788,7 @@ internal fun NoteOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

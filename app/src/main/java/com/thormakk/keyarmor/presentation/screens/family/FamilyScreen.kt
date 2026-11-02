@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.family
 
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 import com.thormakk.keyarmor.ui.theme.appButtonColors
@@ -25,6 +27,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -158,6 +164,8 @@ fun FamilyScreen(
     )
 
     val bringButtonIntoView = remember { BringIntoViewRequester() }
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = androidx.compose.foundation.rememberScrollState()
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     LaunchedEffect(imeVisible) {
         if (imeVisible) {
@@ -167,6 +175,7 @@ fun FamilyScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 40.dp)) },
         topBar = {
             TopAppBar(
@@ -191,7 +200,9 @@ fun FamilyScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp)
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(padding)
                 .padding(horizontal = 7.dp, vertical = 8.dp)
         ) {
@@ -214,6 +225,7 @@ fun FamilyScreen(
                         inviteEmail         = uiState.inviteEmail,
                         isLoading           = uiState.isLoading,
                         bringButtonIntoView = bringButtonIntoView,
+                        sigueTeclado        = sigueTeclado,
                         onInviteEmailChange = { inviteError = null; viewModel.onInviteEmailChange(it) },
                         onSendClick         = { showSendConfirmDialog = true },
                         onRevokeClick       = { email -> revokeTarget = email }
@@ -304,7 +316,7 @@ fun FamilyScreen(
                 Button(onClick = {
                     showSendConfirmDialog = false
                     sendInviteGate.launch { viewModel.sendInvite() }
-                }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_continue), fontWeight = FontWeight.SemiBold) }
+                }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_continue), fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
                 TextButton(onClick = { showSendConfirmDialog = false }) {
@@ -412,6 +424,7 @@ private fun AdminPlanCard(
     inviteEmail:         String,
     isLoading:           Boolean,
     bringButtonIntoView: BringIntoViewRequester,
+    sigueTeclado:        com.thormakk.keyarmor.presentation.components.SigueAlTeclado,
     onInviteEmailChange: (String) -> Unit,
     onSendClick:         () -> Unit,
     onRevokeClick:       (String) -> Unit
@@ -491,6 +504,7 @@ private fun AdminPlanCard(
                     enabled  = inviteEmail.isNotBlank() && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .sigueAlTecladoObjetivo(sigueTeclado)
                         .bringIntoViewRequester(bringButtonIntoView), colors = appButtonColors()
                 ) {
                     if (isLoading) {

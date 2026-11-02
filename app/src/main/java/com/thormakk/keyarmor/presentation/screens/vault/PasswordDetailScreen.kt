@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.vault
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.util.ServiceIconProvider
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -233,6 +234,12 @@ fun PasswordDetailScreen(
     val linkedPasskey        by viewModel.linkedPasskey.collectAsStateWithLifecycle()
     val hibpState            by viewModel.hibpState.collectAsStateWithLifecycle()
     val isReadOnly           by viewModel.isReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
 
     val clipCtx      = LocalContext.current
     val clipClear  = LocalClipboardClearManager.current
@@ -501,7 +508,7 @@ fun PasswordDetailScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -552,7 +559,7 @@ fun PasswordDetailScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) { Text(stringResource(R.string.action_remove_attribution)) }
                 },
                 dismissButton = {
@@ -604,14 +611,14 @@ fun PasswordDetailScreen(
                                                      else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        if (!isReadOnly) IconButton(onClick = {
-                            if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
+                        IconButton(onClick = {
+                            if (isReadOnly) showReadOnlyGate = true else if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
                         }) {
-                            Icon(
+                            androidx.compose.foundation.layout.Box(contentAlignment = androidx.compose.ui.Alignment.Center) { Icon(
                                 imageVector        = Icons.Default.Edit,
                                 contentDescription = stringResource(R.string.action_edit),
-                                tint               = MaterialTheme.colorScheme.primary
-                            )
+                                tint               = MaterialTheme.colorScheme.primary.copy(alpha = if (isReadOnly) 0.38f else 1f)
+                            ) }
                         }
                         Box {
                             IconButton(onClick = { showMenu = true }) {

@@ -188,7 +188,7 @@ fun SearchScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {

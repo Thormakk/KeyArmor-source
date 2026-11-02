@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.twofactor
 
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 import com.thormakk.keyarmor.ui.theme.appButtonColors
@@ -30,6 +31,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivoEnfocado
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -163,7 +171,11 @@ fun AddEditTwoFactorScreen(
         else null
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 40.dp)) },
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -222,7 +234,10 @@ fun AddEditTwoFactorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { sigueTeclado.campoEnfocado })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -486,6 +501,45 @@ fun AddEditTwoFactorScreen(
                 }
             }
 
+            Surface(
+                shape    = RoundedCornerShape(8.dp),
+                color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 4.dp)) {
+            Text(
+                text  = stringResource(R.string.twofa_section_recovery_codes),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Box {
+                OutlinedTextField(
+                    value         = uiState.recoveryCodesText,
+                    onValueChange = { autoLockManager?.recordInteraction(); viewModel.onRecoveryCodesChange(it) },
+                    placeholder   = { Text(stringResource(R.string.twofa_recovery_code_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                    keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
+                    minLines      = 3,
+                    modifier      = Modifier.fillMaxWidth().sigueAlTecladoObjetivoEnfocado(sigueTeclado).seguirTextoMultilinea(),
+                    shape         = RoundedCornerShape(8.dp),
+                    colors        = fieldColors().copy(
+                        focusedIndicatorColor   = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedContainerColor   = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    )
+                )
+                Text(
+                    text  = "${uiState.recoveryCodesText.length}/1000",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 12.dp, bottom = 8.dp)
+                )
+            }
+            }
+            }
+
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -637,7 +691,7 @@ internal fun TwoFactorOptionsSheet(
                                 EntryCategory.entries.any { it.label.equals(trimmed, ignoreCase = true) } -> renameError = errCategory
                                 else -> { if (selectedTags.contains(target.name)) { selectedTags = (selectedTags - target.name) + trimmed }; onRenameTag(target.id, trimmed); renameTarget = null; renameError = null }
                             }
-                        }, enabled = renameText.trim().isNotBlank(), shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
+                        }, enabled = renameText.trim().isNotBlank(), shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = { TextButton(onClick = { renameTarget = null; renameError = null }) { Text(stringResource(R.string.action_cancel)) } }
                 )
@@ -650,7 +704,7 @@ internal fun TwoFactorOptionsSheet(
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape    = RoundedCornerShape(8.dp),
                     colors   = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border   = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.action_apply), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             }
 
@@ -660,7 +714,7 @@ internal fun TwoFactorOptionsSheet(
                     containerColor   = MaterialTheme.colorScheme.background,
                     title = { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.plans_feature_tags), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) } },
                     text  = { Text(stringResource(R.string.premium_locked_dialog_message), color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                    confirmButton = { Button(onClick = { showLockedDialog = false; onUpgradeClick() }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.premium_gate_cta)) } },
+                    confirmButton = { Button(onClick = { showLockedDialog = false; onUpgradeClick() }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.premium_gate_cta)) } },
                     dismissButton = { TextButton(onClick = { showLockedDialog = false }) { Text(stringResource(R.string.action_understood), color = MaterialTheme.colorScheme.onBackground) } }
                 )
             }

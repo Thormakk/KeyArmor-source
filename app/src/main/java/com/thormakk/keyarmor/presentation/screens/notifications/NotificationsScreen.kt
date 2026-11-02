@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.notifications
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -719,21 +720,21 @@ private fun NotificationCard(
 @Composable
 private fun notifIconAndColor(type: NotificationType): Pair<androidx.compose.ui.graphics.vector.ImageVector, Color> =
     when (type) {
-        NotificationType.EXPIRED        -> Icons.Default.Lock              to MaterialTheme.colorScheme.error
+        NotificationType.EXPIRED        -> Icons.Default.Lock              to warningColor()
         NotificationType.EXPIRING       -> Icons.Default.Schedule          to MaterialTheme.colorScheme.tertiary
-        NotificationType.BREACH         -> Icons.Default.Warning           to MaterialTheme.colorScheme.error
+        NotificationType.BREACH         -> Icons.Default.Warning           to warningColor()
         NotificationType.HEIR_ACCEPTED  -> Icons.Default.HowToReg          to MaterialTheme.colorScheme.primary
         NotificationType.HEIR_DECLINED  -> Icons.Default.PersonOff         to MaterialTheme.colorScheme.onSurfaceVariant
         NotificationType.REMINDER       -> Icons.Default.NotificationsNone to MaterialTheme.colorScheme.primary
-        NotificationType.HEIR_REMOVED     -> Icons.Default.PersonRemove    to MaterialTheme.colorScheme.error
+        NotificationType.HEIR_REMOVED     -> Icons.Default.PersonRemove    to warningColor()
         NotificationType.HEIR_RESIGNED    -> Icons.AutoMirrored.Filled.ExitToApp      to MaterialTheme.colorScheme.onSurfaceVariant
         NotificationType.VAULT_INHERITED  -> Icons.Default.MoveToInbox    to MaterialTheme.colorScheme.primary
         NotificationType.INHERITANCE_SYNC  -> Icons.Default.CheckCircle   to MaterialTheme.colorScheme.primary
-        NotificationType.INHERITANCE_ERROR -> Icons.Default.ErrorOutline  to MaterialTheme.colorScheme.error
+        NotificationType.INHERITANCE_ERROR -> Icons.Default.ErrorOutline  to warningColor()
         NotificationType.FAMILY_INVITE_SENT     -> Icons.Default.PersonAdd    to MaterialTheme.colorScheme.primary
-        NotificationType.FAMILY_ERROR           -> Icons.Default.ErrorOutline to MaterialTheme.colorScheme.error
+        NotificationType.FAMILY_ERROR           -> Icons.Default.ErrorOutline to warningColor()
         NotificationType.FAMILY_MEMBER_LEFT     -> Icons.AutoMirrored.Filled.ExitToApp    to MaterialTheme.colorScheme.onSurfaceVariant
-        NotificationType.FAMILY_ACCESS_REVOKED  -> Icons.Default.PersonRemove to MaterialTheme.colorScheme.error
+        NotificationType.FAMILY_ACCESS_REVOKED  -> Icons.Default.PersonRemove to warningColor()
         NotificationType.FAMILY_PREMIUM_REVOKED -> Icons.Default.WorkspacePremium to MaterialTheme.colorScheme.tertiary
         NotificationType.FAMILY_MEMBER_DECLINED -> Icons.Default.PersonOff    to MaterialTheme.colorScheme.onSurfaceVariant
         NotificationType.TRAVEL_SUGGESTION      -> Icons.Default.Flight       to MaterialTheme.colorScheme.primary

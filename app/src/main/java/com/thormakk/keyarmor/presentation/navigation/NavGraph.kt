@@ -128,6 +128,7 @@ import com.thormakk.keyarmor.presentation.screens.travelmode.TravelModeScreen
 import com.thormakk.keyarmor.presentation.screens.voicedictation.VoiceDictationScreen
 import com.thormakk.keyarmor.presentation.screens.twofactor.AddEditTwoFactorScreen
 import com.thormakk.keyarmor.presentation.screens.twofactor.TwoFactorDetailScreen
+import com.thormakk.keyarmor.presentation.screens.twofactor.TwoFactorRecoveryCodesScreen
 import com.thormakk.keyarmor.presentation.screens.twofactor.TwoFactorScreen
 import com.thormakk.keyarmor.presentation.screens.vault.AddEditEntryScreen
 import com.thormakk.keyarmor.presentation.screens.vault.PasswordDetailScreen
@@ -1379,11 +1380,19 @@ fun KeyArmorNavGraph(
                 onBack       = { navController.popBackStack() },
                 onEdit       = { id -> navController.navigate(Screen.AddEditTwoFactor.createRoute(id)) },
                 onDeleted    = { navController.popBackStack() },
+                onRecoveryCodes = { id -> navController.navigate(Screen.TwoFactorRecoveryCodes.createRoute(id)) },
                 onPlansClick = { navController.navigate(Screen.Plans.route) },
                 sharedTransitionScope   = sharedTransitionScope,
                 animatedVisibilityScope = this
             )
             }
+        }
+
+        composable(
+            route     = Screen.TwoFactorRecoveryCodes.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) {
+            TwoFactorRecoveryCodesScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Screen.Notifications.route) {

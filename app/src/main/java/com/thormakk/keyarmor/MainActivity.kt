@@ -146,7 +146,9 @@ open class MainActivity : AppCompatActivity() {
                     LocalThemeTrialManager provides themeTrialManager
                 ) {
                     PedirPermisoDeNotificaciones()
-                    KeyArmorNavGraph(autoLockManager = autoLockManager)
+                    com.thormakk.keyarmor.presentation.components.CopyFeedbackHost {
+                        KeyArmorNavGraph(autoLockManager = autoLockManager)
+                    }
                 }
             }
         }

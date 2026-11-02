@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.thormakk.keyarmor.MainActivity
+import com.thormakk.keyarmor.appEntryIntent
 import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.data.language.contextoDelIdioma
 import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
@@ -78,7 +78,7 @@ object NotificationHelper {
 
     fun notifyFamilyInvite(contextInyectado: Context, adminEmail: String, inviteToken: String) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FAMILY_ADMIN_EMAIL,  adminEmail)
             putExtra(EXTRA_FAMILY_INVITE_TOKEN, inviteToken)
@@ -104,7 +104,7 @@ object NotificationHelper {
 
     fun notifyMemberLeft(contextInyectado: Context, memberEmail: String) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
         }
@@ -127,7 +127,7 @@ object NotificationHelper {
 
     fun notifyMemberDeclined(contextInyectado: Context, memberEmail: String) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
         }
@@ -150,7 +150,7 @@ object NotificationHelper {
 
     fun notifyAccessRevoked(contextInyectado: Context, adminEmail: String?) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
         }
@@ -177,7 +177,7 @@ object NotificationHelper {
 
     fun notifyPremiumRevoked(contextInyectado: Context) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
         }
@@ -211,7 +211,7 @@ object NotificationHelper {
 
     fun notifyBreach(contextInyectado: Context, breachedCount: Int, entradas: Int = breachedCount) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
         }
@@ -236,7 +236,7 @@ object NotificationHelper {
 
     fun notifyExpiring(contextInyectado: Context, count: Int, daysAhead: Int) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
         }
@@ -263,7 +263,7 @@ object NotificationHelper {
 
     fun notifyExpiringEntry(contextInyectado: Context, entryId: String, entryTitle: String, daysAhead: Int) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
             putExtra(EXTRA_ENTRY_ID, entryId)
@@ -289,7 +289,7 @@ object NotificationHelper {
 
     fun notifyExpiringReminder(contextInyectado: Context, reminderId: String, reminderName: String, daysAhead: Int) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_FROM_NOTIFICATION, true)
             putExtra(EXTRA_REMINDER_ID, reminderId)
@@ -315,7 +315,7 @@ object NotificationHelper {
 
     fun notifyTravelSuggestion(contextInyectado: Context, dateText: String) {
         val context = contextoDelIdioma(contextInyectado)
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_TRAVEL_SUGGESTION, true)
         }

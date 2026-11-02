@@ -395,7 +395,6 @@ class IdentityDocumentRepository @Inject constructor(
                 holderName     = dec(entity.holderName),
                 notes          = dec(entity.notes),
                 expiryTimestamp  = entity.expiryTimestamp,
-                expiryAlertDays  = entity.expiryAlertDays,
                 category       = EntryCategory.entries.firstOrNull { it.name == entity.category }
                                      ?: EntryCategory.SIN_CATEGORIZAR,
                 tags           = entity.tags.split(",").map { it.trim() }.filter { it.isNotBlank() },
@@ -432,7 +431,6 @@ class IdentityDocumentRepository @Inject constructor(
             holderName     = enc(doc.holderName),
             notes          = enc(doc.notes),
             expiryTimestamp  = doc.expiryTimestamp,
-            expiryAlertDays  = doc.expiryAlertDays,
             category       = doc.category.name,
             tags           = doc.tags.joinToString(","),
             isFavorite     = doc.isFavorite,

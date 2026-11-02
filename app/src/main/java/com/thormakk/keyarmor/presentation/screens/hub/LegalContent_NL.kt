@@ -371,7 +371,8 @@ Zonder uitdrukkelijke voorafgaande schriftelijke toestemming van de auteursrecht
 • De naam, het logo of enig geassocieerd handelsmerk van KeyArmor gebruiken
     """.trimIndent()),
     LegalSection("Broncode", """
-De broncode van KeyArmor is openbaar beschikbaar. Controleer het officiële kanaal van de app voor de repositorylink.
+De broncode van KeyArmor is openbaar beschikbaar.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("Geen garantie", """
 De broncode wordt geleverd "zoals deze is", zonder enige vorm van garantie, expliciet of impliciet. De auteursrechthebbende doet geen uitspraken over de geschiktheid ervan voor een bepaald doel.

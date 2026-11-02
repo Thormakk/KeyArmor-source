@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 package com.thormakk.keyarmor.presentation.screens.vehicle
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ContenidoDelFab
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -159,6 +161,12 @@ fun VehiclesScreen(
     val isFreeUser        by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
     val isSectionReadOnly = isActiveVaultReadOnly || isFreeUser
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = isFreeUser,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults        by viewModel.otherVaults.collectAsStateWithLifecycle()
     val availableTags     by viewModel.availableTags.collectAsStateWithLifecycle()
     val topFilterTags     by viewModel.topFilterTags.collectAsStateWithLifecycle()
@@ -301,18 +309,17 @@ fun VehiclesScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("vehicles", "fab"),
-                onClick = { if (!isSectionReadOnly) onAddVehicle() },
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    if (isSectionReadOnly) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.action_add)
-                )
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .coachMarkAnchor("vehicles", "fab"),
+                    onClick = { if (isSectionReadOnly) showReadOnlyGate = true else onAddVehicle() },
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isSectionReadOnly, contentDescription = stringResource(R.string.action_add))
+                }
+                if (isSectionReadOnly) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -577,9 +584,9 @@ fun VehiclesScreen(
                             Text(stringResource(R.string.vehicles_empty_subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
-                                onClick = { if (!isSectionReadOnly) onAddVehicle() },
+                                onClick = { if (isSectionReadOnly) showReadOnlyGate = true else onAddVehicle() },
                                 colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                                 shape   = RoundedCornerShape(8.dp)
                             ) {
                                 Icon(if (isSectionReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)
@@ -799,7 +806,7 @@ fun VehiclesScreen(
                     onClick = { showArchiveLocked = false; onPlansClick() },
                     shape   = RoundedCornerShape(8.dp),
                     colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {

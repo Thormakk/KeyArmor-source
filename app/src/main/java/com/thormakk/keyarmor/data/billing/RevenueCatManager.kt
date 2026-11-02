@@ -2,6 +2,7 @@ package com.thormakk.keyarmor.data.billing
 
 import android.app.Activity
 import android.util.Log
+import com.revenuecat.purchases.CacheFetchPolicy
 import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Offerings
 import com.revenuecat.purchases.Package
@@ -98,13 +99,28 @@ class RevenueCatManager @Inject constructor(
     fun linkIdentity(sub: String, onResult: (Boolean) -> Unit = {}) {
         Purchases.sharedInstance.logIn(sub, object : LogInCallback {
             override fun onReceived(customerInfo: CustomerInfo, created: Boolean) {
-                syncPlan(customerInfo)
-                onResult(true)
+                refrescarPlanTrasLogin(customerInfo, onResult)
             }
             override fun onError(error: PurchasesError) {
                 onResult(false)
             }
         })
+    }
+
+    private fun refrescarPlanTrasLogin(datosDeLogin: CustomerInfo, onResult: (Boolean) -> Unit) {
+        Purchases.sharedInstance.getCustomerInfo(
+            CacheFetchPolicy.FETCH_CURRENT,
+            object : ReceiveCustomerInfoCallback {
+                override fun onReceived(customerInfo: CustomerInfo) {
+                    syncPlan(customerInfo)
+                    onResult(true)
+                }
+                override fun onError(error: PurchasesError) {
+                    syncPlan(datosDeLogin)
+                    onResult(true)
+                }
+            }
+        )
     }
 
     fun unlinkIdentity(onResult: (Boolean) -> Unit = {}) {

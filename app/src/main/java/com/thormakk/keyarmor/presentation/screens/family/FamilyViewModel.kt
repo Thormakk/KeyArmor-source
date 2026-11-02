@@ -215,6 +215,8 @@ class FamilyViewModel @Inject constructor(
                 val message = when {
                     e.message?.contains("member_already_active_elsewhere") == true ->
                         context.getString(com.thormakk.keyarmor.R.string.family_error_member_already_active_elsewhere)
+                    e.message?.contains("Límite de 4 members", ignoreCase = true) == true ->
+                        context.getString(com.thormakk.keyarmor.R.string.family_error_member_limit)
                     e.message?.contains("revenuecat_unavailable") == true ->
                         context.getString(com.thormakk.keyarmor.R.string.family_error_revenuecat_unavailable)
                     e.message?.contains("family_plan_not_active") == true ->

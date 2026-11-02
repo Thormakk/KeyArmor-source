@@ -37,6 +37,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.data.language.contextoDelIdioma
+import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
 
 class KeyArmorWidget : GlanceAppWidget() {
 
@@ -48,6 +49,9 @@ class KeyArmorWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val localizedContext = contextoDelIdioma(context)
+        if (CalculatorDisguisePrefs.isDisguiseActive(context)) {
+            provideContent { }
+        }
         provideContent {
             CompositionLocalProvider(LocalContext provides localizedContext) {
                 GlanceTheme {

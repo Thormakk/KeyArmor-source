@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.identity
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ContenidoDelFab
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -128,6 +130,12 @@ fun IdentityDocumentsScreen(
     val isFreeUser         by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
     val isSectionReadOnly = isActiveVaultReadOnly || isFreeUser
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = isFreeUser,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val availableTags      by viewModel.availableTags.collectAsStateWithLifecycle()
     val attachmentIds      by viewModel.attachmentIds.collectAsStateWithLifecycle()
     val selectedIds        by viewModel.selectedIds.collectAsStateWithLifecycle()
@@ -257,18 +265,17 @@ fun IdentityDocumentsScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("identity_documents", "fab"),
-                onClick = { if (!isSectionReadOnly) onAddDocument() },
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    if (isSectionReadOnly) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.action_add)
-                )
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .coachMarkAnchor("identity_documents", "fab"),
+                    onClick = { if (isSectionReadOnly) showReadOnlyGate = true else onAddDocument() },
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isSectionReadOnly, contentDescription = stringResource(R.string.action_add))
+                }
+                if (isSectionReadOnly) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -308,12 +315,12 @@ fun IdentityDocumentsScreen(
                     )
                     Spacer(Modifier.height(20.dp))
                     Button(
-                        onClick = { if (!isSectionReadOnly) onAddDocument() },
+                        onClick = { if (isSectionReadOnly) showReadOnlyGate = true else onAddDocument() },
                         colors  = ButtonDefaults.buttonColors(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                         shape  = RoundedCornerShape(8.dp)
                     ) {
                         Icon(if (isSectionReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)
@@ -466,7 +473,7 @@ fun IdentityDocumentsScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta), fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
@@ -566,8 +573,8 @@ private fun IdentityDocumentCard(
     }
     val expiryColor: Color? = when {
         daysUntilExpiry == null -> null
-        daysUntilExpiry < 0    -> Color(0xFFE53935)
-        daysUntilExpiry < 30   -> Color(0xFFE53935)
+        daysUntilExpiry < 0    -> Color(0xFFFFB300)
+        daysUntilExpiry < 30   -> Color(0xFFFFB300)
         daysUntilExpiry < 90   -> Color(0xFFFFB300)
         else                   -> Color(0xFF43A047)
     }

@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.vehicle
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.compose.foundation.BorderStroke
@@ -130,6 +131,13 @@ fun VehicleDetailScreen(
     val uiState    by viewModel.uiState.collectAsStateWithLifecycle()
     val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isReadOnly    by viewModel.isReadOnly.collectAsStateWithLifecycle()
+    val isFreeUserForGate by viewModel.isFreeUser.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = isFreeUserForGate,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults   by viewModel.otherVaults.collectAsStateWithLifecycle()
     val availableTags by viewModel.availableTags.collectAsStateWithLifecycle()
     val clipCtx = LocalContext.current
@@ -256,7 +264,7 @@ fun VehicleDetailScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -316,7 +324,7 @@ fun VehicleDetailScreen(
                     actions = {
                         CaptureAllowedBadge()
                         ThemeTrialBadge()
-                        if (!isReadOnly) IconButton(onClick = { if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id) }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurface) }
+                        IconButton(onClick = { if (isReadOnly) showReadOnlyGate = true else if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id) }) { androidx.compose.foundation.layout.Box(contentAlignment = androidx.compose.ui.Alignment.Center) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isReadOnly) 0.38f else 1f)) } }
                         Box {
                             IconButton(onClick = { showMenu = true }) { Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more_options), tint = MaterialTheme.colorScheme.onSurface) }
                             DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = MaterialTheme.colorScheme.surface) {
@@ -696,7 +704,7 @@ fun VehicleDetailScreen(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.action_remove_attribution)) }
                         },
                         dismissButton = {

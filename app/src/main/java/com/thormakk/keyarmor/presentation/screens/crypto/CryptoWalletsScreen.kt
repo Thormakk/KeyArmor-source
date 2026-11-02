@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.crypto
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
@@ -185,7 +187,7 @@ fun CryptoWalletsScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(stringResource(R.string.crypto_balance_consent_allow), fontWeight = FontWeight.SemiBold)
                 }
@@ -215,6 +217,12 @@ fun CryptoWalletsScreen(
     val availableTags by viewModel.availableTags.collectAsStateWithLifecycle()
     val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults    by viewModel.otherVaults.collectAsStateWithLifecycle()
 
     var showSortMenu     by remember { mutableStateOf(false) }
@@ -375,18 +383,17 @@ fun CryptoWalletsScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("crypto_wallets", "fab"),
-                onClick = { if (!isActiveVaultReadOnly) onAddWallet() },
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    imageVector        = if (isActiveVaultReadOnly) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.action_add)
-                )
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .coachMarkAnchor("crypto_wallets", "fab"),
+                    onClick = { if (isActiveVaultReadOnly) showReadOnlyGate = true else onAddWallet() },
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isActiveVaultReadOnly, contentDescription = stringResource(R.string.action_add))
+                }
+                if (isActiveVaultReadOnly) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -690,12 +697,12 @@ fun CryptoWalletsScreen(
                                     if (!hasQuery && !hasFilters) {
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Button(
-                                            onClick = { if (!isActiveVaultReadOnly) onAddWallet() },
+                                            onClick = { if (isActiveVaultReadOnly) showReadOnlyGate = true else onAddWallet() },
                                             colors  = ButtonDefaults.buttonColors(
                                                 containerColor = Color.Transparent,
                                                 contentColor   = MaterialTheme.colorScheme.primary
                                             ),
-                                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                                             shape  = RoundedCornerShape(8.dp)
                                         ) {
                                             Icon(if (isActiveVaultReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)
@@ -953,7 +960,7 @@ fun CryptoWalletsScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {

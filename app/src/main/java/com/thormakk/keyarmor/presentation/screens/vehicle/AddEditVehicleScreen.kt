@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.vehicle
 
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.activity.compose.BackHandler
@@ -24,6 +25,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivoEnfocado
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -144,7 +152,11 @@ fun AddEditVehicleScreen(
         )
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.fillMaxWidth().windowInsetsTopHeight(WindowInsets.statusBars).background(MaterialTheme.colorScheme.surface))
@@ -171,7 +183,7 @@ fun AddEditVehicleScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 7.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).imePadding().sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { sigueTeclado.campoEnfocado }).verticalScroll(scrollForm).sigueAlTecladoContenido(sigueTeclado).padding(horizontal = 7.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             val mergedCardColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
@@ -371,15 +383,25 @@ fun AddEditVehicleScreen(
                 )
                 EntryGroupDivider(startInset = 0.dp, endInset = 0.dp, cardColor = mergedCardColor, gapColor = mergedGapColor)
 
-                OutlinedTextField(
-                    value         = uiState.notes,
-                    onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
-                    placeholder   = { Text(stringResource(R.string.vehicle_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
-                    modifier      = Modifier.fillMaxWidth().heightIn(min = 80.dp),
-                    shape         = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
-                    colors        = fieldColors(),
-                    minLines      = 3
-                )
+                Box {
+                    OutlinedTextField(
+                        value         = uiState.notes,
+                        onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
+                        placeholder   = { Text(stringResource(R.string.vehicle_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                        modifier      = Modifier.fillMaxWidth().heightIn(min = 80.dp).sigueAlTecladoObjetivoEnfocado(sigueTeclado).seguirTextoMultilinea(),
+                        shape         = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
+                        colors        = fieldColors(),
+                        minLines      = 3
+                    )
+                    Text(
+                        text  = "${uiState.notes.length}/300",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = 8.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -642,7 +664,7 @@ internal fun VehicleOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = {
@@ -662,7 +684,7 @@ internal fun VehicleOptionsSheet(
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape    = RoundedCornerShape(8.dp),
                     colors   = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border   = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(text = stringResource(R.string.action_apply), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }
@@ -685,7 +707,7 @@ internal fun VehicleOptionsSheet(
                             onClick = { showLockedDialog = false; onUpgradeClick() },
                             shape   = RoundedCornerShape(8.dp),
                             colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                            border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

@@ -3,9 +3,11 @@ package com.thormakk.keyarmor.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.alarms.ReminderAlarmScheduler
 import com.thormakk.keyarmor.data.database.dao.ReminderDao
 import com.thormakk.keyarmor.data.database.entity.ReminderEntity
+import com.thormakk.keyarmor.data.language.contextoDelIdioma
 import com.thormakk.keyarmor.di.DefaultDispatcher
 import com.thormakk.keyarmor.domain.model.EntryCategory
 import com.thormakk.keyarmor.domain.model.Reminder
@@ -125,6 +127,34 @@ class ReminderRepository @Inject constructor(
         dao.getExpiringReminderInfos()
             .filter { it.date in now..(now + warnMs) }
             .map { it.id }
+
+    suspend fun cancelAllAlarms() {
+        dao.getActiveWithSchedules().forEach { entity ->
+            ReminderSchedule.listFromJson(entity.alertSchedulesJson)
+                .forEach { scheduler.cancel(context, it.id) }
+        }
+    }
+
+    suspend fun rescheduleAllAlarms() {
+        val key = session.getSecretKey()
+        val defaultName = contextoDelIdioma(context).getString(R.string.reminder_alarm_default_name)
+        dao.getActiveWithSchedules().forEach { entity ->
+            val reminder = key?.let { decrypt(entity, it) }
+            if (reminder != null) {
+                scheduler.scheduleAll(context, reminder)
+            } else {
+                ReminderSchedule.listFromJson(entity.alertSchedulesJson).forEach { schedule ->
+                    scheduler.schedule(
+                        context        = context,
+                        reminderId     = entity.id,
+                        reminderName   = defaultName,
+                        reminderDateMs = entity.date,
+                        schedule       = schedule
+                    )
+                }
+            }
+        }
+    }
 
     suspend fun getIdsWithCustomSchedules(): Set<String> =
         dao.getActiveWithSchedules().map { it.id }.toSet()

@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.identity
 
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import android.graphics.BitmapFactory
@@ -30,6 +31,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivoEnfocado
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -276,7 +284,11 @@ fun AddEditIdentityDocumentScreen(
         ) { DatePicker(state = pickerState) }
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.fillMaxWidth().windowInsetsTopHeight(WindowInsets.statusBars).background(MaterialTheme.colorScheme.surface))
@@ -321,7 +333,10 @@ fun AddEditIdentityDocumentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { sigueTeclado.campoEnfocado })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -468,15 +483,25 @@ fun AddEditIdentityDocumentScreen(
                     gapColor   = mergedGapColor
                 )
 
-                OutlinedTextField(
-                    value         = uiState.notes,
-                    onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
-                    placeholder   = { Text(stringResource(R.string.identity_doc_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
-                    modifier      = Modifier.fillMaxWidth().heightIn(min = 80.dp),
-                    shape         = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
-                    colors        = fieldColors(),
-                    minLines      = 3
-                )
+                Box {
+                    OutlinedTextField(
+                        value         = uiState.notes,
+                        onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
+                        placeholder   = { Text(stringResource(R.string.identity_doc_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                        modifier      = Modifier.fillMaxWidth().heightIn(min = 80.dp).sigueAlTecladoObjetivoEnfocado(sigueTeclado).seguirTextoMultilinea(),
+                        shape         = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
+                        colors        = fieldColors(),
+                        minLines      = 3
+                    )
+                    Text(
+                        text  = "${uiState.notes.length}/300",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = 8.dp)
+                    )
+                }
             }
 
             Text(
@@ -660,7 +685,7 @@ private fun OcrResultDialog(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) { Text(stringResource(R.string.action_apply)) }
         },
         dismissButton = {
@@ -856,7 +881,7 @@ internal fun IdentityOptionsSheet(
                                 EntryCategory.entries.any { it.label.equals(trimmed, ignoreCase = true) } -> renameError = errCategory
                                 else -> { if (selectedTags.contains(target.name)) { selectedTags = (selectedTags - target.name) + trimmed }; onRenameTag(target.id, trimmed); renameTarget = null; renameError = null }
                             }
-                        }, enabled = renameText.trim().isNotBlank(), shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
+                        }, enabled = renameText.trim().isNotBlank(), shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = { TextButton(onClick = { renameTarget = null; renameError = null }) { Text(stringResource(R.string.action_cancel)) } }
                 )
@@ -869,7 +894,7 @@ internal fun IdentityOptionsSheet(
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape    = RoundedCornerShape(8.dp),
                     colors   = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border   = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.action_apply), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             }
 
@@ -879,7 +904,7 @@ internal fun IdentityOptionsSheet(
                     containerColor   = MaterialTheme.colorScheme.background,
                     title = { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.plans_feature_tags), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) } },
                     text  = { Text(stringResource(R.string.premium_locked_dialog_message), color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                    confirmButton = { Button(onClick = { showLockedDialog = false; onUpgradeClick() }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.premium_gate_cta)) } },
+                    confirmButton = { Button(onClick = { showLockedDialog = false; onUpgradeClick() }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.premium_gate_cta)) } },
                     dismissButton = { TextButton(onClick = { showLockedDialog = false }) { Text(stringResource(R.string.action_understood), color = MaterialTheme.colorScheme.onBackground) } }
                 )
             }

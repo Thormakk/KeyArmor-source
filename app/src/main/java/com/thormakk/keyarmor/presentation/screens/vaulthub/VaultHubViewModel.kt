@@ -539,7 +539,8 @@ class VaultHubViewModel @Inject constructor(
             if (ownerAsHeir != null) {
                 importInheritedVaultFromPush(ownerAsHeir, "", marcarPollAlConcluir = true)
             } else {
-                val idToken   = account.idToken ?: return@launch
+                val idToken   = account.idToken.orEmpty()
+                if (idToken.isEmpty()) return@launch
                 val heirEmail = account.email.orEmpty()
                 if (heirEmail.isEmpty()) return@launch
                 val activeInfo = try {

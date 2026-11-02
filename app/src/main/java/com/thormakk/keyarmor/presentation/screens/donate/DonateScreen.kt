@@ -313,9 +313,7 @@ private fun CryptoRow(
             IconButton(onClick = {
                 val manager = context.getSystemService(ClipboardManager::class.java)
                 manager?.setPrimaryClip(ClipData.newPlainText(option.coin, option.address))
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                    scope.launch { snackbarHostState.showSnackbar(copied) }
-                }
+                com.thormakk.keyarmor.presentation.components.CopyFeedback.show(context)
             }) {
                 Icon(
                     imageVector = Icons.Default.ContentCopy,

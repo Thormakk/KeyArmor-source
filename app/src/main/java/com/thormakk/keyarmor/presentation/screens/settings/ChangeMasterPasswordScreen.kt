@@ -1,6 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.settings
 
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -16,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -108,6 +114,8 @@ fun ChangeMasterPasswordScreen(
         confirmPassword == newPassword
 
     val bringButtonIntoView = remember { BringIntoViewRequester() }
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
     val bringCurrentFieldIntoView = remember { BringIntoViewRequester() }
     val imeVisible     = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val showStrengthBar = newPassword.isNotEmpty()
@@ -126,6 +134,7 @@ fun ChangeMasterPasswordScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(
@@ -171,7 +180,9 @@ fun ChangeMasterPasswordScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .imePadding()
-                    .verticalScroll(rememberScrollState())
+                    .sigueAlTeclado(scrollForm, sigueTeclado)
+                    .verticalScroll(scrollForm)
+                    .sigueAlTecladoContenido(sigueTeclado)
                     .padding(horizontal = 24.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -256,13 +267,14 @@ fun ChangeMasterPasswordScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
+                        .sigueAlTecladoObjetivo(sigueTeclado)
                         .bringIntoViewRequester(bringButtonIntoView),
                     shape  = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.change_master_password_cta),

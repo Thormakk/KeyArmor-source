@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 package com.thormakk.keyarmor.presentation.screens.passkeys
 
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -248,7 +249,7 @@ fun PasskeyEditScreen(
                     onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
                     placeholder   = { Text(stringResource(R.string.passkey_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     minLines      = 3,
-                    modifier      = Modifier.fillMaxWidth(),
+                    modifier      = Modifier.fillMaxWidth().seguirTextoMultilinea(),
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction      = ImeAction.Default

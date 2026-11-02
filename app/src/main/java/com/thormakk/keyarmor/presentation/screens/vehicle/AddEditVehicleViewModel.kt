@@ -41,9 +41,6 @@ data class AddEditVehicleUiState(
     val policyNumber:             String        = "",
     val driverLicenseExpiryDate:  String        = "",
     val notes:                    String        = "",
-    val inspectionAlertDays:      Int           = 30,
-    val insuranceAlertDays:       Int           = 30,
-    val driverLicenseAlertDays:   Int           = 30,
     val category:                 EntryCategory = EntryCategory.SIN_CATEGORIZAR,
     val tags:                     List<String>  = emptyList(),
     val isFavorite:               Boolean       = false,
@@ -117,9 +114,6 @@ class AddEditVehicleViewModel @Inject constructor(
                         policyNumber            = src.policyNumber,
                         driverLicenseExpiryDate = src.driverLicenseExpiryDate,
                         notes                   = src.notes,
-                        inspectionAlertDays     = src.inspectionAlertDays,
-                        insuranceAlertDays      = src.insuranceAlertDays,
-                        driverLicenseAlertDays  = src.driverLicenseAlertDays,
                         category                = src.category,
                         tags                    = src.tags,
                         isFavorite              = false,
@@ -147,9 +141,6 @@ class AddEditVehicleViewModel @Inject constructor(
                                 policyNumber            = v.policyNumber,
                                 driverLicenseExpiryDate = v.driverLicenseExpiryDate,
                                 notes                   = v.notes,
-                                inspectionAlertDays     = v.inspectionAlertDays,
-                                insuranceAlertDays      = v.insuranceAlertDays,
-                                driverLicenseAlertDays  = v.driverLicenseAlertDays,
                                 category                = v.category,
                                 tags                    = v.tags,
                                 isFavorite              = v.isFavorite,
@@ -178,7 +169,7 @@ class AddEditVehicleViewModel @Inject constructor(
     fun onInsuranceCompanyChange(v: String)        { _uiState.value = _uiState.value.copy(insuranceCompany = v) }
     fun onPolicyNumberChange(v: String)            { _uiState.value = _uiState.value.copy(policyNumber = v) }
     fun onDriverLicenseExpiryDateChange(v: String) { _uiState.value = _uiState.value.copy(driverLicenseExpiryDate = v) }
-    fun onNotesChange(v: String)                   { _uiState.value = _uiState.value.copy(notes = v) }
+    fun onNotesChange(v: String)                   { if (v.length <= 300) _uiState.value = _uiState.value.copy(notes = v) }
     fun toggleFavorite()                           { _uiState.value = _uiState.value.copy(isFavorite = !_uiState.value.isFavorite) }
     fun onTravelSafeChange(v: Boolean)             { _uiState.value = _uiState.value.copy(isTravelSafe = v) }
     fun saveTravelSafeOnly(v: Boolean) {
@@ -306,11 +297,8 @@ class AddEditVehicleViewModel @Inject constructor(
             driverLicenseExpiryDate      = s.driverLicenseExpiryDate,
             notes                        = s.notes,
             inspectionExpiryTimestamp    = parseDate(s.inspectionExpiryDate),
-            inspectionAlertDays          = s.inspectionAlertDays,
             insuranceExpiryTimestamp     = parseDate(s.insuranceExpiryDate),
-            insuranceAlertDays           = s.insuranceAlertDays,
             driverLicenseExpiryTimestamp = parseDate(s.driverLicenseExpiryDate),
-            driverLicenseAlertDays       = s.driverLicenseAlertDays,
             category                     = s.category,
             tags                         = s.tags,
             isFavorite                   = s.isFavorite,

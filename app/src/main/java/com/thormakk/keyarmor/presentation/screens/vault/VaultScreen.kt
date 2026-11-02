@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.vault
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import java.util.Locale
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
@@ -233,6 +235,12 @@ fun VaultScreen(
     val uiState           by viewModel.uiState.collectAsStateWithLifecycle()
     val isFreeUser        by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val availableTags   by viewModel.availableTags.collectAsStateWithLifecycle()
     val pendingDeleteId by viewModel.pendingDeleteId.collectAsStateWithLifecycle()
 
@@ -449,18 +457,17 @@ fun VaultScreen(
             val navBarHeight = WindowInsets.navigationBars
                 .asPaddingValues()
                 .calculateBottomPadding()
-            FloatingActionButton(
-                onClick        = { if (!isActiveVaultReadOnly) onAddEntry() },
-                modifier       = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("vault", "fab"),
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    imageVector        = if (isActiveVaultReadOnly) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = if (isActiveVaultReadOnly) null else stringResource(R.string.vault_entry_new)
-                )
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    onClick        = { if (isActiveVaultReadOnly) showReadOnlyGate = true else onAddEntry() },
+                    modifier       = Modifier
+                        .coachMarkAnchor("vault", "fab"),
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isActiveVaultReadOnly, contentDescription = if (isActiveVaultReadOnly) null else stringResource(R.string.vault_entry_new))
+                }
+                if (isActiveVaultReadOnly) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         containerColor      = MaterialTheme.colorScheme.background,
@@ -987,7 +994,7 @@ fun VaultScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.action_remove_attribution)) }
             },
             dismissButton = {
@@ -1023,7 +1030,7 @@ fun VaultScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.action_keep_vault), fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
@@ -1225,7 +1232,7 @@ fun VaultScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -1789,7 +1796,7 @@ internal fun FiltersSheet(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                         },
                         dismissButton = {
@@ -1822,7 +1829,7 @@ internal fun FiltersSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -1861,7 +1868,7 @@ internal fun FiltersSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {
@@ -2157,7 +2164,7 @@ private fun StrengthFilterSheet(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text       = stringResource(R.string.action_apply),
@@ -2799,7 +2806,7 @@ private fun EmptyVault(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                     shape  = RoundedCornerShape(8.dp)
                 ) {
                     Icon(if (isReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)

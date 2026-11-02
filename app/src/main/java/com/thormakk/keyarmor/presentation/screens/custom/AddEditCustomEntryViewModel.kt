@@ -231,6 +231,7 @@ class AddEditCustomEntryViewModel @Inject constructor(
     }
 
     fun addField(type: CustomFieldType, defaultLabel: String) {
+        if (_uiState.value.fields.size >= MAX_FIELDS) return
         val new = CustomField(
             id    = UUID.randomUUID().toString(),
             label = defaultLabel,
@@ -405,5 +406,8 @@ class AddEditCustomEntryViewModel @Inject constructor(
         viewModelScope.launch { repository.copyEntriesToVault(setOf(entryId), targetVaultId, inheritedFrom) }
     }
 
-    companion object { private const val MAX_PINNED = 3 }
+    companion object {
+        private const val MAX_PINNED = 3
+        const val MAX_FIELDS = 20
+    }
 }

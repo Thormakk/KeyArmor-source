@@ -371,7 +371,8 @@ Utan uttryckligt föregående skriftligt tillstånd från upphovsrättsinnehavar
 • Använda KeyArmors namn, logotyp eller tillhörande varumärken
     """.trimIndent()),
     LegalSection("Källkod", """
-KeyArmors källkod är offentligt tillgänglig. Kontrollera appens officiella kanal för repositorylänken.
+KeyArmors källkod är offentligt tillgänglig.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("Ingen garanti", """
 Källkoden tillhandahålls "i befintligt skick", utan någon form av garanti, uttrycklig eller underförstådd. Upphovsrättsinnehavaren gör inga utfästelser om dess lämplighet för något specifikt syfte.

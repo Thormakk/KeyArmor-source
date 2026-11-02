@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.bank
 
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.compose.foundation.BorderStroke
@@ -26,6 +27,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivoEnfocado
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -154,7 +162,11 @@ fun AddEditBankAccountScreen(
         )
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(
@@ -203,7 +215,10 @@ fun AddEditBankAccountScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { sigueTeclado.campoEnfocado })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -356,7 +371,7 @@ fun AddEditBankAccountScreen(
                     onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
                     placeholder   = { Text(stringResource(R.string.bank_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     minLines      = 3,
-                    modifier      = Modifier.fillMaxWidth(),
+                    modifier      = Modifier.fillMaxWidth().sigueAlTecladoObjetivoEnfocado(sigueTeclado).seguirTextoMultilinea(),
                     shape         = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
                     colors        = fieldColors()
                 )
@@ -765,7 +780,7 @@ internal fun BankOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = {
@@ -788,7 +803,7 @@ internal fun BankOptionsSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -825,7 +840,7 @@ internal fun BankOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

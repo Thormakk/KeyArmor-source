@@ -102,6 +102,20 @@ class NoteNumberLineSpan(val level: Int = 0, var number: Int = 1) : LeadingMargi
 class NoteEditText(context: Context) : AppCompatEditText(context) {
     var onSelectionChange: ((Int, Int) -> Unit)? = null
 
+    var onAlturaTexto: ((Int) -> Unit)? = null
+    private var ultimaAlturaTexto = -1
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        val lay = layout ?: return
+        val h = lay.height + compoundPaddingTop + compoundPaddingBottom
+        if (h != ultimaAlturaTexto) {
+            ultimaAlturaTexto = h
+            val cb = onAlturaTexto ?: return
+            post { cb(h) }
+        }
+    }
+
     override fun onSelectionChanged(selStart: Int, selEnd: Int) {
         super.onSelectionChanged(selStart, selEnd)
         val ed = text
@@ -1017,6 +1031,7 @@ fun NativeRichTextEditor(
     fontSizeSp: Float,
     selectionHighlightColor: Color,
     lineHeightSp: Float = fontSizeSp * 1.5f,
+    onAlturaTexto: ((Int) -> Unit)? = null,
 ) {
     val textColorArgb = textColor.toArgb()
     val highlightArgb = selectionHighlightColor.toArgb()
@@ -1044,6 +1059,7 @@ fun NativeRichTextEditor(
                 setLineSpacing(0f, lineSpacingMultiplier)
                 highlightColor = highlightArgb
                 onSelectionChange = { s, e -> state.refreshActiveStates(s, e) }
+                this.onAlturaTexto = onAlturaTexto
                 state.attach(this)
             }
         },
@@ -1052,6 +1068,7 @@ fun NativeRichTextEditor(
             et.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, fontSizeSp)
             et.setLineSpacing(0f, lineSpacingMultiplier)
             if (et.highlightColor != highlightArgb) et.highlightColor = highlightArgb
+            et.onAlturaTexto = onAlturaTexto
         }
     )
 }

@@ -68,7 +68,7 @@ fun ThemeTrialBadge() {
                         manager.endTrial()
                         showConfirm = false
                     },
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary
                     )

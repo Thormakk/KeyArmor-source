@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.dp
 import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.presentation.components.dangerColor
@@ -141,11 +142,20 @@ fun SelectionTopBar(
         },
         actions = {
             if (!isReadOnly) {
-                IconButton(onClick = { if (isArchiveLocked) onArchiveLocked() else onArchive() }) {
-                    Icon(
-                        imageVector        = if (isArchiveLocked) Icons.Default.Lock else Icons.Default.Archive,
-                        contentDescription = stringResource(R.string.bulk_archive)
-                    )
+                androidx.compose.foundation.layout.Box {
+                    IconButton(onClick = { if (isArchiveLocked) onArchiveLocked() else onArchive() }) {
+                        Icon(
+                            imageVector        = Icons.Default.Archive,
+                            contentDescription = stringResource(R.string.bulk_archive)
+                        )
+                    }
+                    if (isArchiveLocked) {
+                        com.thormakk.keyarmor.presentation.components.LockBadge(
+                            androidx.compose.ui.Modifier
+                                .align(androidx.compose.ui.Alignment.TopEnd)
+                                .offset(x = (-7).dp, y = 8.dp)
+                        )
+                    }
                 }
             }
             IconButton(onClick = { showDeleteConfirm = true }) {

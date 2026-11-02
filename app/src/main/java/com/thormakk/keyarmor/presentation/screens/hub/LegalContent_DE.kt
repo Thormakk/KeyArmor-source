@@ -371,7 +371,8 @@ Ohne ausdrückliche vorherige schriftliche Genehmigung des Urheberrechtsinhabers
 • Den Namen, das Logo oder zugehörige Marken von KeyArmor verwenden
     """.trimIndent()),
     LegalSection("Quellcode", """
-Der Quellcode von KeyArmor ist öffentlich verfügbar. Prüfen Sie den offiziellen Kanal der App für den Repository-Link.
+Der Quellcode von KeyArmor ist öffentlich verfügbar.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("Keine Gewährleistung", """
 Der Quellcode wird „wie besehen“ bereitgestellt, ohne jegliche Gewährleistung, weder ausdrücklich noch stillschweigend. Der Urheberrechtsinhaber macht keine Zusicherungen bezüglich seiner Eignung für einen bestimmten Zweck.

@@ -14,7 +14,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -87,21 +86,21 @@ fun LoginScreen(
     val scrollState = rememberScrollState()
     val density = androidx.compose.ui.platform.LocalDensity.current
     val rootHeightPx = androidx.compose.ui.platform.LocalView.current.rootView.height
-    val imeBottom = WindowInsets.ime.getBottom(density)
-    var pillBottomPx by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(imeBottom, pillBottomPx) {
-        if (imeBottom > 0 && pillBottomPx > 0f) {
-            val keyboardTop = rootHeightPx - imeBottom
-            val overlap = pillBottomPx + with(density) { 20.dp.toPx() } - keyboardTop
-            if (overlap > 1f) scrollState.animateScrollBy(overlap)
-        }
-    }
+    val imeInsets = WindowInsets.ime
+    var pillRestBottomPx by remember { mutableFloatStateOf(0f) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .imePadding()
+            .graphicsLayer {
+                val imeBottom = imeInsets.getBottom(density)
+                if (imeBottom > 0 && pillRestBottomPx > 0f) {
+                    val keyboardTop = rootHeightPx - imeBottom
+                    val shift = pillRestBottomPx + 20.dp.toPx() - keyboardTop
+                    translationY = -shift.coerceAtLeast(0f)
+                }
+            }
             .verticalScroll(scrollState)
             .padding(horizontal = 7.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -199,7 +198,11 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .onGloballyPositioned { pillBottomPx = it.positionInWindow().y + it.size.height }
+                .onGloballyPositioned {
+                    if (imeInsets.getBottom(density) == 0 || pillRestBottomPx == 0f) {
+                        pillRestBottomPx = it.positionInWindow().y + it.size.height
+                    }
+                }
         ) {
             TextButton(
                 onClick = { focusManager.clearFocus(); viewModel.login() },

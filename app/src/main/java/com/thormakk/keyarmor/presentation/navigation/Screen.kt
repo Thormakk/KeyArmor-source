@@ -166,6 +166,9 @@ sealed class Screen(val route: String) {
     object CustomEntryDetail  : Screen("custom_entry_detail/{id}") {
         fun createRoute(id: String): String = "custom_entry_detail/$id"
     }
+    object TwoFactorRecoveryCodes : Screen("two_factor_recovery/{id}") {
+        fun createRoute(id: String): String = "two_factor_recovery/$id"
+    }
     object TwoFactorDetail    : Screen("two_factor_detail/{id}") {
         fun createRoute(id: String): String = "two_factor_detail/$id"
     }

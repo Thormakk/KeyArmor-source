@@ -7,7 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.thormakk.keyarmor.MainActivity
+import com.thormakk.keyarmor.appEntryIntent
+import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
 import com.thormakk.keyarmor.domain.model.Reminder
 import com.thormakk.keyarmor.domain.model.ReminderSchedule
 import java.util.Calendar
@@ -50,6 +51,8 @@ class ReminderAlarmScheduler @Inject constructor() {
         reminderDateMs: Long,
         schedule: ReminderSchedule
     ) {
+        if (CalculatorDisguisePrefs.isDisguiseActive(context)) return
+
         val triggerMs = nextTriggerMs(schedule, reminderDateMs) ?: return
         if (triggerMs <= System.currentTimeMillis()) return
 
@@ -106,7 +109,7 @@ class ReminderAlarmScheduler @Inject constructor() {
     ): PendingIntent = PendingIntent.getActivity(
         context,
         scheduleId.hashCode(),
-        Intent(context, MainActivity::class.java).apply {
+        appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(EXTRA_REMINDER_ID, reminderId)
         },

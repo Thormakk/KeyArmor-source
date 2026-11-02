@@ -1,5 +1,6 @@
 package com.thormakk.keyarmor.presentation.screens.family
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -80,7 +81,7 @@ fun FamilyMemberConsentScreen(
                     Icon(
                         imageVector        = Icons.Outlined.Cancel,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.error,
+                        tint               = warningColor(),
                         modifier           = Modifier.size(64.dp)
                     )
                     Text(

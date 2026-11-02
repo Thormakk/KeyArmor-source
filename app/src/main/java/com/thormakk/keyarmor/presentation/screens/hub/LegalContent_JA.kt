@@ -372,7 +372,8 @@ KeyArmorのソースコードは、セキュリティ研究者やユーザーが
 • KeyArmorの名前、ロゴ、または関連する商標を使用すること
     """.trimIndent()),
     LegalSection("ソースコード", """
-KeyArmorのソースコードは公開されています。リポジトリのリンクについては、アプリの公式チャンネルを確認してください。
+KeyArmorのソースコードは公開されています。
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("無保証", """
 ソースコードは「現状のまま」提供され、明示または黙示を問わずいかなる種類の保証もありません。著作権者は特定の目的への適合性について一切の表明を行いません。

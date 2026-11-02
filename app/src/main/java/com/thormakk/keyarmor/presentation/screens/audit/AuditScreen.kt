@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 package com.thormakk.keyarmor.presentation.screens.audit
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.compose.animation.AnimatedVisibility
@@ -946,7 +947,7 @@ private fun HibpCheckCard(
                         onClick  = onCheck,
                         modifier = Modifier.fillMaxWidth(),
                         colors   = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                        border   = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                        border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(Icons.Default.Shield, null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
@@ -1047,13 +1048,13 @@ private fun HibpCheckCard(
                         Icon(
                             imageVector        = Icons.Default.WifiOff,
                             contentDescription = null,
-                            tint               = MaterialTheme.colorScheme.error,
+                            tint               = warningColor(),
                             modifier           = Modifier.size(20.dp)
                         )
                         Text(
                             text     = stringResource(R.string.hibp_network_error),
                             style    = MaterialTheme.typography.bodySmall,
-                            color    = MaterialTheme.colorScheme.error,
+                            color    = warningColor(),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -1167,7 +1168,7 @@ private fun PremiumLockedScreen(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border   = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text       = stringResource(R.string.premium_gate_cta),

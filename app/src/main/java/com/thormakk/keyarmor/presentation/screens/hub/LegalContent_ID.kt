@@ -372,7 +372,8 @@ Tanpa izin tertulis sebelumnya yang jelas dari pemegang hak cipta, Anda tidak bo
 • Menggunakan nama, logo, atau merek dagang terkait KeyArmor
     """.trimIndent()),
     LegalSection("Kode Sumber", """
-Kode sumber KeyArmor tersedia secara publik. Periksa saluran resmi aplikasi untuk tautan repositori.
+Kode sumber KeyArmor tersedia secara publik.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("Tanpa Jaminan", """
 Kode sumber disediakan "sebagaimana adanya", tanpa jaminan dalam bentuk apa pun, baik tersurat maupun tersirat. Pemegang hak cipta tidak membuat pernyataan mengenai kesesuaiannya untuk tujuan tertentu.

@@ -271,7 +271,7 @@ fun AddEditCreditCardScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text(
                             stringResource(R.string.action_save)
@@ -1045,7 +1045,7 @@ internal fun CreditCardOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = {
@@ -1068,7 +1068,7 @@ internal fun CreditCardOptionsSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -1105,7 +1105,7 @@ internal fun CreditCardOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

@@ -1,4 +1,3 @@
-@file:OptIn(kotlinx.coroutines.FlowPreview::class)
 package com.thormakk.keyarmor.presentation.screens.auth
 
 import com.thormakk.keyarmor.ui.theme.appFilledContent
@@ -77,8 +76,6 @@ import com.thormakk.keyarmor.ui.theme.PasswordStrengthFair
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthGood
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthStrong
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthWeak
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 
 @Composable
 fun RegisterScreen(
@@ -96,10 +93,14 @@ fun RegisterScreen(
     val density = LocalDensity.current
     val imeBottomPx by rememberUpdatedState(WindowInsets.ime.getBottom(density))
     LaunchedEffect(Unit) {
-        snapshotFlow { imeBottomPx }
-            .debounce(350L)
-            .filter { it > 0 }
-            .collect { scrollState.animateScrollTo(scrollState.maxValue) }
+        var lastIme = 0
+        var lastImeChange = 0L
+        snapshotFlow { imeBottomPx to scrollState.maxValue }
+            .collect { (ime, max) ->
+                val now = System.nanoTime()
+                if (ime != lastIme) { lastIme = ime; lastImeChange = now }
+                if (ime > 0 && now - lastImeChange < 150_000_000L) scrollState.scrollTo(max)
+            }
     }
 
     LaunchedEffect(uiState.success) {

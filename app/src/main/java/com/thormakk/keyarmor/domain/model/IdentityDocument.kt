@@ -13,7 +13,6 @@ data class IdentityDocument(
     val holderName:     String        = "",
     val notes:          String        = "",
     val expiryTimestamp:  Long?         = null,
-    val expiryAlertDays:  Int           = 90,
     val category:       EntryCategory = EntryCategory.SIN_CATEGORIZAR,
     val tags:           List<String>  = emptyList(),
     val isFavorite:     Boolean       = false,

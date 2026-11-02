@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.vault
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.presentation.util.ServiceIconProvider
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -24,6 +25,14 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -247,7 +256,7 @@ fun AddEditEntryScreen(
                 Icon(
                     imageVector        = Icons.Default.Warning,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.error,
+                    tint               = warningColor(),
                     modifier           = Modifier.size(28.dp)
                 )
             },
@@ -284,7 +293,12 @@ fun AddEditEntryScreen(
         )
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
+    var notaEnfocada by remember { mutableStateOf(false) }
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 40.dp)) },
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -449,7 +463,7 @@ fun AddEditEntryScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text(
                             text  = stringResource(R.string.premium_gate_cta)
@@ -480,7 +494,9 @@ fun AddEditEntryScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { notaEnfocada })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -961,7 +977,7 @@ fun AddEditEntryScreen(
                 gapColor   = mergedGapColor
             )
 
-            Box {
+            Box(modifier = Modifier.sigueAlTecladoObjetivo(sigueTeclado).onFocusChanged { notaEnfocada = it.hasFocus }) {
                     OutlinedTextField(
                         value         = uiState.notes,
                         onValueChange = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
@@ -1302,7 +1318,7 @@ internal fun EntryOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = {
@@ -1325,7 +1341,7 @@ internal fun EntryOptionsSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -1504,7 +1520,7 @@ internal fun EntryOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

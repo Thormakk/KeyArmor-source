@@ -29,6 +29,7 @@ class CalculatorDisguisePrefs @Inject constructor(
 
         private const val LAUNCHER_DEFAULT    = "com.thormakk.keyarmor.LauncherDefaultActivity"
         private const val LAUNCHER_CALCULATOR = "com.thormakk.keyarmor.LauncherCalculatorActivity"
+        private const val WIDGET_RECEIVER    = "com.thormakk.keyarmor.widget.KeyArmorWidgetReceiver"
 
         fun isDisguiseActive(context: Context): Boolean =
             context.getSharedPreferences("calculator_disguise_prefs", Context.MODE_PRIVATE)
@@ -91,6 +92,16 @@ class CalculatorDisguisePrefs @Inject constructor(
         pm.setComponentEnabledSetting(
             ComponentName(context.packageName, LAUNCHER_DEFAULT),
             oldState,
+            PackageManager.DONT_KILL_APP
+        )
+        setWidgetOffered(!enabled)
+    }
+
+    fun setWidgetOffered(offered: Boolean) {
+        context.packageManager.setComponentEnabledSetting(
+            ComponentName(context.packageName, WIDGET_RECEIVER),
+            if (offered) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            else         PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP
         )
     }

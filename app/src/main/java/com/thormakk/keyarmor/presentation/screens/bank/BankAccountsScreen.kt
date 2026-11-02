@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.bank
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ContenidoDelFab
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -191,6 +193,12 @@ fun BankAccountsScreen(
     val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
     val isSectionReadOnly = isActiveVaultReadOnly || isFreeUser
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = isFreeUser,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults    by viewModel.otherVaults.collectAsStateWithLifecycle()
 
     var showSortMenu     by remember { mutableStateOf(false) }
@@ -324,18 +332,17 @@ fun BankAccountsScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("bank_accounts", "fab"),
-                onClick = { if (!isSectionReadOnly) onAddAccount() },
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    imageVector        = if (isSectionReadOnly) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.action_add)
-                )
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .coachMarkAnchor("bank_accounts", "fab"),
+                    onClick = { if (isSectionReadOnly) showReadOnlyGate = true else onAddAccount() },
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isSectionReadOnly, contentDescription = stringResource(R.string.action_add))
+                }
+                if (isSectionReadOnly) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -583,12 +590,12 @@ fun BankAccountsScreen(
                         if (!hasQuery && !hasFilters) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
-                                onClick = { if (!isSectionReadOnly) onAddAccount() },
+                                onClick = { if (isSectionReadOnly) showReadOnlyGate = true else onAddAccount() },
                                 colors  = ButtonDefaults.buttonColors(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                                 shape  = RoundedCornerShape(8.dp)
                             ) {
                                 Icon(if (isSectionReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)
@@ -817,7 +824,7 @@ fun BankAccountsScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {

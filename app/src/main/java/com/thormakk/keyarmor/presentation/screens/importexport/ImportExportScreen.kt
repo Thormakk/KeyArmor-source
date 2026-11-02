@@ -1,6 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.importexport
 
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -304,7 +308,7 @@ fun ImportExportScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text(stringResource(R.string.ie_import_confirm), fontWeight = FontWeight.SemiBold)
                     }
@@ -423,6 +427,7 @@ fun ImportExportScreen(
         }
 
         val scrollState = key(selectedTab) { rememberScrollState() }
+        val sigueTeclado = rememberSigueAlTeclado()
 
         val imeVisible = WindowInsets.isImeVisible
 
@@ -478,7 +483,13 @@ fun ImportExportScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .imePadding()
+                    .sigueAlTeclado(
+                        scrollState, sigueTeclado,
+                        alFondo = { selectedTab == 1 && uiState.importSource == ImportSource.KEYARMOR },
+                        habilitado = { selectedTab == 1 || selectedExportOption == ExportOption.JSON },
+                    )
                     .verticalScroll(scrollState)
+                    .sigueAlTecladoContenido(sigueTeclado)
                     .padding(horizontal = 7.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
@@ -658,7 +669,7 @@ fun ImportExportScreen(
                         ExportSubmitButton(
                             enabled  = uiState.canExport,
                             onClick  = viewModel::onExportClick,
-                            modifier = Modifier.bringIntoViewRequester(bringExportButtonIntoView)
+                            modifier = Modifier.sigueAlTecladoObjetivo(sigueTeclado).bringIntoViewRequester(bringExportButtonIntoView)
                         )
                     }
 

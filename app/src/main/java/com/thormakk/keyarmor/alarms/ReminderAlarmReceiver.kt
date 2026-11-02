@@ -11,7 +11,7 @@ import android.media.AudioAttributes
 import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.thormakk.keyarmor.MainActivity
+import com.thormakk.keyarmor.appEntryIntent
 import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.data.language.contextoDelIdioma
 import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
@@ -70,7 +70,7 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
 
         ensureChannel(context)
 
-        val openIntent = Intent(context, MainActivity::class.java).apply {
+        val openIntent = appEntryIntent(context).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra(NotificationHelper.EXTRA_REMINDER_ID, reminderId)
         }

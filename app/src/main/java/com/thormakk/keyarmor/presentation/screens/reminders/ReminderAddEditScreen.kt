@@ -225,7 +225,7 @@ fun ReminderAddEditScreen(
                 Button(onClick = {
                     viewModel.onTimeChange(tpState.hour, tpState.minute)
                     showTimePicker = false
-                }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_accept), fontWeight = FontWeight.SemiBold) }
+                }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) { Text(stringResource(R.string.action_accept), fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
@@ -511,7 +511,7 @@ fun ReminderAddEditScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         stringResource(R.string.action_apply),
@@ -1008,7 +1008,7 @@ private fun AddAlertSheet(
                     disabledContainerColor = Color.Transparent,
                     disabledContentColor   = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 ),
-                border = BorderStroke(1.5.dp, if (isValid) MaterialTheme.colorScheme.primary
+                border = BorderStroke(0.5.dp, if (isValid) MaterialTheme.colorScheme.primary
                                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
             ) {
                 Text(

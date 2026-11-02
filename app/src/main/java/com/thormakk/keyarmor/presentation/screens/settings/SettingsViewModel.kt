@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.crypto.Cipher
@@ -210,38 +211,64 @@ class SettingsViewModel @Inject constructor(
             val enabled       = available && authRepository.isBiometricKeyStored()
             val lastDriveSync = authRepository.getLastDriveSync()
             val driveEmail    = drivePrefs.getConnectedEmail()
+            val v_userPlan = planPrefs.effectivePlan()
+            val v_backupKeyConfirmed = claveDeRespaldo.confirmada()
+            val v_clipboardClearEnabled = clipboardPrefs.isEnabled()
+            val v_clipboardClearSeconds = clipboardPrefs.getTimeoutSeconds()
+            val v_autoLockSeconds = autoLockPrefs.getTimeoutSeconds()
+            val v_expiryNotifEnabled = expiryNotifPrefs.isEnabled()
+            val v_expiryNotifWarningDays = expiryNotifPrefs.getWarningDaySet()
+            val v_breachCheckEnabled = breachCheckPrefs.isEnabled()
+            val v_breachCheckFrequencyDays = breachCheckPrefs.getFrequencyDays()
+            val v_autofillEnabled = isAutofillEnabled()
+            val v_voiceDictationEnabled = voiceDictationPrefs.isEnabled()
+            val v_themeId = authRepository.getThemeId()
+            val v_langGuardado = authRepository.getLanguage()
+            val v_languageCode = v_langGuardado ?: LanguageViewModel.detectSystemLanguage()
+            val v_travelModeEnabled = travelModePrefs.isEnabled()
+            val v_panicPinEnabled = panicPinPrefs.isPanicPinEnabled()
+            val v_calculatorDisguiseEnabled = calculatorDisguisePrefs.isEnabled()
+            val v_hiddenEntriesEnabled = hiddenEntriesPrefs.isEnabled()
+            val v_inheritanceEnabled = inheritancePrefs.isEnabled()
+            val v_inheritanceHasHeir = inheritancePrefs.getHeirEmails().isNotEmpty()
+            val v_isHeirOfOwner = inheritancePrefs.getHeirOfOwnerEmail() != null
+            val v_profileName = authRepository.getName() ?: ""
+            val v_isGateEnabled = biometricGatePrefs.isEnabled()
+            val v_gateSections = biometricGatePrefs.getEnabledSections()
+            val v_gateMode = biometricGatePrefs.getMode()
+            val v_gateTimeout = biometricGatePrefs.getSessionTimeoutSeconds()
 
-            _uiState.value = _uiState.value.copy(
-                biometricAvailable     = available,
-                biometricEnabled       = enabled,
-                lastDriveSync          = lastDriveSync,
-                driveAccount           = driveEmail,
-                userPlan               = planPrefs.effectivePlan(),
-                backupKeyConfirmed     = claveDeRespaldo.confirmada(),
-                clipboardClearEnabled  = clipboardPrefs.isEnabled(),
-                clipboardClearSeconds  = clipboardPrefs.getTimeoutSeconds(),
-                autoLockSeconds        = autoLockPrefs.getTimeoutSeconds(),
-                expiryNotifEnabled     = expiryNotifPrefs.isEnabled(),
-                expiryNotifWarningDays = expiryNotifPrefs.getWarningDaySet(),
-                breachCheckEnabled     = breachCheckPrefs.isEnabled(),
-                breachCheckFrequencyDays = breachCheckPrefs.getFrequencyDays(),
-                autofillEnabled        = isAutofillEnabled(),
-                voiceDictationEnabled  = voiceDictationPrefs.isEnabled(),
-                themeId                = authRepository.getThemeId(),
-                languageCode           = authRepository.getLanguage() ?: LanguageViewModel.detectSystemLanguage(),
-                travelModeEnabled      = travelModePrefs.isEnabled(),
-                panicPinEnabled        = panicPinPrefs.isPanicPinEnabled(),
-                calculatorDisguiseEnabled = calculatorDisguisePrefs.isEnabled(),
-                hiddenEntriesEnabled      = hiddenEntriesPrefs.isEnabled(),
-                inheritanceEnabled     = inheritancePrefs.isEnabled(),
-                inheritanceHasHeir     = inheritancePrefs.getHeirEmails().isNotEmpty(),
-                isHeirOfOwner          = inheritancePrefs.getHeirOfOwnerEmail() != null,
-                profileName            = authRepository.getName() ?: "",
-                isGateEnabled          = biometricGatePrefs.isEnabled(),
-                gateSections           = biometricGatePrefs.getEnabledSections(),
-                gateMode               = biometricGatePrefs.getMode(),
-                gateTimeout            = biometricGatePrefs.getSessionTimeoutSeconds()
-            )
+            _uiState.update { it.copy(
+                biometricAvailable = available,
+                biometricEnabled = enabled,
+                lastDriveSync = lastDriveSync,
+                driveAccount = driveEmail,
+                userPlan = v_userPlan,
+                backupKeyConfirmed = v_backupKeyConfirmed,
+                clipboardClearEnabled = v_clipboardClearEnabled,
+                clipboardClearSeconds = v_clipboardClearSeconds,
+                autoLockSeconds = v_autoLockSeconds,
+                expiryNotifEnabled = v_expiryNotifEnabled,
+                expiryNotifWarningDays = v_expiryNotifWarningDays,
+                breachCheckEnabled = v_breachCheckEnabled,
+                breachCheckFrequencyDays = v_breachCheckFrequencyDays,
+                autofillEnabled = v_autofillEnabled,
+                voiceDictationEnabled = v_voiceDictationEnabled,
+                themeId = v_themeId,
+                languageCode = v_languageCode,
+                travelModeEnabled = v_travelModeEnabled,
+                panicPinEnabled = v_panicPinEnabled,
+                calculatorDisguiseEnabled = v_calculatorDisguiseEnabled,
+                hiddenEntriesEnabled = v_hiddenEntriesEnabled,
+                inheritanceEnabled = v_inheritanceEnabled,
+                inheritanceHasHeir = v_inheritanceHasHeir,
+                isHeirOfOwner = v_isHeirOfOwner,
+                profileName = v_profileName,
+                isGateEnabled = v_isGateEnabled,
+                gateSections = v_gateSections,
+                gateMode = v_gateMode,
+                gateTimeout = v_gateTimeout
+            ) }
             actualizarBackupDeDrive(lastDriveSync, driveEmail)
         }
         viewModelScope.launch {
@@ -317,11 +344,45 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(biometricPending = true)
     }
 
-    fun getSetupCipher(): Cipher? =
-        try { biometricCrypto.getEncryptionCipher() } catch (e: Exception) { null }
+    fun getSetupCipher(): Cipher? {
+        try {
+            return biometricCrypto.getEncryptionCipher()
+        } catch (e: Exception) {
+            android.util.Log.w("KeyArmorBio", "getEncryptionCipher falló (1.er intento): ${e.javaClass.simpleName}")
+        }
+        try {
+            biometricCrypto.deleteKey()
+            return biometricCrypto.getEncryptionCipher()
+        } catch (e: Exception) {
+            android.util.Log.w("KeyArmorBio", "getEncryptionCipher falló tras borrar la clave: ${e.javaClass.simpleName}")
+            reportBiometricEnableFailure("K1")
+            return null
+        }
+    }
+
+    fun reportBiometricEnableFailure(code: String) {
+        android.util.Log.w("KeyArmorBio", "activar huella falló: $code")
+        viewModelScope.launch {
+            _events.send(SettingsEvent.Error(
+                UiText.StringResource(com.thormakk.keyarmor.R.string.biometric_enable_failed, code)
+            ))
+        }
+    }
+
+    fun reportBiometricNotUsable(notEnrolled: Boolean) {
+        viewModelScope.launch {
+            _events.send(SettingsEvent.Error(
+                UiText.StringResource(
+                    if (notEnrolled) com.thormakk.keyarmor.R.string.biometric_enable_not_enrolled
+                    else com.thormakk.keyarmor.R.string.biometric_enable_unsupported
+                )
+            ))
+        }
+    }
 
     fun onBiometricSetupSuccess(cipher: Cipher) {
         val masterKeyBytes = authRepository.getMasterKeyBytes() ?: run {
+            reportBiometricEnableFailure("S2")
             cancelEnableBiometric(); return
         }
         viewModelScope.launch {
@@ -336,6 +397,8 @@ class SettingsViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 masterKeyBytes.fill(0)
+                android.util.Log.w("KeyArmorBio", "encryptMasterKey falló: ${e.javaClass.simpleName}")
+                reportBiometricEnableFailure("S1")
                 cancelEnableBiometric()
             }
         }
@@ -370,22 +433,34 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val email         = drivePrefs.getConnectedEmail()
             val lastDriveSync = authRepository.getLastDriveSync()
-            _uiState.value = _uiState.value.copy(
+            val backupKeyConfirmed = claveDeRespaldo.confirmada()
+            val autofillEnabled = isAutofillEnabled()
+            val voiceDictationEnabled = voiceDictationPrefs.isEnabled()
+            val themeId = authRepository.getThemeId()
+            val languageCode = authRepository.getLanguage() ?: LanguageViewModel.detectSystemLanguage()
+            val travelModeEnabled = travelModePrefs.isEnabled()
+            val panicPinEnabled = panicPinPrefs.isPanicPinEnabled()
+            val calculatorDisguiseEnabled = calculatorDisguisePrefs.isEnabled()
+            val hiddenEntriesEnabled = hiddenEntriesPrefs.isEnabled()
+            val inheritanceEnabled = inheritancePrefs.isEnabled()
+            val inheritanceHasHeir = inheritancePrefs.getHeirEmails().isNotEmpty()
+            val isHeirOfOwner = inheritancePrefs.getHeirOfOwnerEmail() != null
+            _uiState.update { it.copy(
                 driveAccount    = email,
                 lastDriveSync   = lastDriveSync,
-                backupKeyConfirmed = claveDeRespaldo.confirmada(),
-                autofillEnabled = isAutofillEnabled(),
-                voiceDictationEnabled = voiceDictationPrefs.isEnabled(),
-                themeId         = authRepository.getThemeId(),
-                languageCode    = authRepository.getLanguage() ?: LanguageViewModel.detectSystemLanguage(),
-                travelModeEnabled         = travelModePrefs.isEnabled(),
-                panicPinEnabled           = panicPinPrefs.isPanicPinEnabled(),
-                calculatorDisguiseEnabled = calculatorDisguisePrefs.isEnabled(),
-                hiddenEntriesEnabled      = hiddenEntriesPrefs.isEnabled(),
-                inheritanceEnabled        = inheritancePrefs.isEnabled(),
-                inheritanceHasHeir        = inheritancePrefs.getHeirEmails().isNotEmpty(),
-                isHeirOfOwner             = inheritancePrefs.getHeirOfOwnerEmail() != null
-            )
+                backupKeyConfirmed = backupKeyConfirmed,
+                autofillEnabled = autofillEnabled,
+                voiceDictationEnabled = voiceDictationEnabled,
+                themeId         = themeId,
+                languageCode    = languageCode,
+                travelModeEnabled         = travelModeEnabled,
+                panicPinEnabled           = panicPinEnabled,
+                calculatorDisguiseEnabled = calculatorDisguiseEnabled,
+                hiddenEntriesEnabled      = hiddenEntriesEnabled,
+                inheritanceEnabled        = inheritanceEnabled,
+                inheritanceHasHeir        = inheritanceHasHeir,
+                isHeirOfOwner             = isHeirOfOwner
+            ) }
             actualizarPuntos()
             actualizarBackupDeDrive(lastDriveSync, email)
         }

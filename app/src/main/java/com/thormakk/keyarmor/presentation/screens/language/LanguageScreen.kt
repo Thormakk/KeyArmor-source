@@ -219,7 +219,7 @@ fun LanguageScreen(
                 containerColor = Color.Transparent,
                 contentColor   = MaterialTheme.colorScheme.primary
             ),
-            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
         ) {
             Text(
                 text = "Continuar",
@@ -323,7 +323,7 @@ fun LanguagePickerScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text(
                             stringResource(R.string.action_accept),

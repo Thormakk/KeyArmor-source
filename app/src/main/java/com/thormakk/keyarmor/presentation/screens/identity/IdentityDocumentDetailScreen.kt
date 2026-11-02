@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.identity
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import android.graphics.Bitmap
@@ -125,6 +126,13 @@ fun IdentityDocumentDetailScreen(
     val uiState    by viewModel.uiState.collectAsStateWithLifecycle()
     val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isReadOnly    by viewModel.isReadOnly.collectAsStateWithLifecycle()
+    val isFreeUserForGate by viewModel.isFreeUser.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = isFreeUserForGate,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults   by viewModel.otherVaults.collectAsStateWithLifecycle()
     val availableTags by viewModel.availableTags.collectAsStateWithLifecycle()
     val clipCtx      = LocalContext.current
@@ -264,7 +272,7 @@ fun IdentityDocumentDetailScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -354,10 +362,10 @@ fun IdentityDocumentDetailScreen(
                                     )
                                 }
                             }
-                            if (!isReadOnly) IconButton(onClick = {
-                                if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
+                            IconButton(onClick = {
+                                if (isReadOnly) showReadOnlyGate = true else if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
                             }) {
-                                Icon(Icons.Default.Edit, stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurface)
+                                androidx.compose.foundation.layout.Box(contentAlignment = androidx.compose.ui.Alignment.Center) { Icon(Icons.Default.Edit, stringResource(R.string.action_edit), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isReadOnly) 0.38f else 1f)) }
                             }
                             Box {
                                 IconButton(onClick = { showMenu = true }) {
@@ -600,7 +608,7 @@ fun IdentityDocumentDetailScreen(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.action_remove_attribution)) }
                         },
                         dismissButton = {

@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.twofactor
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -35,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Close
@@ -141,6 +143,7 @@ fun TwoFactorDetailScreen(
     onEdit:       (String) -> Unit,
     onDeleted:    () -> Unit,
     onPlansClick: () -> Unit = {},
+    onRecoveryCodes: (String) -> Unit = {},
     sharedTransitionScope:   SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:    AddEditTwoFactorViewModel = hiltViewModel()
@@ -171,6 +174,12 @@ fun TwoFactorDetailScreen(
 
     val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isReadOnly    by viewModel.isReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults   by viewModel.otherVaults.collectAsStateWithLifecycle()
     val availableTags by viewModel.availableTags.collectAsStateWithLifecycle()
     var showOptionsSheet             by remember { mutableStateOf(false) }
@@ -341,7 +350,7 @@ fun TwoFactorDetailScreen(
                     onClick = { premiumFeature = null; onPlansClick() },
                     shape   = RoundedCornerShape(8.dp),
                     colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -438,13 +447,13 @@ fun TwoFactorDetailScreen(
                             }
                         }
                         IconButton(onClick = {
-                            if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
+                            if (isReadOnly) showReadOnlyGate = true else if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
                         }) {
-                            Icon(
+                            androidx.compose.foundation.layout.Box(contentAlignment = androidx.compose.ui.Alignment.Center) { Icon(
                                 imageVector        = Icons.Default.Edit,
                                 contentDescription = stringResource(R.string.action_edit),
-                                tint               = MaterialTheme.colorScheme.primary
-                            )
+                                tint               = MaterialTheme.colorScheme.primary.copy(alpha = if (isReadOnly) 0.38f else 1f)
+                            ) }
                         }
                         Box {
                             IconButton(onClick = { showMenu = true }) {
@@ -523,7 +532,6 @@ fun TwoFactorDetailScreen(
             val mergedGapColor  = MaterialTheme.colorScheme.background
             val hasTotpCode     = totp != null
             val hasSecret       = uiState.secret.isNotBlank()
-            val hasName         = uiState.name.isNotBlank()
             val hasIssuer       = uiState.issuer.isNotBlank()
             val hasAccountLabel = uiState.accountLabel.isNotBlank()
             val hasUrl          = uiState.url.isNotEmpty()
@@ -719,21 +727,6 @@ fun TwoFactorDetailScreen(
             }
 
             DetailRow(
-                label   = stringResource(R.string.twofa_field_name),
-                value   = uiState.name,
-                leading = { Icon(Icons.Default.Shield, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
-            )
-            if (hasName) {
-                EntryGroupDivider(
-                    startInset = MergedCardStartInset,
-                    endInset   = MergedCardEndInset,
-                    cardColor  = mergedCardColor,
-                    gapColor   = mergedGapColor
-                )
-            }
-            DetailRow(
                 label   = stringResource(R.string.twofa_field_issuer),
                 value   = uiState.issuer,
                 leading = { Icon(Icons.Default.Business, contentDescription = null,
@@ -781,39 +774,82 @@ fun TwoFactorDetailScreen(
                 )
             }
 
-            DetailRow(
-                label   = stringResource(R.string.twofa_field_digits),
-                value   = uiState.digits.toString(),
-                leading = { Icon(Icons.Default.Pin, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
-            )
-            EntryGroupDivider(
-                startInset = MergedCardStartInset,
-                endInset   = MergedCardEndInset,
-                cardColor  = mergedCardColor,
-                gapColor   = mergedGapColor
-            )
-            DetailRow(
-                label   = stringResource(R.string.twofa_field_period),
-                value   = uiState.period.toString(),
-                leading = { Icon(Icons.Default.Timer, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                shape   = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius)
-            )
-            EntryGroupDivider(
-                startInset = MergedCardStartInset,
-                endInset   = MergedCardEndInset,
-                cardColor  = mergedCardColor,
-                gapColor   = mergedGapColor
-            )
-            DetailRow(
-                label   = stringResource(R.string.twofa_field_algorithm),
-                value   = uiState.algorithm.name,
-                leading = { Icon(Icons.Default.Security, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                shape   = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius)
-            )
+            val recoveryUnused = uiState.recoveryCodesText.lines().count { it.isNotBlank() }
+            val recoveryTotal = recoveryUnused + uiState.usedRecoveryCodes.size
+            androidx.compose.material3.Surface(
+                shape    = entryItemShape(isFirst = false, isLast = recoveryTotal == 0, radius = MergedCardRadius),
+                color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    listOf(
+                        stringResource(R.string.twofa_field_digits)    to uiState.digits.toString(),
+                        stringResource(R.string.twofa_field_period)    to uiState.period.toString(),
+                        stringResource(R.string.twofa_field_algorithm) to uiState.algorithm.name
+                    ).forEach { (label, value) ->
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text  = label,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            Spacer(Modifier.height(5.dp))
+                            Text(
+                                text  = value,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (recoveryTotal > 0) {
+                EntryGroupDivider(
+                    startInset = MergedCardStartInset,
+                    endInset   = MergedCardEndInset,
+                    cardColor  = mergedCardColor,
+                    gapColor   = mergedGapColor
+                )
+                androidx.compose.material3.Surface(
+                    onClick  = { secretGate.launch { onRecoveryCodes(uiState.id) } },
+                    shape    = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
+                    color    = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(start = 16.dp, end = 12.dp, top = 14.dp, bottom = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Security, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text  = stringResource(R.string.twofa_section_recovery_codes),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(5.dp))
+                            Text(
+                                text  = stringResource(R.string.twofa_recovery_unused_count, recoveryUnused, recoveryTotal),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
             }
 
             if (uiState.createdAt > 0L) {
@@ -847,7 +883,7 @@ fun TwoFactorDetailScreen(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.action_remove_attribution)) }
                         },
                         dismissButton = {

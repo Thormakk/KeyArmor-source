@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment", "DEPRECATION")
 package com.thormakk.keyarmor.presentation.screens.crypto
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 
@@ -164,6 +165,12 @@ fun CryptoWalletDetailScreen(
     val availableTags   by viewModel.availableTags.collectAsStateWithLifecycle()
     val isFreeUser      by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isReadOnly      by viewModel.isReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults       by viewModel.otherVaults.collectAsStateWithLifecycle()
     val pinLimitReached by viewModel.pinLimitReached.collectAsStateWithLifecycle()
     val isHubPinned        by viewModel.isHubPinned.collectAsStateWithLifecycle()
@@ -315,7 +322,7 @@ fun CryptoWalletDetailScreen(
                     onClick = { premiumFeature = null; onPlansClick() },
                     shape   = RoundedCornerShape(8.dp),
                     colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -448,7 +455,7 @@ fun CryptoWalletDetailScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.lock_action_unlock),
@@ -530,14 +537,14 @@ fun CryptoWalletDetailScreen(
                                                       else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        if (!isReadOnly) IconButton(onClick = {
-                            if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
+                        IconButton(onClick = {
+                            if (isReadOnly) showReadOnlyGate = true else if (uiState.isProtected) protectedNotice = R.string.protect_locked_edit else onEdit(uiState.id)
                         }) {
-                            Icon(
+                            androidx.compose.foundation.layout.Box(contentAlignment = androidx.compose.ui.Alignment.Center) { Icon(
                                 imageVector        = Icons.Default.Edit,
                                 contentDescription = stringResource(R.string.action_edit),
-                                tint               = MaterialTheme.colorScheme.primary
-                            )
+                                tint               = MaterialTheme.colorScheme.primary.copy(alpha = if (isReadOnly) 0.38f else 1f)
+                            ) }
                         }
                         Box {
                             IconButton(onClick = { showMenu = true }) {
@@ -959,7 +966,7 @@ fun CryptoWalletDetailScreen(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.action_remove_attribution)) }
                         },
                         dismissButton = {

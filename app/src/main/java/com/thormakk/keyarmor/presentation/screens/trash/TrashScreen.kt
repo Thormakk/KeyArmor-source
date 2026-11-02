@@ -927,7 +927,7 @@ private fun TrashFiltersSheet(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text  = stringResource(R.string.action_apply),

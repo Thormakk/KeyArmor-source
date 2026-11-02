@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.custom
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ContenidoDelFab
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -167,6 +169,12 @@ fun CustomEntriesScreen(
     val availableTags by viewModel.availableTags.collectAsStateWithLifecycle()
     val isFreeUser    by viewModel.isFreeUser.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val otherVaults    by viewModel.otherVaults.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope             = rememberCoroutineScope()
@@ -318,18 +326,17 @@ fun CustomEntriesScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("custom_entries", "fab"),
-                onClick = { if (!isActiveVaultReadOnly) onAddEntry() },
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    imageVector        = if (isActiveVaultReadOnly) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.action_add)
-                )
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .coachMarkAnchor("custom_entries", "fab"),
+                    onClick = { if (isActiveVaultReadOnly) showReadOnlyGate = true else onAddEntry() },
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isActiveVaultReadOnly, contentDescription = stringResource(R.string.action_add))
+                }
+                if (isActiveVaultReadOnly) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -576,12 +583,12 @@ fun CustomEntriesScreen(
                         if (!hasQuery && !hasFilters) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
-                                onClick = { if (!isActiveVaultReadOnly) onAddEntry() },
+                                onClick = { if (isActiveVaultReadOnly) showReadOnlyGate = true else onAddEntry() },
                                 colors  = ButtonDefaults.buttonColors(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                                 shape  = RoundedCornerShape(8.dp)
                             ) {
                                 Icon(if (isActiveVaultReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)
@@ -972,7 +979,7 @@ fun CustomEntriesScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {

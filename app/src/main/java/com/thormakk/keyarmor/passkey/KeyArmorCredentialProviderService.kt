@@ -20,6 +20,7 @@ import androidx.credentials.provider.CredentialProviderService
 import androidx.credentials.provider.ProviderClearCredentialStateRequest
 import androidx.credentials.provider.PublicKeyCredentialEntry
 import com.thormakk.keyarmor.R
+import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
 import com.thormakk.keyarmor.data.repository.PasskeyRepository
 import com.thormakk.keyarmor.presentation.screens.passkeys.PasskeysViewModel
 import com.thormakk.keyarmor.security.SessionManager
@@ -60,6 +61,10 @@ class KeyArmorCredentialProviderService : CredentialProviderService() {
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<BeginCreateCredentialResponse, androidx.credentials.exceptions.CreateCredentialException>
     ) {
+        if (CalculatorDisguisePrefs.isDisguiseActive(applicationContext)) {
+            callback.onError(androidx.credentials.exceptions.CreateCredentialNoCreateOptionException())
+            return
+        }
         markProviderActive()
         Log.d(TAG, "onBeginCreateCredentialRequest: type=${request::class.simpleName}")
         try {
@@ -83,6 +88,10 @@ class KeyArmorCredentialProviderService : CredentialProviderService() {
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<BeginGetCredentialResponse, GetCredentialException>
     ) {
+        if (CalculatorDisguisePrefs.isDisguiseActive(applicationContext)) {
+            callback.onError(androidx.credentials.exceptions.NoCredentialException())
+            return
+        }
         markProviderActive()
         Log.d(TAG, "onBeginGetCredentialRequest: ${request.beginGetCredentialOptions.size} opción(es)")
         serviceScope.launch {

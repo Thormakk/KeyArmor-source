@@ -328,10 +328,14 @@ fun SettingsScreen(
                     state.biometricPending -> {
                         if (result.authenticationType !=
                             BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC) {
+                            viewModel.reportBiometricEnableFailure("T1")
                             viewModel.cancelEnableBiometric(); return
                         }
                         result.cryptoObject?.cipher?.let { viewModel.onBiometricSetupSuccess(it) }
-                            ?: viewModel.cancelEnableBiometric()
+                            ?: run {
+                                viewModel.reportBiometricEnableFailure("S3")
+                                viewModel.cancelEnableBiometric()
+                            }
                     }
                     state.gateDisablePending -> viewModel.onGateDisableConfirmed()
                 }
@@ -340,7 +344,13 @@ fun SettingsScreen(
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 val state = viewModel.uiState.value
                 when {
-                    state.biometricPending   -> viewModel.cancelEnableBiometric()
+                    state.biometricPending   -> {
+                        val porElUsuario = errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+                            errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+                            errorCode == BiometricPrompt.ERROR_CANCELED
+                        if (!porElUsuario) viewModel.reportBiometricEnableFailure("A$errorCode: $errString")
+                        viewModel.cancelEnableBiometric()
+                    }
                     state.gateDisablePending -> viewModel.cancelGateDisable()
                 }
             }
@@ -375,9 +385,29 @@ fun SettingsScreen(
 
     LaunchedEffect(uiState.biometricPending) {
         if (uiState.biometricPending) {
+            val disponibilidad = androidx.biometric.BiometricManager.from(context)
+                .canAuthenticate(androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            if (disponibilidad != androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS) {
+                when (disponibilidad) {
+                    androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED ->
+                        viewModel.reportBiometricNotUsable(notEnrolled = true)
+                    androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
+                    androidx.biometric.BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED ->
+                        viewModel.reportBiometricNotUsable(notEnrolled = false)
+                    else -> viewModel.reportBiometricEnableFailure("C$disponibilidad")
+                }
+                viewModel.cancelEnableBiometric()
+                return@LaunchedEffect
+            }
             val cipher = viewModel.getSetupCipher()
             if (cipher != null) {
-                biometricPrompt.authenticate(enablePromptInfo, BiometricPrompt.CryptoObject(cipher))
+                try {
+                    biometricPrompt.authenticate(enablePromptInfo, BiometricPrompt.CryptoObject(cipher))
+                } catch (e: Exception) {
+                    android.util.Log.w("KeyArmorBio", "authenticate lanzó ${e.javaClass.simpleName}")
+                    viewModel.reportBiometricEnableFailure("P1")
+                    viewModel.cancelEnableBiometric()
+                }
             } else {
                 viewModel.cancelEnableBiometric()
             }
@@ -557,7 +587,7 @@ fun SettingsScreen(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) {
                                 Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold)
                             }
@@ -712,7 +742,7 @@ fun SettingsScreen(
                                         containerColor = Color.Transparent,
                                         contentColor   = MaterialTheme.colorScheme.primary
                                     ),
-                                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                                 ) {
                                     Text(stringResource(R.string.delete_all_signin_button), fontWeight = FontWeight.SemiBold)
                                 }
@@ -965,7 +995,8 @@ fun SettingsScreen(
                                 indication        = null,
                                 onClick           = { toggleSection("security") }
                             )
-                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                            .height(64.dp)
+                            .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -2618,7 +2649,7 @@ private fun PremiumGateDialog(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(stringResource(R.string.premium_locked_dialog_cta), fontWeight = FontWeight.SemiBold)
             }

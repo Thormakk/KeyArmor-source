@@ -10,11 +10,7 @@ import com.thormakk.keyarmor.ui.theme.WarningAmber
 import com.thormakk.keyarmor.ui.theme.WarningAmberDark
 
 @Composable
-fun dangerColor(): Color =
-    if (contrastRatio(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.error) < 3f)
-        WarningAmber
-    else
-        MaterialTheme.colorScheme.error
+fun dangerColor(): Color = warningColor()
 
 @Composable
 fun warningColor(): Color =

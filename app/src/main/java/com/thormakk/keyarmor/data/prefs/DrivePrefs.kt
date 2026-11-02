@@ -200,6 +200,12 @@ class DrivePrefs @Inject constructor(
             remove(KEY_MANUAL_BACKUP_DONE)
         }
         if (keystore.containsAlias(KEY_ALIAS)) keystore.deleteEntry(KEY_ALIAS)
+        cerrarIdentidadGoogle()
+    }
+
+    private fun cerrarIdentidadGoogle() {
+        runCatching { com.google.firebase.auth.FirebaseAuth.getInstance().signOut() }
+        runCatching { com.google.firebase.messaging.FirebaseMessaging.getInstance().deleteToken() }
     }
 
     fun markDisconnectedByPanicPin() =

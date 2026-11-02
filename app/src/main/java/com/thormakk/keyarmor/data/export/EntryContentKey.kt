@@ -64,7 +64,7 @@ class EntryContentKey @Inject constructor(
 
     fun of(e: IdentityDocument): List<Any?> = listOf(
         e.docType, e.number, e.issuingCountry, e.issueDate, e.expiryDate, e.birthDate,
-        e.holderName, e.notes, e.expiryAlertDays,
+        e.holderName, e.notes,
         e.category, tagKeys(e.tags), e.vaultId, e.inheritedFrom
     )
 
@@ -72,7 +72,6 @@ class EntryContentKey @Inject constructor(
         e.make, e.model, e.year, e.licensePlate, e.vin,
         e.inspectionExpiryDate, e.insuranceExpiryDate, e.insuranceCompany, e.policyNumber,
         e.driverLicenseExpiryDate, e.notes,
-        e.inspectionAlertDays, e.insuranceAlertDays, e.driverLicenseAlertDays,
         e.category, tagKeys(e.tags), e.vaultId, e.inheritedFrom
     )
 

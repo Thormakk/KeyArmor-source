@@ -110,8 +110,17 @@ class DriveSyncViewModel @Inject constructor(
 
     private var currentEmail: String? = drivePrefs.getConnectedEmail()
 
+    private var vinculandoPlan = false
+
     init {
         reload()
+        viewModelScope.launch {
+            planPrefs.planFlow.collect { plan ->
+                if (_uiState.value.userPlan != plan) {
+                    _uiState.value = _uiState.value.copy(userPlan = plan)
+                }
+            }
+        }
         viewModelScope.launch {
             autoBackupManager.isRunning.collect { corriendo ->
                 val estabaCorriendo = _uiState.value.autoBackupRunning
@@ -127,15 +136,16 @@ class DriveSyncViewModel @Inject constructor(
             val lastSync = authRepository.getLastDriveSync()
             val email    = drivePrefs.getConnectedEmail()
             currentEmail = email
+            val vinc     = vinculandoPlan
 
             _uiState.value = _uiState.value.copy(
-                userPlan              = plan,
-                driveAccount          = email,
+                userPlan              = if (vinc) _uiState.value.userPlan else plan,
+                driveAccount          = if (vinc) _uiState.value.driveAccount else email,
                 hasBackupPassword     = claveDeRespaldo.confirmada(),
                 lastDriveSync         = lastSync,
                 backupWaitingWifi     = drivePrefs.isBackupWaitingWifi(),
                 driveFull             = drivePrefs.isDriveFull(),
-                showSetupPassword     = email != null && !claveDeRespaldo.confirmada(),
+                showSetupPassword     = if (vinc) _uiState.value.showSetupPassword else email != null && !claveDeRespaldo.confirmada(),
                 dualLocalBackupEnabled = dualLocalBackupRealmenteActivo()
             )
         }
@@ -180,14 +190,20 @@ class DriveSyncViewModel @Inject constructor(
 
             viewModelScope.launch { registerFcmTokenFromLogin(idToken, fcmRepository, fcmPrefs) }
 
-            rcManager.linkIdentity(verified.sub) { }
-
-            _uiState.value = _uiState.value.copy(
-                driveAccount      = verifiedEmail,
-                hasBackupPassword = claveDeRespaldo.confirmada(),
-                showSetupPassword = !claveDeRespaldo.confirmada(),
-                userPlan          = planPrefs.effectivePlan()
-            )
+            vinculandoPlan = true
+            _uiState.value = _uiState.value.copy(isWorking = true)
+            rcManager.linkIdentity(verified.sub) {
+                viewModelScope.launch {
+                    vinculandoPlan = false
+                    _uiState.value = _uiState.value.copy(
+                        isWorking         = false,
+                        driveAccount      = verifiedEmail,
+                        hasBackupPassword = claveDeRespaldo.confirmada(),
+                        showSetupPassword = !claveDeRespaldo.confirmada(),
+                        userPlan          = planPrefs.effectivePlan()
+                    )
+                }
+            }
         }
     }
 

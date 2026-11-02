@@ -173,7 +173,7 @@ fun VaultManagementScreen(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border   = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.vault_mgmt_delete_move), fontWeight = FontWeight.SemiBold) }
 
                         Button(
@@ -463,7 +463,7 @@ fun VaultNameDialog(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) { Text(confirmLabel, fontWeight = FontWeight.SemiBold) }
         },
         dismissButton = {

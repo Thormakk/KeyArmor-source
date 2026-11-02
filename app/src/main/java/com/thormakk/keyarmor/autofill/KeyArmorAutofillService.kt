@@ -27,6 +27,7 @@ import androidx.autofill.inline.UiVersions
 import androidx.autofill.inline.v1.InlineSuggestionUi
 import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.data.prefs.AutofillPrefs
+import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
 import com.thormakk.keyarmor.data.repository.CreditCardRepository
 import com.thormakk.keyarmor.data.repository.TwoFactorRepository
 import com.thormakk.keyarmor.data.repository.VaultMetadataRepository
@@ -91,6 +92,9 @@ class KeyArmorAutofillService : AutofillService() {
         cancellationSignal: CancellationSignal,
         callback:           FillCallback
     ) {
+        if (CalculatorDisguisePrefs.isDisguiseActive(applicationContext)) {
+            callback.onSuccess(null); return
+        }
         val structure = request.fillContexts.lastOrNull()?.structure
             ?: run { callback.onSuccess(null); return }
 
@@ -237,6 +241,9 @@ class KeyArmorAutofillService : AutofillService() {
     }
 
     override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
+        if (CalculatorDisguisePrefs.isDisguiseActive(applicationContext)) {
+            callback.onSuccess(); return
+        }
         autoLockManager.enforceIfExpired()
         if (!sessionManager.isUnlocked()) { callback.onSuccess(); return }
 

@@ -2,8 +2,12 @@
 package com.thormakk.keyarmor.presentation.screens.calculatordisguise
 
 import com.thormakk.keyarmor.presentation.components.justified
+import com.thormakk.keyarmor.presentation.components.AlertDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -71,6 +75,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -102,6 +107,64 @@ fun CalculatorDisguiseScreen(
     val securityGate = rememberMandatoryBiometricGate(
         verifyMasterPassword = viewModel::verifyMasterPassword
     )
+
+    val context = LocalContext.current
+    LaunchedEffect(uiState.closeApp) {
+        if (uiState.closeApp) context.findActivity()?.finishAndRemoveTask()
+    }
+
+    uiState.pendingConfirm?.let { confirm ->
+        val enabling = confirm == DisguiseConfirm.ENABLE
+        AlertDialog(
+            onDismissRequest = viewModel::onConfirmDismiss,
+            containerColor   = MaterialTheme.colorScheme.background,
+            title = {
+                Text(
+                    stringResource(
+                        if (enabling) R.string.calculator_disguise_enable_confirm_title
+                        else          R.string.calculator_disguise_disable_confirm_title
+                    )
+                )
+            },
+            text = {
+                Text(
+                    text  = stringResource(
+                        if (enabling) R.string.calculator_disguise_enable_confirm_body
+                        else          R.string.calculator_disguise_disable_confirm_body
+                    ),
+                    style = MaterialTheme.typography.bodyMedium.justified()
+                )
+            },
+            confirmButton = {
+                OutlinedButton(
+                    onClick = {
+                        if (enabling) {
+                            viewModel.onConfirmEnable()
+                        } else {
+                            viewModel.onConfirmDismiss()
+                            securityGate.launch { viewModel.onConfirmDisable() }
+                        }
+                    },
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        stringResource(
+                            if (enabling) R.string.calculator_disguise_enable_confirm_action
+                            else          R.string.calculator_disguise_disable_confirm_action
+                        )
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::onConfirmDismiss) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
 
     val savedMessage = stringResource(R.string.calculator_disguise_saved_success)
     LaunchedEffect(uiState.savedSuccess) {
@@ -169,10 +232,7 @@ fun CalculatorDisguiseScreen(
                     hasSequenceConfigured  = uiState.hasSequenceConfigured,
                     isFreeUser             = isFreeUser,
                     onPlansClick           = onPlansClick,
-                    onToggle               = { checked ->
-                        if (checked) viewModel.onToggle(true)
-                        else securityGate.launch { viewModel.onToggle(false) }
-                    },
+                    onToggle               = viewModel::onToggle,
                     onChangeSequence       = { securityGate.launch { viewModel.onChangeSequence() } }
                 )
                 CalculatorDisguiseStep.RECORD_SEQUENCE -> RecordContent(
@@ -315,6 +375,19 @@ private fun IdleContent(
                         style     = MaterialTheme.typography.bodySmall.justified(),
                         color     = MaterialTheme.colorScheme.onSecondaryContainer
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text       = stringResource(R.string.calculator_disguise_suspended_title),
+                        style      = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(
+                        text      = stringResource(R.string.calculator_disguise_suspended_body),
+                        style     = MaterialTheme.typography.bodySmall.justified(),
+                        color     = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 }
             }
         }
@@ -371,7 +444,7 @@ private fun IdleContent(
                     .coachMarkAnchor("calculator_disguise", "code"),
                 shape          = RoundedCornerShape(50),
                 colors         = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                border         = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                border         = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 Text(
@@ -527,4 +600,13 @@ private fun PremiumGateBanner(onPlansClick: () -> Unit) {
             )
         }
     }
+}
+
+private fun Context.findActivity(): Activity? {
+    var c: Context = this
+    while (c is ContextWrapper) {
+        if (c is Activity) return c
+        c = c.baseContext
+    }
+    return null
 }

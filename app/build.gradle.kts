@@ -24,8 +24,8 @@ android {
         applicationId = "com.thormakk.keyarmor"
         minSdk = 26
         targetSdk = 37
-        versionCode = 38
-        versionName = "1.0.0"
+        versionCode = 39
+        versionName = "1.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -73,10 +73,11 @@ android {
             excludes += "META-INF/LICENSE.txt"
             excludes += "META-INF/NOTICE"
             excludes += "META-INF/NOTICE.txt"
+            excludes += "META-INF/INDEX.LIST"
         }
     }
 
-    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    sourceSets.getByName("androidTest").assets.directories.add("$projectDir/schemas")
 
     testOptions {
         unitTests {

@@ -372,7 +372,8 @@ Telif hakkı sahibinin açık ve önceden yazılı izni olmadan şunları yapama
 • KeyArmor adını, logosunu veya ilişkili herhangi bir ticari markayı kullanmak
     """.trimIndent()),
     LegalSection("Kaynak Kodu", """
-KeyArmor'ın kaynak kodu kamuya açık olarak mevcuttur. Depo bağlantısı için uygulamanın resmi kanalına bakın.
+KeyArmor'ın kaynak kodu kamuya açık olarak mevcuttur.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("Garanti Yoktur", """
 Kaynak kodu, açık veya zımni herhangi bir garanti olmaksızın "olduğu gibi" sunulur. Telif hakkı sahibi, belirli bir amaca uygunluğu konusunda hiçbir beyanda bulunmaz.

@@ -237,7 +237,6 @@ fun PasswordHistoryScreen(
                             onCopy    = {
                                 ClipboardUtil.copySensitive(clipContext, item.password)
                                 clipClear.scheduleClear()
-                                scope.launch { snackbarHostState.showSnackbar(copiedMsg) }
                             }
                         )
                     }
@@ -360,7 +359,7 @@ private fun PremiumLockedHistoryScreen(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border   = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border   = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(stringResource(R.string.premium_gate_cta), fontWeight = FontWeight.SemiBold)
             }

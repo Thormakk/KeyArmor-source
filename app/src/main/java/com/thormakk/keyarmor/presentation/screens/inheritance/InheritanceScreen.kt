@@ -1,6 +1,11 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.inheritance
 
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.SigueAlTeclado
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 import com.thormakk.keyarmor.ui.theme.appButtonColors
@@ -138,6 +143,7 @@ fun InheritanceScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState      = rememberScrollState()
+    val sigueTeclado     = rememberSigueAlTeclado()
 
     var heirToRemove     by remember { mutableStateOf<String?>(null) }
     var showResignDialog by remember { mutableStateOf(false) }
@@ -220,7 +226,9 @@ fun InheritanceScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
+                .sigueAlTeclado(scrollState, sigueTeclado)
                 .verticalScroll(scrollState)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(padding)
                 .padding(horizontal = 7.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -550,7 +558,7 @@ fun InheritanceScreen(
                                 color     = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
                             )
                         }
-                        HeirEmailForm(onSave = { email ->
+                        HeirEmailForm(sigueTeclado = sigueTeclado, onSave = { email ->
                             gateAccionSensible.launch { viewModel.addHeirEmail(email) }
                         })
                     } else {
@@ -1192,7 +1200,7 @@ private fun InheritanceEmptyVaultCard(body: String, action: String, onAction: ()
 }
 
 @Composable
-private fun HeirEmailForm(onSave: (String) -> Unit) {
+private fun HeirEmailForm(sigueTeclado: SigueAlTeclado, onSave: (String) -> Unit) {
     var email by remember { mutableStateOf("") }
     val autoLockManager = LocalAutoLockManager.current
     val isValid = email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -1248,6 +1256,7 @@ private fun HeirEmailForm(onSave: (String) -> Unit) {
             enabled  = isValid,
             modifier = Modifier
                 .align(Alignment.End)
+                .sigueAlTecladoObjetivo(sigueTeclado)
                 .bringIntoViewRequester(bringIntoViewRequester)
                 .coachMarkAnchor("digital_inheritance", "add_heir"), colors = appButtonColors()
         ) {

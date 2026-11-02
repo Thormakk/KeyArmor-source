@@ -154,7 +154,7 @@ class AutofillSaveActivity : ComponentActivity() {
                 disabledContainerColor = Color.Transparent,
                 disabledContentColor   = color,
             ),
-            border   = BorderStroke(1.5.dp, color),
+            border   = BorderStroke(0.5.dp, color),
         ) {
             Text(texto, fontWeight = FontWeight.SemiBold)
         }

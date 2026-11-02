@@ -32,6 +32,7 @@ object ClipboardUtil {
             }
         }
         cm.setPrimaryClip(clip)
+        com.thormakk.keyarmor.presentation.components.CopyFeedback.show(context)
         programarBorrado(context)
     }
 

@@ -38,7 +38,6 @@ data class AddEditIdentityDocumentUiState(
     val birthDate:        String        = "",
     val holderName:       String        = "",
     val notes:            String        = "",
-    val expiryAlertDays:  Int           = 90,
     val category:         EntryCategory = EntryCategory.SIN_CATEGORIZAR,
     val tags:             List<String>  = emptyList(),
     val isFavorite:       Boolean       = false,
@@ -111,7 +110,6 @@ class AddEditIdentityDocumentViewModel @Inject constructor(
                         birthDate      = src.birthDate,
                         holderName     = src.holderName,
                         notes          = src.notes,
-                        expiryAlertDays = src.expiryAlertDays,
                         category       = src.category,
                         tags           = src.tags,
                         isFavorite     = false,
@@ -136,7 +134,6 @@ class AddEditIdentityDocumentViewModel @Inject constructor(
                                 birthDate       = doc.birthDate,
                                 holderName      = doc.holderName,
                                 notes           = doc.notes,
-                                expiryAlertDays = doc.expiryAlertDays,
                                 category        = doc.category,
                                 tags            = doc.tags,
                                 isFavorite      = doc.isFavorite,
@@ -164,7 +161,7 @@ class AddEditIdentityDocumentViewModel @Inject constructor(
     fun onExpiryDateChange(v: String)     { _uiState.value = _uiState.value.copy(expiryDate = v) }
     fun onBirthDateChange(v: String)      { _uiState.value = _uiState.value.copy(birthDate = v) }
     fun onHolderNameChange(v: String)     { _uiState.value = _uiState.value.copy(holderName = v) }
-    fun onNotesChange(v: String)          { _uiState.value = _uiState.value.copy(notes = v) }
+    fun onNotesChange(v: String)          { if (v.length <= 300) _uiState.value = _uiState.value.copy(notes = v) }
     fun toggleFavorite()                  { _uiState.value = _uiState.value.copy(isFavorite = !_uiState.value.isFavorite) }
     fun onTravelSafeChange(v: Boolean)    { _uiState.value = _uiState.value.copy(isTravelSafe = v) }
 
@@ -352,7 +349,6 @@ class AddEditIdentityDocumentViewModel @Inject constructor(
             holderName     = s.holderName,
             notes          = s.notes,
             expiryTimestamp  = expiry,
-            expiryAlertDays  = s.expiryAlertDays,
             category       = s.category,
             tags           = s.tags,
             isFavorite     = s.isFavorite,

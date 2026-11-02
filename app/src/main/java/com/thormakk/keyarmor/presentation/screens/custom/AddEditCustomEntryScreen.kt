@@ -2,6 +2,16 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.custom
 
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.SigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivoEnfocado
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import android.Manifest
@@ -299,7 +309,7 @@ fun AddEditCustomEntryScreen(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Text(stringResource(R.string.voice_dictation_open_settings), fontWeight = FontWeight.SemiBold)
                     }
@@ -340,7 +350,11 @@ fun AddEditCustomEntryScreen(
         )
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = androidx.compose.foundation.rememberScrollState()
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(
@@ -387,7 +401,9 @@ fun AddEditCustomEntryScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { sigueTeclado.campoEnfocado })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -429,6 +445,7 @@ fun AddEditCustomEntryScreen(
                             noteDictationEnabled = dictationEnabled && dictation.available,
                             isDictating          = dictation.isListening && dictatingFieldId == field.id,
                             onDictate            = { startNoteDictation(field.id) },
+                            sigueTeclado         = sigueTeclado,
                             shape            = entryItemShape(isFirst = false, isLast = isLastField, radius = MergedCardRadius)
                         )
                         if (!isLastField) {
@@ -461,8 +478,10 @@ fun AddEditCustomEntryScreen(
                 )
             }
 
+            val maxCampos = uiState.fields.size >= AddEditCustomEntryViewModel.MAX_FIELDS
             OutlinedButton(
                 onClick  = { showTypePickerDialog = true },
+                enabled  = !maxCampos,
                 modifier = Modifier.fillMaxWidth(),
                 shape    = RoundedCornerShape(8.dp),
                 colors   = ButtonDefaults.outlinedButtonColors(
@@ -472,6 +491,15 @@ fun AddEditCustomEntryScreen(
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(stringResource(R.string.custom_add_field), fontWeight = FontWeight.Medium)
+            }
+            if (maxCampos) {
+                Text(
+                    text     = stringResource(R.string.custom_fields_max),
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Justify,
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -519,6 +547,7 @@ private fun CustomFieldItem(
     noteDictationEnabled: Boolean = false,
     isDictating: Boolean = false,
     onDictate: () -> Unit = {},
+    sigueTeclado: SigueAlTeclado? = null,
     shape:            Shape = RoundedCornerShape(8.dp)
 ) {
     val clipCtx      = LocalContext.current
@@ -577,7 +606,7 @@ private fun CustomFieldItem(
                     Icon(
                         imageVector        = Icons.Default.Warning,
                         contentDescription = stringResource(R.string.field_invalid_format),
-                        tint               = MaterialTheme.colorScheme.error,
+                        tint               = warningColor(),
                         modifier           = Modifier.size(13.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -721,7 +750,7 @@ private fun CustomFieldItem(
                 } else null,
                 minLines        = if (field.type.isMultiline) 3 else 1,
                 singleLine      = !field.type.isMultiline,
-                modifier        = Modifier.fillMaxWidth(),
+                modifier        = Modifier.fillMaxWidth().then(if (sigueTeclado != null) Modifier.sigueAlTecladoObjetivoEnfocado(sigueTeclado) else Modifier).seguirTextoMultilinea(),
                 shape           = RoundedCornerShape(8.dp),
                 colors          = fieldColors(),
                 keyboardOptions = KeyboardOptions(
@@ -1084,7 +1113,7 @@ internal fun CustomEntryOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) {
                             Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold)
                         }
@@ -1109,7 +1138,7 @@ internal fun CustomEntryOptionsSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -1146,7 +1175,7 @@ internal fun CustomEntryOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

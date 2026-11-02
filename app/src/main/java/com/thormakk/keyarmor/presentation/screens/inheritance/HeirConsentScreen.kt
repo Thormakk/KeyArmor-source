@@ -118,7 +118,7 @@ fun HeirConsentScreen(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) {
                             Text(stringResource(R.string.heir_consent_owner_key_changed_confirm), fontWeight = FontWeight.SemiBold)
                         }

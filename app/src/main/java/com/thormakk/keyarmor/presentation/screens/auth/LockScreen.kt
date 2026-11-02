@@ -10,7 +10,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
@@ -60,6 +58,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -239,22 +238,22 @@ fun LockScreen(
         val scrollState = rememberScrollState()
         val density = androidx.compose.ui.platform.LocalDensity.current
         val rootHeightPx = androidx.compose.ui.platform.LocalView.current.rootView.height
-        val imeBottom = WindowInsets.ime.getBottom(density)
-        var pillBottomPx by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
-        LaunchedEffect(imeBottom, pillBottomPx) {
-            if (imeBottom > 0 && pillBottomPx > 0f) {
-                val keyboardTop = rootHeightPx - imeBottom
-                val overlap = pillBottomPx + with(density) { 20.dp.toPx() } - keyboardTop
-                if (overlap > 1f) scrollState.animateScrollBy(overlap)
-            }
-        }
+        val imeInsets = WindowInsets.ime
+        var pillRestBottomPx by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .alpha(animAlpha)
                 .scale(animScale)
-                .imePadding()
+                .graphicsLayer {
+                    val imeBottom = imeInsets.getBottom(density)
+                    if (imeBottom > 0 && pillRestBottomPx > 0f) {
+                        val keyboardTop = rootHeightPx - imeBottom
+                        val shift = pillRestBottomPx + 20.dp.toPx() - keyboardTop
+                        translationY = -shift.coerceAtLeast(0f)
+                    }
+                }
                 .verticalScroll(scrollState)
                 .padding(horizontal = 7.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -367,7 +366,11 @@ fun LockScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onGloballyPositioned { pillBottomPx = it.positionInWindow().y + it.size.height }
+                    .onGloballyPositioned {
+                        if (imeInsets.getBottom(density) == 0 || pillRestBottomPx == 0f) {
+                            pillRestBottomPx = it.positionInWindow().y + it.size.height
+                        }
+                    }
             ) {
                 TextButton(
                     onClick  = { focusManager.clearFocus(); viewModel.unlock() },

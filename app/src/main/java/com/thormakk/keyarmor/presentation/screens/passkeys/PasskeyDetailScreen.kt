@@ -327,7 +327,7 @@ fun PasskeyDetailScreen(
                         containerColor = androidx.compose.ui.graphics.Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -710,7 +710,7 @@ fun PasskeyDetailScreen(
                                     containerColor = Color.Transparent,
                                     contentColor   = MaterialTheme.colorScheme.primary
                                 ),
-                                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.action_remove_attribution)) }
                         },
                         dismissButton = {

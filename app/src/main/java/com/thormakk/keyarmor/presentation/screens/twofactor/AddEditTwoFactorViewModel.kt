@@ -45,6 +45,7 @@ data class AddEditTwoFactorUiState(
     val period:           Int              = 30,
     val algorithm:        TotpAlgorithm    = TotpAlgorithm.SHA1,
     val recoveryCodesText: String          = "",
+    val usedRecoveryCodes: List<String>    = emptyList(),
     val secretError:       Boolean          = false,
     val totpLimitReached:  Boolean          = false,
     val isNew:             Boolean          = true,
@@ -140,9 +141,8 @@ class AddEditTwoFactorViewModel @Inject constructor(
                                 digits          = acc.digits,
                                 period          = acc.period,
                                 algorithm       = acc.algorithm,
-                                recoveryCodesText = acc.recoveryCodes.joinToString("\n") { rc ->
-                                    if (rc.used) "${rc.code} ✓" else rc.code
-                                },
+                                recoveryCodesText = acc.recoveryCodes.filter { !it.used }.joinToString("\n") { it.code },
+                                usedRecoveryCodes = acc.recoveryCodes.filter { it.used }.map { it.code },
                                 secretError     = false,
                                 isNew           = false,
                                 url             = acc.url,
@@ -213,6 +213,7 @@ class AddEditTwoFactorViewModel @Inject constructor(
     fun onDigitsChange(v: Int)             { _uiState.value = _uiState.value.copy(digits = v.coerceIn(6, 8)) }
     fun onPeriodChange(v: Int)             { _uiState.value = _uiState.value.copy(period = v.coerceIn(15, 120)) }
     fun onAlgorithmChange(v: TotpAlgorithm){ _uiState.value = _uiState.value.copy(algorithm = v) }
+    fun onRecoveryCodesChange(v: String) { if (v.length <= 1000) _uiState.value = _uiState.value.copy(recoveryCodesText = v) }
     fun onTravelSafeChange(v: Boolean) { _uiState.value = _uiState.value.copy(isTravelSafe = v) }
     fun saveTravelSafeOnly(v: Boolean) {
         val s = _uiState.value.copy(isTravelSafe = v)
@@ -282,11 +283,11 @@ class AddEditTwoFactorViewModel @Inject constructor(
             _uiState.value = s.copy(secretError = true)
             return
         }
-        if (s.name.isBlank() && s.issuer.isBlank() && s.secret.isBlank() && s.recoveryCodesText.isBlank()) {
+        if (s.name.isBlank() && s.issuer.isBlank() && s.secret.isBlank() && s.recoveryCodesText.isBlank() && s.usedRecoveryCodes.isEmpty()) {
             return
         }
         viewModelScope.launch {
-            val recoveryCodes = parseRecoveryCodes(s.recoveryCodesText)
+            val recoveryCodes = parseRecoveryCodes(s.recoveryCodesText) + s.usedRecoveryCodes.map { RecoveryCode(code = it, used = true) }
             val existing = if (s.isNew) null else repository.getAccount(argId)
 
             val willHaveTotp = s.secret.isNotBlank()
@@ -355,10 +356,7 @@ class AddEditTwoFactorViewModel @Inject constructor(
         text.lines()
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .map { line ->
-                if (line.endsWith(" ✓")) RecoveryCode(code = line.removeSuffix(" ✓").trim(), used = true)
-                else RecoveryCode(code = line, used = false)
-            }
+            .map { line -> RecoveryCode(code = line, used = false) }
 
 
     val otherVaults: StateFlow<List<VaultMetadata>> = combine(

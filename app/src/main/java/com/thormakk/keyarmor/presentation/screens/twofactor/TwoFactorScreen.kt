@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.twofactor
 
+import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
+import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ContenidoDelFab
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -151,6 +153,12 @@ fun TwoFactorScreen(
 
     val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
     val isActiveVaultReadOnly by viewModel.isActiveVaultReadOnly.collectAsStateWithLifecycle()
+    var showReadOnlyGate by remember { mutableStateOf(false) }
+    if (showReadOnlyGate) ReadOnlyGateDialog(
+        premiumSection = false,
+        onDismiss = { showReadOnlyGate = false },
+        onPlans = onPlansClick
+    )
     val isSelectionMode = selectedIds.isNotEmpty()
     val otherVaults           by viewModel.otherVaults.collectAsStateWithLifecycle()
     var bulkVaultActionIsMove  by remember { mutableStateOf(true) }
@@ -259,23 +267,21 @@ fun TwoFactorScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = -navBarHeight)
-                    .coachMarkAnchor("two_factor", "fab"),
-                onClick = {
-                    if (!isActiveVaultReadOnly) {
-                        if (uiState.isAtFreeTotpLimit) showLimitDialog = true
+            Box(Modifier.offset(y = -navBarHeight)) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .coachMarkAnchor("two_factor", "fab"),
+                    onClick = {
+                        if (isActiveVaultReadOnly) showReadOnlyGate = true
+                        else if (uiState.isAtFreeTotpLimit) showLimitDialog = true
                         else onAddAccount()
-                    }
-                },
-                containerColor = VioletaDelFab,
-                contentColor   = ContenidoDelFab
-            ) {
-                Icon(
-                    imageVector        = if (isActiveVaultReadOnly || uiState.isAtFreeTotpLimit) Icons.Default.Lock else Icons.Default.Add,
-                    contentDescription = stringResource(R.string.action_add)
-                )
+                    },
+                    containerColor = VioletaDelFab,
+                    contentColor   = ContenidoDelFab
+                ) {
+                    FabAddIcon(locked = isActiveVaultReadOnly || uiState.isAtFreeTotpLimit, contentDescription = stringResource(R.string.action_add))
+                }
+                if (isActiveVaultReadOnly || uiState.isAtFreeTotpLimit) com.thormakk.keyarmor.presentation.components.FabLockBadge(Modifier.align(Alignment.TopEnd))
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -312,15 +318,15 @@ fun TwoFactorScreen(
                     Spacer(Modifier.height(16.dp))
                     Button(
                         onClick = {
-                            if (!isActiveVaultReadOnly) {
-                                if (uiState.isAtFreeTotpLimit) showLimitDialog = true else onAddAccount()
-                            }
+                            if (isActiveVaultReadOnly) showReadOnlyGate = true
+                            else if (uiState.isAtFreeTotpLimit) showLimitDialog = true
+                            else onAddAccount()
                         },
                         colors  = ButtonDefaults.buttonColors(
                             containerColor = Color.Transparent,
                             contentColor   = MaterialTheme.colorScheme.primary
                         ),
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                         shape  = RoundedCornerShape(8.dp)
                     ) {
                         Icon(if (isActiveVaultReadOnly) Icons.Default.Lock else Icons.Default.Add, contentDescription = null)
@@ -433,7 +439,7 @@ fun TwoFactorScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(stringResource(R.string.premium_gate_cta), fontWeight = FontWeight.SemiBold)
                 }

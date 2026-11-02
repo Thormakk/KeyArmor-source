@@ -2,6 +2,15 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment", "DEPRECATION")
 package com.thormakk.keyarmor.presentation.screens.crypto
 
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.exclude
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import androidx.compose.ui.focus.onFocusChanged
+import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.cuadroConTeclado
 import com.thormakk.keyarmor.presentation.components.justified
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
@@ -286,7 +295,7 @@ fun AddEditCryptoWalletScreen(
                     onClick = { premiumFeature = null; onPlansClick() },
                     shape   = RoundedCornerShape(8.dp),
                     colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.premium_gate_cta)) }
             },
             dismissButton = {
@@ -379,7 +388,7 @@ fun AddEditCryptoWalletScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.lock_action_unlock),
@@ -430,7 +439,12 @@ fun AddEditCryptoWalletScreen(
         )
     }
 
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = androidx.compose.foundation.rememberScrollState()
+    var notaEnfocada by remember { mutableStateOf(false) }
+
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         snackbarHost = { SnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 40.dp)) },
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -482,7 +496,9 @@ fun AddEditCryptoWalletScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { notaEnfocada })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -676,13 +692,13 @@ fun AddEditCryptoWalletScreen(
                 gapColor   = mergedGapColor
             )
 
-            Box {
+            Box(modifier = Modifier.sigueAlTecladoObjetivo(sigueTeclado).onFocusChanged { notaEnfocada = it.hasFocus }) {
                 OutlinedTextField(
                     value           = uiState.notes,
                     onValueChange   = { autoLockManager?.recordInteraction(); viewModel.onNotesChange(it) },
                     placeholder   = { Text(stringResource(R.string.crypto_field_notes), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     minLines        = 3,
-                    modifier        = Modifier.fillMaxWidth(),
+                    modifier        = Modifier.fillMaxWidth().seguirTextoMultilinea(),
                     shape           = entryItemShape(isFirst = false, isLast = true, radius = MergedCardRadius),
                     colors          = fieldColors(),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -1318,7 +1334,7 @@ private fun CryptoKeysSheet(
                                         Icon(
                                             imageVector        = Icons.Default.Delete,
                                             contentDescription = stringResource(R.string.action_delete),
-                                            tint               = MaterialTheme.colorScheme.error,
+                                            tint               = warningColor(),
                                             modifier           = Modifier.size(18.dp)
                                         )
                                     }
@@ -1402,7 +1418,7 @@ private fun CryptoKeysSheet(
                                         Icon(
                                             imageVector        = Icons.Default.Delete,
                                             contentDescription = stringResource(R.string.action_delete),
-                                            tint               = MaterialTheme.colorScheme.error,
+                                            tint               = warningColor(),
                                             modifier           = Modifier.size(18.dp)
                                         )
                                     }
@@ -1447,7 +1463,7 @@ private fun CryptoKeysSheet(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Icon(
                     imageVector        = Icons.Default.Save,
@@ -1712,7 +1728,7 @@ internal fun CryptoOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.action_save), fontWeight = FontWeight.SemiBold) }
                     },
                     dismissButton = {
@@ -1735,7 +1751,7 @@ internal fun CryptoOptionsSheet(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text       = stringResource(R.string.action_apply),
@@ -1772,7 +1788,7 @@ internal fun CryptoOptionsSheet(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) { Text(stringResource(R.string.premium_gate_cta)) }
                     },
                     dismissButton = {

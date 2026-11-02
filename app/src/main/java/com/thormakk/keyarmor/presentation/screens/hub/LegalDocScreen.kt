@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.withLink
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thormakk.keyarmor.R
@@ -90,7 +91,8 @@ fun LegalDocScreen(
                     }
                     if (section.body.isNotEmpty()) {
                         Text(
-                            text       = section.body,
+                            text       = if (docKey == "license") linkificarUrls(section.body, MaterialTheme.colorScheme.primary)
+                                         else androidx.compose.ui.text.AnnotatedString(section.body),
                             style      = MaterialTheme.typography.bodyMedium.justified(),
                             color      = MaterialTheme.colorScheme.onBackground,
                             lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.4f
@@ -103,3 +105,24 @@ fun LegalDocScreen(
         }
     }
 }
+
+private fun linkificarUrls(texto: String, color: androidx.compose.ui.graphics.Color): androidx.compose.ui.text.AnnotatedString =
+    androidx.compose.ui.text.buildAnnotatedString {
+        var desde = 0
+        Regex("https://\\S+").findAll(texto).forEach { m ->
+            append(texto.substring(desde, m.range.first))
+            withLink(
+                androidx.compose.ui.text.LinkAnnotation.Url(
+                    m.value,
+                    androidx.compose.ui.text.TextLinkStyles(
+                        androidx.compose.ui.text.SpanStyle(
+                            color = color,
+                            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                        )
+                    )
+                )
+            ) { append(m.value) }
+            desde = m.range.last + 1
+        }
+        append(texto.substring(desde))
+    }

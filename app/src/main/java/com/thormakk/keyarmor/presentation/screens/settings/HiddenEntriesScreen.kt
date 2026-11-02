@@ -1,6 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.settings
 
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import com.thormakk.keyarmor.presentation.components.justified
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
@@ -130,6 +134,8 @@ fun HiddenEntriesScreen(
     val saveGate = disableGate
 
     val bringButtonIntoView = remember { BringIntoViewRequester() }
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     LaunchedEffect(imeVisible, newTooShort, confirmMismatch) {
         if (imeVisible) {
@@ -242,7 +248,9 @@ fun HiddenEntriesScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .sigueAlTeclado(scrollForm, sigueTeclado)
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -393,14 +401,14 @@ fun HiddenEntriesScreen(
                         Button(
                             onClick = { saveGate.launch { viewModel.onSubmit(newPhrase, confirmPhrase) } },
                             enabled        = !isFreeUser && frasesListas,
-                            modifier       = Modifier.bringIntoViewRequester(bringButtonIntoView),
+                            modifier       = Modifier.sigueAlTecladoObjetivo(sigueTeclado).bringIntoViewRequester(bringButtonIntoView),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             shape  = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
                                 contentColor   = MaterialTheme.colorScheme.primary
                             ),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                         ) {
                             Text(
                                 text       = if (uiState.isEnabled)

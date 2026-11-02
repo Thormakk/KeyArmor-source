@@ -525,7 +525,7 @@ fun DriveSyncScreen(
                         containerColor = Color.Transparent,
                         contentColor   = MaterialTheme.colorScheme.primary
                     ),
-                    border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     Text(stringResource(R.string.drive_heavy_backup_confirm))
                 }
@@ -551,7 +551,10 @@ fun DriveSyncScreen(
             text  = { Text(stringResource(R.string.drive_delete_backup_confirm_msg), style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.deleteBackup() },
+                    onClick = {
+                        viewModel.hideDeleteBackupDialog()
+                        securityGate.launch { viewModel.deleteBackup() }
+                    },
                     shape   = RoundedCornerShape(8.dp),
                     colors  = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
@@ -584,7 +587,10 @@ fun DriveSyncScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.disconnect() },
+                    onClick = {
+                        viewModel.hideDisconnectDialog()
+                        securityGate.launch { viewModel.disconnect() }
+                    },
                     shape   = RoundedCornerShape(8.dp),
                     colors  = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
@@ -1317,7 +1323,7 @@ private fun RestoreDialog(
                     )
                 },
                 border = if (reemplazaTodo) null
-                         else BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                         else BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(stringResource(R.string.drive_action_restore))
             }
@@ -1504,7 +1510,7 @@ private fun ExplicacionDelPermiso(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(stringResource(R.string.action_continue), fontWeight = FontWeight.SemiBold)
             }

@@ -234,7 +234,8 @@ KeyArmor 的源代码公开的唯一目的，是让安全研究人员和用户�
 • 使用 KeyArmor 的名称、徽标或任何相关商标
     """.trimIndent()),
     LegalSection("源代码", """
-KeyArmor 的源代码公开可用。请查看该应用的官方渠道以获取存储库链接。
+KeyArmor 的源代码公开可用。
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("无担保", """
 源代码按"原样"提供，不附带任何明示或暗示的担保。版权持有者不对其特定用途的适用性做出任何陈述。

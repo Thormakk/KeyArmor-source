@@ -3,6 +3,7 @@ package com.thormakk.keyarmor.presentation.screens.calculatordisguise
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thormakk.keyarmor.R
+import com.thormakk.keyarmor.alarms.DisguiseSuspensionManager
 import com.thormakk.keyarmor.data.prefs.CalculatorDisguisePrefs
 import com.thormakk.keyarmor.data.prefs.PlanPrefs
 import com.thormakk.keyarmor.data.prefs.UserPlan
@@ -25,19 +26,24 @@ enum class CalculatorDisguiseStep {
     CONFIRM_SEQUENCE
 }
 
+enum class DisguiseConfirm { ENABLE, DISABLE }
+
 data class CalculatorDisguiseUiState(
     val isEnabled            : Boolean               = false,
     val hasSequenceConfigured: Boolean                = false,
     val step                 : CalculatorDisguiseStep = CalculatorDisguiseStep.IDLE,
     val calcState            : CalculatorState        = CalculatorState(),
     val recordError          : UiText?                = null,
-    val savedSuccess         : Boolean                = false
+    val savedSuccess         : Boolean                = false,
+    val pendingConfirm       : DisguiseConfirm?       = null,
+    val closeApp             : Boolean                = false
 )
 
 @HiltViewModel
 class CalculatorDisguiseViewModel @Inject constructor(
     private val prefs: CalculatorDisguisePrefs,
     private val authRepository: AuthRepository,
+    private val disguiseSuspensionManager: DisguiseSuspensionManager,
     planPrefs: PlanPrefs
 ) : ViewModel() {
 
@@ -48,6 +54,8 @@ class CalculatorDisguiseViewModel @Inject constructor(
     private val engine = CalculatorEngine()
 
     private var pendingSequence: String? = null
+
+    private var confirmedSequence: String? = null
 
     private val _uiState = MutableStateFlow(
         CalculatorDisguiseUiState(
@@ -60,15 +68,48 @@ class CalculatorDisguiseViewModel @Inject constructor(
     fun onToggle(checked: Boolean) {
         if (checked) {
             if (prefs.hasSequenceConfigured()) {
-                prefs.enable()
-                _uiState.value = _uiState.value.copy(isEnabled = true)
+                _uiState.value = _uiState.value.copy(pendingConfirm = DisguiseConfirm.ENABLE)
             } else {
                 onStartRecording()
             }
         } else {
-            prefs.disable()
-            _uiState.value = _uiState.value.copy(isEnabled = false)
+            _uiState.value = _uiState.value.copy(pendingConfirm = DisguiseConfirm.DISABLE)
         }
+    }
+
+    fun onConfirmDismiss() {
+        confirmedSequence = null
+        _uiState.value = _uiState.value.copy(pendingConfirm = null)
+    }
+
+    fun onConfirmEnable() {
+        val sequence = confirmedSequence
+        confirmedSequence = null
+        if (sequence != null) prefs.setSequenceAndEnable(sequence) else prefs.enable()
+        disguiseSuspensionManager.onDisguiseChanged(active = true)
+        prefs.applyLauncherIcon()
+        pendingSequence = null
+        engine.clearAll()
+        _uiState.value = _uiState.value.copy(
+            step                  = CalculatorDisguiseStep.IDLE,
+            isEnabled             = true,
+            hasSequenceConfigured = true,
+            calcState             = engine.snapshot(),
+            recordError           = null,
+            pendingConfirm        = null,
+            closeApp              = true
+        )
+    }
+
+    fun onConfirmDisable() {
+        prefs.disable()
+        disguiseSuspensionManager.onDisguiseChanged(active = false)
+        prefs.applyLauncherIcon()
+        _uiState.value = _uiState.value.copy(
+            isEnabled      = false,
+            pendingConfirm = null,
+            closeApp       = true
+        )
     }
 
     fun onChangeSequence() = onStartRecording()
@@ -111,17 +152,26 @@ class CalculatorDisguiseViewModel @Inject constructor(
             }
             CalculatorDisguiseStep.CONFIRM_SEQUENCE -> {
                 if (entered == pendingSequence) {
-                    prefs.setSequenceAndEnable(entered)
-                    pendingSequence = null
-                    engine.clearAll()
-                    _uiState.value = _uiState.value.copy(
-                        step                  = CalculatorDisguiseStep.IDLE,
-                        isEnabled             = true,
-                        hasSequenceConfigured = true,
-                        calcState             = engine.snapshot(),
-                        recordError           = null,
-                        savedSuccess          = true
-                    )
+                    if (prefs.isEnabled()) {
+                        prefs.setSequenceAndEnable(entered)
+                        pendingSequence = null
+                        engine.clearAll()
+                        _uiState.value = _uiState.value.copy(
+                            step                  = CalculatorDisguiseStep.IDLE,
+                            hasSequenceConfigured = true,
+                            calcState             = engine.snapshot(),
+                            recordError           = null,
+                            savedSuccess          = true
+                        )
+                    } else {
+                        confirmedSequence = entered
+                        engine.clearAll()
+                        _uiState.value = _uiState.value.copy(
+                            calcState      = engine.snapshot(),
+                            recordError    = null,
+                            pendingConfirm = DisguiseConfirm.ENABLE
+                        )
+                    }
                 } else {
                     engine.clearAll()
                     _uiState.value = _uiState.value.copy(

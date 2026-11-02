@@ -371,7 +371,8 @@ KeyArmor의 소스 코드는 보안 연구자와 사용자가 보안 관행을 �
 • KeyArmor의 이름, 로고 또는 관련 상표를 사용하는 것
     """.trimIndent()),
     LegalSection("소스 코드", """
-KeyArmor의 소스 코드는 공개적으로 이용 가능합니다. 저장소 링크는 앱의 공식 채널을 확인하십시오.
+KeyArmor의 소스 코드는 공개적으로 이용 가능합니다.
+https://github.com/Thormakk/KeyArmor-source
     """.trimIndent()),
     LegalSection("무보증", """
 소스 코드는 명시적이든 묵시적이든 어떠한 종류의 보증 없이 "있는 그대로" 제공됩니다. 저작권자는 특정 목적에의 적합성에 대해 어떠한 진술도 하지 않습니다.

@@ -31,6 +31,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -76,6 +77,12 @@ object BiometricSessionCache {
         lastAuthMs[section] = android.os.SystemClock.elapsedRealtime()
     }
 
+    fun remainingMs(section: String, timeoutSecs: Int): Long {
+        val last = lastAuthMs[section] ?: return 0L
+        val left = timeoutSecs * 1000L - (android.os.SystemClock.elapsedRealtime() - last)
+        return if (left > 0L) left else 0L
+    }
+
     fun isValid(section: String, timeoutSecs: Int): Boolean {
         val last = lastAuthMs[section] ?: return false
         return android.os.SystemClock.elapsedRealtime() - last < timeoutSecs * 1000L
@@ -92,12 +99,16 @@ class BiometricGate(
     private val prompt:           BiometricPrompt,
     private val promptInfo:       BiometricPrompt.PromptInfo,
     private val context:          Context,
-    val sessionExpiresAt:         State<Long>
+    private val sessionExpiresState: MutableLongState
 ) {
+    val sessionExpiresAt: State<Long> get() = sessionExpiresState
+
     fun launch(onGranted: () -> Unit) {
         if (!prefs.isSectionEnabled(section)) { onGranted(); return }
         if (prefs.getMode() == BiometricPrefs.MODE_SESSION &&
             BiometricSessionCache.isValid(section, prefs.getSessionTimeoutSeconds())) {
+            sessionExpiresState.longValue = System.currentTimeMillis() +
+                BiometricSessionCache.remainingMs(section, prefs.getSessionTimeoutSeconds())
             onGranted(); return
         }
         pendingAction.value = onGranted
@@ -200,7 +211,7 @@ fun rememberBiometricGate(
             prompt           = prompt,
             promptInfo       = promptInfo,
             context          = context,
-            sessionExpiresAt = sessionExpiresAt
+            sessionExpiresState = sessionExpiresAt
         )
     }
 }
@@ -440,7 +451,7 @@ private fun BiometricGateFallbackDialog(
             }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 contentColor   = MaterialTheme.colorScheme.primary
-            ), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)) {
+            ), border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)) {
                 Text(
                     text       = stringResource(R.string.lock_action_unlock),
                     color      = MaterialTheme.colorScheme.primary,

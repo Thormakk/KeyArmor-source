@@ -1,6 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.settings
 
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
@@ -20,6 +24,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -135,6 +141,8 @@ fun AutofillSettingsScreen(
 
     val addBlockIntoView = remember { BringIntoViewRequester() }
     var manualFocused by remember { mutableStateOf(false) }
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     LaunchedEffect(manualFocused, imeVisible, manualInvalid) {
         if (manualFocused && imeVisible) {
@@ -213,6 +221,7 @@ fun AutofillSettingsScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing.exclude(WindowInsets.ime),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(
@@ -259,7 +268,9 @@ fun AutofillSettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { manualFocused })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -433,6 +444,7 @@ fun AutofillSettingsScreen(
 
                 Column(
                     modifier = Modifier
+                        .sigueAlTecladoObjetivo(sigueTeclado)
                         .bringIntoViewRequester(addBlockIntoView)
                         .padding(16.dp),
                 ) {
@@ -577,7 +589,7 @@ private fun LevelDialog(
                     containerColor = Color.Transparent,
                     contentColor   = MaterialTheme.colorScheme.primary
                 ),
-                border  = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
             ) { Text(stringResource(R.string.autofill_apply), fontWeight = FontWeight.SemiBold) }
         },
         dismissButton = {
