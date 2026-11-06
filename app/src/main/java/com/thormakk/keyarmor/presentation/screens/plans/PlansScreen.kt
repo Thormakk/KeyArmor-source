@@ -88,6 +88,7 @@ fun PlansScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val verificationFailedMsg = stringResource(R.string.error_google_verification_failed)
+    val accountPickerUnavailableMsg = stringResource(R.string.error_google_account_picker_unavailable)
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let { msg ->
@@ -108,6 +109,9 @@ fun PlansScreen(
                     if (connected) purchaseAction()
                 }
                 is GoogleConnectResult.Cancelled -> Unit
+                is GoogleConnectResult.NoCredential -> {
+                    snackbarHostState.showSnackbar(accountPickerUnavailableMsg)
+                }
                 is GoogleConnectResult.Error -> {
                     snackbarHostState.showSnackbar(verificationFailedMsg)
                 }

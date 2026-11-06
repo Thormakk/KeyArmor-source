@@ -57,7 +57,7 @@ Die Google-Drive-Synchronisierung ist vollständig optional. Wenn sie aktiviert 
 • Wenn Sie Ihren Schlüssel ändern, können Sie die bisherigen Schlüssel verschlüsselt auf Ihrem Smartphone behalten; die PDF-Datei des Kits kann sie enthalten. KeyArmor sendet sie an keinen Server.
 • Es wird niemals auf andere Drive-Dateien zugegriffen, es werden keine sichtbaren Ordner erstellt und keine Dateien geteilt.
 • Optional wird eine zweite lokale Kopie der Sicherung im Ordner Downloads/KeyArmor/ Ihres Geräts gespeichert, die das Gerät nie verlässt.
-• Synchronisierung auf Abruf ist in allen Plänen verfügbar (manuell ausgelöst). Automatische tägliche Synchronisierung ist in Premium verfügbar.
+• Die Google-Drive-Sicherung – sowohl manuell (auf Ihren Wunsch) als auch automatisch täglich – ist in Premium und im Familienplan verfügbar. Im kostenlosen Plan können Sie Ihr Google-Konto verknüpfen, um eine vorhandene Sicherung wiederherzustellen.
 
 Digitales Erbe und der Familienplan nutzen Google Firebase, nicht Ihr Google Drive. Firebase koordiniert die Einwilligungen, Einladungen und Benachrichtigungen. Der Erbschafts-Tresor wird auf Ihrem Gerät mit dem öffentlichen Schlüssel des Erben Ende-zu-Ende verschlüsselt, und der resultierende verschlüsselte Block wird über kurzlebige (15 Minuten) signierte Links in einen privaten Firebase Cloud Storage-Bucket des Entwicklers hochgeladen. Der Server speichert diesen Block, erhält jedoch niemals den Schlüssel des Erben und kann ihn daher nicht lesen.
 
@@ -189,7 +189,7 @@ Unsere Server können Ihre IP-Adresse vorübergehend protokollieren, um Missbrau
     ),
     LegalSection(
         "Zuletzt aktualisiert",
-        "Oktober 2026 (Rev. 8)"
+        "November 2026 (Rev. 9)"
     )
 )
 
@@ -264,6 +264,8 @@ private fun termsDE() = listOf(
         "Haftungsbeschränkung",
         """
         Im größtmöglichen gesetzlich zulässigen Umfang haftet der Entwickler nicht für Datenverlust, Verlust des Zugangs zum Tresor oder direkte, indirekte, zufällige, besondere oder Folgeschäden, die sich aus der Nutzung oder der Unmöglichkeit der Nutzung der App ergeben.
+
+        Wenn Sie in einem Land leben, dessen Verbraucherschutzgesetz Ihnen Rechte einräumt, auf die Sie nicht verzichten können, werden diese Rechte durch die vorliegenden Bedingungen nicht eingeschränkt. Die Bestimmungen dieser Bedingungen zu Gewährleistungen und Haftung gelten nur insoweit, wie dies gesetzlich zulässig ist.
         """.trimIndent()
     ),
     LegalSection(
@@ -274,7 +276,7 @@ private fun termsDE() = listOf(
     ),
     LegalSection(
         "Zuletzt aktualisiert",
-        "Mai 2026 (Rev. 2)"
+        "November 2026 (Rev. 3)"
     )
 )
 
@@ -343,11 +345,13 @@ Wenn der Nutzer die Google-Drive-Synchronisierung (Sicherungen) aktiviert oder d
         "Anwendbares Recht",
         """
         Dieser rechtliche Hinweis unterliegt den in der Argentinischen Republik geltenden Gesetzen. Alle Streitigkeiten, die sich aus der Nutzung der App ergeben, werden den zuständigen Gerichten dieser Rechtsordnung unterbreitet.
+
+        Wenn Sie in einem Land leben, dessen Verbraucherschutzgesetz Ihnen Rechte einräumt, auf die Sie nicht verzichten können, werden diese Rechte durch diesen Hinweis nicht eingeschränkt. Die in diesem Hinweis enthaltenen Bestimmungen zu Gewährleistungen, Haftung, anwendbarem Recht und Gerichtsstand gelten nur insoweit, wie dies gesetzlich zulässig ist.
         """.trimIndent()
     ),
     LegalSection(
         "Zuletzt aktualisiert",
-        "Mai 2026 (Rev. 2)"
+        "November 2026 (Rev. 3)"
     )
 )
 

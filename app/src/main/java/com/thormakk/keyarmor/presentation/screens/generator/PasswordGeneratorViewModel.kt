@@ -158,8 +158,8 @@ class PasswordGeneratorViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun generateStandard(s: GeneratorUiState): String {
-        val upperPool  = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-        val lowerPool  = "abcdefghjkmnpqrstuvwxyz"
+        val upperPool  = if (s.excludeAmbiguous) "ABCDEFGHJKLMNPQRSTUVWXYZ" else "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val lowerPool  = if (s.excludeAmbiguous) "abcdefghjkmnpqrstuvwxyz"  else "abcdefghijklmnopqrstuvwxyz"
         val digitPool  = if (s.excludeAmbiguous) "23456789" else "0123456789"
         val symbolPool = "!@#$%^&*-_=+?"
 

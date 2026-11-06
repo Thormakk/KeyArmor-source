@@ -14,6 +14,7 @@ import com.thormakk.keyarmor.data.drive.GoogleIdentityVerifier
 sealed class GoogleConnectResult {
     data class Success(val email: String, val idToken: String) : GoogleConnectResult()
     object Cancelled : GoogleConnectResult()
+    object NoCredential : GoogleConnectResult()
     data class Error(val message: String?) : GoogleConnectResult()
 }
 
@@ -53,7 +54,8 @@ suspend fun requestGoogleAccountConnect(
             else -> GoogleConnectResult.Error(null)
         }
     } catch (e: NoCredentialException) {
-        GoogleConnectResult.Cancelled
+        if (filterByAuthorizedAccounts) GoogleConnectResult.Cancelled
+        else GoogleConnectResult.NoCredential
     } catch (e: GetCredentialException) {
         GoogleConnectResult.Error(e.message)
     }

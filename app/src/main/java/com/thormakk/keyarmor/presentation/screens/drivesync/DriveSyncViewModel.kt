@@ -48,6 +48,7 @@ data class DriveSyncUiState(
     val showSetupPassword:    Boolean  = false,
     val showRestoreDialog:    Boolean     = false,
     val restoreMode:          RestoreMode = RestoreMode.MERGE,
+    val restoreVaultEmpty:    Boolean = false,
     val restoreNeedsPassword: Boolean     = false,
     val restorePasswordError: Boolean     = false,
     val restoreKeyError:      String?     = null,
@@ -401,6 +402,13 @@ class DriveSyncViewModel @Inject constructor(
             restorePasswordError = false,
             restoreKeyError      = null
         )
+        viewModelScope.launch {
+            val vacia = exportImportRepo.countAllEntries() == 0
+            _uiState.value = _uiState.value.copy(
+                restoreVaultEmpty = vacia,
+                restoreMode       = if (vacia) RestoreMode.MERGE else _uiState.value.restoreMode
+            )
+        }
     }
     fun hideRestoreDialog()  { _uiState.value = _uiState.value.copy(showRestoreDialog = false) }
 

@@ -142,6 +142,7 @@ fun InheritanceScreen(
     val credentialManager = remember { CredentialManager.create(context) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val msgAccountPickerUnavailable = stringResource(R.string.error_google_account_picker_unavailable)
     val scrollState      = rememberScrollState()
     val sigueTeclado     = rememberSigueAlTeclado()
 
@@ -368,6 +369,8 @@ fun InheritanceScreen(
                             when (val result = requestGoogleAccountConnect(context, credentialManager)) {
                                 is GoogleConnectResult.Success -> viewModel.handleSignInResult(result.idToken)
                                 is GoogleConnectResult.Cancelled -> Unit
+                                is GoogleConnectResult.NoCredential ->
+                                    snackbarHostState.showSnackbar(msgAccountPickerUnavailable)
                                 is GoogleConnectResult.Error -> Unit
                             }
                         }

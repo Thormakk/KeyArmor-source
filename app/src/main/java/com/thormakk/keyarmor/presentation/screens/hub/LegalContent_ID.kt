@@ -57,7 +57,7 @@ Sinkronisasi Google Drive sepenuhnya opsional. Saat diaktifkan, KeyArmor:
 • Jika Anda mengganti kunci, Anda dapat menyimpan kunci sebelumnya, terenkripsi di ponsel Anda; PDF kit dapat menyertakannya. KeyArmor tidak mengirimkannya ke server mana pun.
 • Tidak pernah mengakses berkas Drive lain, tidak pernah membuat folder yang terlihat, dan tidak pernah membagikan berkas.
 • Secara opsional menyimpan salinan lokal kedua dari cadangan di folder Downloads/KeyArmor/ perangkat Anda, yang tidak pernah keluar dari perangkat.
-• Sinkronisasi sesuai permintaan tersedia di semua paket (dipicu secara manual). Sinkronisasi harian otomatis tersedia di Premium.
+• Pencadangan Google Drive, baik secara manual (saat Anda memintanya) maupun otomatis setiap hari, tersedia di paket Premium dan Paket Keluarga. Di paket gratis, Anda dapat menghubungkan akun Google Anda untuk memulihkan cadangan yang sudah ada.
 
 Warisan Digital dan Paket Keluarga menggunakan Google Firebase, bukan Google Drive Anda. Firebase mengelola persetujuan, undangan, dan pemberitahuan. Brankas warisan dienkripsi dari ujung ke ujung di perangkat Anda menggunakan kunci publik ahli waris, dan blok terenkripsi yang dihasilkan diunggah ke bucket pribadi Firebase Cloud Storage milik pengembang melalui tautan yang ditandatangani dan berdurasi pendek (15 menit). Server menyimpan blok tersebut tetapi tidak pernah menerima kunci ahli waris, sehingga tidak dapat membacanya.
 
@@ -190,7 +190,7 @@ Server kami dapat mencatat alamat IP Anda untuk sementara guna membatasi penyala
     ),
     LegalSection(
         "Terakhir diperbarui",
-        "Oktober 2026 (rev. 8)"
+        "November 2026 (rev. 9)"
     )
 )
 
@@ -265,6 +265,8 @@ private fun termsID() = listOf(
         "Batasan Tanggung Jawab",
         """
         Sejauh yang diizinkan oleh hukum yang berlaku, pengembang tidak bertanggung jawab atas kehilangan data, kehilangan akses brankas, atau kerusakan langsung, tidak langsung, insidental, khusus, atau konsekuensial apa pun yang timbul dari penggunaan atau ketidakmampuan menggunakan aplikasi.
+
+        Jika Anda tinggal di negara yang undang-undang perlindungan konsumennya memberikan hak-hak yang tidak dapat dicabut, ketentuan-ketentuan ini tidak mengurangi hak-hak tersebut. Ketentuan-ketentuan ini mengenai jaminan dan tanggung jawab hanya berlaku sejauh diizinkan oleh undang-undang.
         """.trimIndent()
     ),
     LegalSection(
@@ -275,7 +277,7 @@ private fun termsID() = listOf(
     ),
     LegalSection(
         "Terakhir diperbarui",
-        "Mei 2026 (rev. 2)"
+        "November 2026 (rev. 3)"
     )
 )
 
@@ -344,11 +346,13 @@ Saat pengguna mengaktifkan sinkronisasi Google Drive (cadangan) atau menggunakan
         "Hukum yang Berlaku",
         """
         Pemberitahuan hukum ini diatur oleh hukum yang berlaku di Republik Argentina. Setiap perselisihan yang timbul dari penggunaan aplikasi akan diajukan ke pengadilan yang berwenang di yurisdiksi tersebut.
+
+        Jika Anda tinggal di negara yang undang-undang perlindungan konsumennya memberikan hak-hak yang tidak dapat dicabut, pemberitahuan ini tidak mengurangi hak-hak tersebut. Ketentuan dalam pemberitahuan ini mengenai jaminan, tanggung jawab, hukum yang berlaku, dan pengadilan hanya berlaku sejauh diizinkan oleh undang-undang.
         """.trimIndent()
     ),
     LegalSection(
         "Terakhir diperbarui",
-        "Mei 2026 (rev. 2)"
+        "November 2026 (rev. 3)"
     )
 )
 

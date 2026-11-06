@@ -57,7 +57,7 @@ Google Drive-synkronisering är helt valfri. När den är aktiverad gör KeyArmo
 • Om du byter nyckel kan du behålla de tidigare nycklarna, krypterade på din telefon; kitets PDF-fil kan innehålla dem. KeyArmor skickar dem inte till någon server.
 • Får aldrig åtkomst till någon annan Drive-fil, skapar aldrig synliga mappar och delar aldrig filer.
 • Behåller valfritt en andra lokal kopia av säkerhetskopian i enhetens mapp Downloads/KeyArmor/, som aldrig lämnar enheten.
-• Synkronisering på begäran finns i alla planer (startas manuellt). Automatisk daglig synkronisering finns i Premium.
+• Säkerhetskopiering till Google Drive, både manuell (när du själv begär det) och automatisk dagligen, finns i Premium och Familjeplanen. I den kostnadsfria planen kan du koppla ditt Google-konto för att återställa en befintlig säkerhetskopia.
 
 Digitalt arv och Familjeplanen använder Google Firebase, inte ditt Google Drive. Firebase hanterar samtycke, inbjudningar och aviseringar. Arvsvalvet krypteras från ändpunkt till ändpunkt på din enhet med arvtagarens offentliga nyckel, och den resulterande krypterade datablocken laddas upp till en privat bucket i Firebase Cloud Storage som tillhör utvecklaren via signerade länkar med kort giltighetstid (15 minuter). Servern lagrar datablocken men får aldrig tillgång till arvtagarens nyckel, vilket innebär att den inte kan läsa den.
 
@@ -189,7 +189,7 @@ Våra servrar kan tillfälligt logga din IP-adress för att begränsa missbruk.
     ),
     LegalSection(
         "Senast uppdaterad",
-        "Oktober 2026 (rev. 8)"
+        "November 2026 (rev. 9)"
     )
 )
 
@@ -264,6 +264,8 @@ private fun termsSV() = listOf(
         "Ansvarsbegränsning",
         """
         I den utsträckning som tillåts av tillämplig lag ska utvecklaren inte vara ansvarig för dataförlust, förlust av valvåtkomst eller några direkta, indirekta, oförutsedda, särskilda eller följdskador som uppstår till följd av användning av eller oförmåga att använda appen.
+
+        Om du bor i ett land där konsumentskyddslagstiftningen ger dig rättigheter som inte kan avstås från, inskränker dessa villkor inte dessa rättigheter. Vad som anges i dessa villkor om garantier och ansvar gäller endast i den utsträckning som lagen tillåter.
         """.trimIndent()
     ),
     LegalSection(
@@ -274,7 +276,7 @@ private fun termsSV() = listOf(
     ),
     LegalSection(
         "Senast uppdaterad",
-        "Maj 2026 (rev. 2)"
+        "November 2026 (rev. 3)"
     )
 )
 
@@ -343,11 +345,13 @@ När användaren aktiverar Google Drive-synkronisering (säkerhetskopior) eller 
         "Tillämplig lag",
         """
         Detta juridiska meddelande regleras av de lagar som gäller i Republiken Argentina. Tvister som uppstår till följd av användningen av appen ska överlämnas till de behöriga domstolarna i den jurisdiktionen.
+
+        Om du bor i ett land där konsumentskyddslagstiftningen ger dig rättigheter som inte kan avstås från, innebär detta meddelande inte någon inskränkning av dessa rättigheter. Det som anges i detta meddelande om garantier, ansvar, tillämplig lag och behöriga domstolar gäller endast i den utsträckning som lagen tillåter.
         """.trimIndent()
     ),
     LegalSection(
         "Senast uppdaterad",
-        "Maj 2026 (rev. 2)"
+        "November 2026 (rev. 3)"
     )
 )
 

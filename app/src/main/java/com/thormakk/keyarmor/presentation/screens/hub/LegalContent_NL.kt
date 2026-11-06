@@ -57,7 +57,7 @@ Google Drive-synchronisatie is volledig optioneel. Wanneer ingeschakeld, doet Ke
 • Als je je sleutel wijzigt, kun je de vorige sleutels versleuteld op je telefoon bewaren; de pdf van de kit kan ze bevatten. KeyArmor stuurt ze naar geen enkele server.
 • Krijgt nooit toegang tot andere Drive-bestanden, maakt nooit zichtbare mappen en deelt nooit bestanden.
 • Bewaart optioneel een tweede lokale kopie van de back-up in de map Downloads/KeyArmor/ van je apparaat, die het apparaat nooit verlaat.
-• Synchronisatie op aanvraag is beschikbaar in alle abonnementen (handmatig gestart). Automatische dagelijkse synchronisatie is beschikbaar in Premium.
+• Een back-up via Google Drive, zowel handmatig (wanneer je daar zelf om vraagt) als automatisch dagelijks, is beschikbaar bij Premium en het Gezinsabonnement. Bij het gratis abonnement kun je je Google-account koppelen om een bestaande back-up te herstellen.
 
 Digitale Nalatenschap en het Gezinsabonnement maken gebruik van Google Firebase, niet van je Google Drive. Firebase regelt de toestemming, uitnodigingen en meldingen. De erfeniskluis wordt op je apparaat van punt tot punt versleuteld met de openbare sleutel van de erfgenaam, en het resulterende versleutelde blok wordt via kortlopende (15 minuten) ondertekende links geüpload naar een privé-bucket van Firebase Cloud Storage van de ontwikkelaar. De server bewaart dat blok, maar ontvangt nooit de sleutel van de erfgenaam, zodat hij het niet kan lezen.
 
@@ -189,7 +189,7 @@ Onze servers kunnen uw IP-adres tijdelijk registreren om misbruik te beperken.
     ),
     LegalSection(
         "Laatst bijgewerkt",
-        "Oktober 2026 (rev. 8)"
+        "November 2026 (rev. 9)"
     )
 )
 
@@ -264,6 +264,8 @@ private fun termsNL() = listOf(
         "Beperking van aansprakelijkheid",
         """
         Voor zover maximaal toegestaan door toepasselijk recht, is de ontwikkelaar niet aansprakelijk voor gegevensverlies, verlies van toegang tot de kluis, of enige directe, indirecte, incidentele, bijzondere of gevolgschade die voortvloeit uit het gebruik van of het niet kunnen gebruiken van de app.
+
+        Als u in een land woont waar de wetgeving inzake consumentenbescherming u rechten toekent waarvan u geen afstand kunt doen, doen deze voorwaarden geen afbreuk aan die rechten. Wat in deze voorwaarden wordt vermeld over garanties en aansprakelijkheid, geldt alleen voor zover de wet dit toestaat.
         """.trimIndent()
     ),
     LegalSection(
@@ -274,7 +276,7 @@ private fun termsNL() = listOf(
     ),
     LegalSection(
         "Laatst bijgewerkt",
-        "Mei 2026 (rev. 2)"
+        "November 2026 (rev. 3)"
     )
 )
 
@@ -343,11 +345,13 @@ Wanneer de gebruiker Google Drive-synchronisatie (back-ups) inschakelt of Digita
         "Toepasselijk recht",
         """
         Deze juridische kennisgeving wordt beheerst door de geldende wetgeving in de Republiek Argentinië. Elk geschil dat voortvloeit uit het gebruik van de app zal worden voorgelegd aan de bevoegde rechtbanken van die jurisdictie.
+
+        Als u in een land woont waar de wetgeving inzake consumentenbescherming u rechten toekent waarvan u geen afstand kunt doen, doet deze verklaring geen afbreuk aan die rechten. Wat in deze verklaring wordt vermeld over garanties, aansprakelijkheid, toepasselijk recht en bevoegde rechtbanken, geldt alleen voor zover de wet dit toestaat.
         """.trimIndent()
     ),
     LegalSection(
         "Laatst bijgewerkt",
-        "Mei 2026 (rev. 2)"
+        "November 2026 (rev. 3)"
     )
 )
 

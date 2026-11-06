@@ -57,7 +57,7 @@ Synchronizace s Google Drive je zcela volitelná. Když ji zapnete, KeyArmor:
 • Pokud klíč změníte, můžete si předchozí klíče ponechat, zašifrované ve svém telefonu; soubor PDF se sadou je může obsahovat. KeyArmor je neodesílá na žádný server.
 • Nikdy nepřistupuje k žádnému jinému souboru na Drive, nikdy nevytváří viditelné složky a nikdy nesdílí soubory.
 • Volitelně uchovává druhou místní kopii zálohy ve složce Downloads/KeyArmor/ vašeho zařízení, která zařízení nikdy neopustí.
-• Synchronizace na vyžádání je dostupná ve všech plánech (spouští se ručně). Automatická denní synchronizace je dostupná v plánu Premium.
+• Zálohování na Google Drive, a to jak ruční (na vaši žádost), tak automatické denní, je dostupné v plánech Premium a Rodinný plán. V bezplatném plánu můžete propojit svůj účet Google a obnovit existující zálohu.
 
 Digitální dědictví a Rodinný plán využívají Google Firebase, nikoli váš Google Drive. Firebase koordinuje souhlasy, pozvánky a oznámení. Trezor dědictví je na vašem zařízení šifrován od konce ke konci pomocí veřejného klíče dědice a výsledný šifrovaný blok se nahrává do soukromého úložiště Firebase Cloud Storage vývojáře pomocí podepsaných odkazů s krátkou platností (15 minut). Server tento blok ukládá, ale nikdy neobdrží klíč dědice, takže jej nemůže přečíst.
 
@@ -189,7 +189,7 @@ Naše servery mohou dočasně zaznamenávat vaši IP adresu, aby omezily zneuži
     ),
     LegalSection(
         "Poslední aktualizace",
-        "Říjen 2026 (rev. 8)"
+        "Listopad 2026 (rev. 9)"
     )
 )
 
@@ -264,6 +264,8 @@ private fun termsCS() = listOf(
         "Omezení odpovědnosti",
         """
         V maximálním rozsahu povoleném platným právem vývojář neodpovídá za ztrátu dat, ztrátu přístupu k trezoru ani za žádné přímé, nepřímé, náhodné, zvláštní nebo následné škody vzniklé v důsledku použití aplikace nebo nemožnosti ji používat.
+
+        Pokud žijete v zemi, kde vám zákon o ochraně spotřebitele přiznává práva, kterých se nelze vzdát, tyto podmínky tato práva nijak neomezují. Ustanovení těchto podmínek týkající se záruk a odpovědnosti platí pouze v rozsahu povoleném zákonem.
         """.trimIndent()
     ),
     LegalSection(
@@ -274,7 +276,7 @@ private fun termsCS() = listOf(
     ),
     LegalSection(
         "Poslední aktualizace",
-        "Květen 2026 (rev. 2)"
+        "Listopad 2026 (rev. 3)"
     )
 )
 
@@ -343,11 +345,13 @@ Když uživatel zapne synchronizaci s Google Drive (zálohy) nebo použije Digit
         "Rozhodné právo",
         """
         Toto právní upozornění se řídí platnou legislativou Argentinské republiky. Jakýkoli spor vzniklý v důsledku používání aplikace bude předložen příslušným soudům dané jurisdikce.
+
+        Pokud žijete v zemi, kde vám zákon o ochraně spotřebitele přiznává práva, na která se nelze vzdát, toto oznámení tato práva nijak neomezuje. Ustanovení tohoto oznámení týkající se záruk, odpovědnosti, rozhodného práva a příslušných soudů platí pouze v rozsahu, v jakém to zákon umožňuje.
         """.trimIndent()
     ),
     LegalSection(
         "Poslední aktualizace",
-        "Květen 2026 (rev. 2)"
+        "Listopad 2026 (rev. 3)"
     )
 )
 

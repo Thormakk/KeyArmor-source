@@ -57,7 +57,7 @@ La sincronizzazione con Google Drive è del tutto facoltativa. Quando è attiva,
 • Se cambi la chiave, puoi conservare quelle precedenti, crittografate sul tuo telefono; il PDF del kit può includerle. KeyArmor non le invia ad alcun server.
 • Non accede mai ad altri file di Drive, non crea mai cartelle visibili e non condivide mai file.
 • Facoltativamente conserva una seconda copia locale del backup nella cartella Downloads/KeyArmor/ del dispositivo, che non lascia mai il dispositivo.
-• La sincronizzazione su richiesta è disponibile in tutti i piani (avviata manualmente). La sincronizzazione giornaliera automatica è disponibile con Premium.
+• Il backup su Google Drive, sia manuale (su richiesta) che automatico giornaliero, è disponibile nei piani Premium e Famiglia. Nel piano gratuito è possibile collegare il proprio account Google per ripristinare un backup esistente.
 
 L'Eredità Digitale e il Piano Famiglia utilizzano Google Firebase, non il tuo Google Drive. Firebase gestisce il consenso, gli inviti e le notifiche. Il deposito dell'eredità viene crittografato end-to-end sul tuo dispositivo con la chiave pubblica dell'erede, e il blocco crittografato risultante viene caricato in un bucket privato di Firebase Cloud Storage dello sviluppatore tramite link firmati a breve durata (15 minuti). Il server conserva quel blocco ma non riceve mai la chiave dell'erede, quindi non è in grado di leggerlo.
 
@@ -189,7 +189,7 @@ I nostri server possono registrare temporaneamente il tuo indirizzo IP per limit
     ),
     LegalSection(
         "Ultimo aggiornamento",
-        "Ottobre 2026 (rev. 8)"
+        "Novembre 2026 (rev. 9)"
     )
 )
 
@@ -264,6 +264,8 @@ private fun termsIT() = listOf(
         "Limitazione di Responsabilità",
         """
         Nella misura massima consentita dalla legge applicabile, lo sviluppatore non sarà responsabile per perdita di dati, perdita di accesso al vault, né per danni diretti, indiretti, incidentali, speciali o consequenziali derivanti dall'uso o dall'impossibilità di utilizzare l'app.
+
+        Se risiedi in un Paese in cui la normativa sulla tutela dei consumatori ti garantisce diritti che non possono essere oggetto di rinuncia, i presenti termini non ne limitano la portata. Quanto previsto dai presenti termini in materia di garanzie e responsabilità si applica solo nella misura consentita dalla legge.
         """.trimIndent()
     ),
     LegalSection(
@@ -274,7 +276,7 @@ private fun termsIT() = listOf(
     ),
     LegalSection(
         "Ultimo aggiornamento",
-        "Maggio 2026 (rev. 2)"
+        "Novembre 2026 (rev. 3)"
     )
 )
 
@@ -343,11 +345,13 @@ Quando l'utente attiva la sincronizzazione con Google Drive (backup) o usa l'Ere
         "Legge Applicabile",
         """
         Il presente avviso legale è disciplinato dalle leggi vigenti nella Repubblica Argentina. Qualsiasi controversia derivante dall'uso dell'app sarà sottoposta ai tribunali competenti di tale giurisdizione.
+
+        Se risiedi in un Paese in cui la normativa sulla tutela dei consumatori ti garantisce diritti che non possono essere oggetto di rinuncia, il presente avviso non li limita. Quanto indicato nel presente avviso in merito a garanzie, responsabilità, legge applicabile e foro competente si applica solo nella misura consentita dalla legge.
         """.trimIndent()
     ),
     LegalSection(
         "Ultimo aggiornamento",
-        "Maggio 2026 (rev. 2)"
+        "Novembre 2026 (rev. 3)"
     )
 )
 

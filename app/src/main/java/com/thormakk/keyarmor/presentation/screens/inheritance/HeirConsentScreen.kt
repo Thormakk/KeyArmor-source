@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -181,6 +182,7 @@ private fun HeirConsentContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 7.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -283,6 +285,7 @@ private fun HeirFingerprintWaitingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 7.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -325,6 +325,7 @@ fun DriveSyncScreen(
                 val isFree = uiState.userPlan == UserPlan.FREE
                 val credentialTypeUnrecognized  = stringResource(R.string.drive_sync_error_credential_type_unrecognized)
                 val accountSelectErrorFmt       = stringResource(R.string.drive_sync_error_select_account)
+                val accountPickerUnavailableMsg = stringResource(R.string.error_google_account_picker_unavailable)
 
                 when {
                     uiState.driveAccount == null -> {
@@ -338,6 +339,8 @@ fun DriveSyncScreen(
                                         )
                                         is GoogleConnectResult.Cancelled -> {
                                         }
+                                        is GoogleConnectResult.NoCredential ->
+                                            viewModel.setError(accountPickerUnavailableMsg)
                                         is GoogleConnectResult.Error -> viewModel.setError(
                                             if (result.message != null) String.format(accountSelectErrorFmt, result.message)
                                             else credentialTypeUnrecognized
@@ -478,6 +481,7 @@ fun DriveSyncScreen(
     if (uiState.showRestoreDialog) {
         RestoreDialog(
             selectedMode  = uiState.restoreMode,
+            showModes     = !uiState.restoreVaultEmpty,
             isFreePlan    = uiState.userPlan == UserPlan.FREE,
             needsPassword = uiState.restoreNeedsPassword,
             passwordError = uiState.restorePasswordError || uiState.restoreKeyError != null,
@@ -1168,6 +1172,7 @@ private fun RestoreSetupCard(onRestore: () -> Unit) {
 @Composable
 private fun RestoreDialog(
     selectedMode:  RestoreMode,
+    showModes:     Boolean = true,
     isFreePlan:    Boolean = false,
     needsPassword: Boolean = false,
     passwordError: Boolean = false,
@@ -1275,34 +1280,36 @@ private fun RestoreDialog(
                     }
                 }
 
-                Text(
-                    text       = stringResource(R.string.drive_restore_mode_title),
-                    style      = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (showModes) {
+                    Text(
+                        text       = stringResource(R.string.drive_restore_mode_title),
+                        style      = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                RestoreModeOption(
-                    selected    = selectedMode == RestoreMode.MERGE,
-                    title       = stringResource(R.string.drive_restore_mode_merge),
-                    description = stringResource(R.string.drive_restore_mode_merge_desc),
-                    isDestructive = false,
-                    onClick     = { onModeChange(RestoreMode.MERGE) }
-                )
-                RestoreModeOption(
-                    selected    = selectedMode == RestoreMode.IMPORT_ALL,
-                    title       = stringResource(R.string.drive_restore_mode_all),
-                    description = stringResource(R.string.drive_restore_mode_all_desc),
-                    isDestructive = false,
-                    onClick     = { onModeChange(RestoreMode.IMPORT_ALL) }
-                )
-                RestoreModeOption(
-                    selected    = selectedMode == RestoreMode.REPLACE,
-                    title       = stringResource(R.string.drive_restore_mode_replace),
-                    description = stringResource(R.string.drive_restore_mode_replace_desc),
-                    isDestructive = false,
-                    onClick     = { onModeChange(RestoreMode.REPLACE) }
-                )
+                    RestoreModeOption(
+                        selected    = selectedMode == RestoreMode.MERGE,
+                        title       = stringResource(R.string.drive_restore_mode_merge),
+                        description = stringResource(R.string.drive_restore_mode_merge_desc),
+                        isDestructive = false,
+                        onClick     = { onModeChange(RestoreMode.MERGE) }
+                    )
+                    RestoreModeOption(
+                        selected    = selectedMode == RestoreMode.IMPORT_ALL,
+                        title       = stringResource(R.string.drive_restore_mode_all),
+                        description = stringResource(R.string.drive_restore_mode_all_desc),
+                        isDestructive = false,
+                        onClick     = { onModeChange(RestoreMode.IMPORT_ALL) }
+                    )
+                    RestoreModeOption(
+                        selected    = selectedMode == RestoreMode.REPLACE,
+                        title       = stringResource(R.string.drive_restore_mode_replace),
+                        description = stringResource(R.string.drive_restore_mode_replace_desc),
+                        isDestructive = false,
+                        onClick     = { onModeChange(RestoreMode.REPLACE) }
+                    )
+                }
             }
         },
         confirmButton = {

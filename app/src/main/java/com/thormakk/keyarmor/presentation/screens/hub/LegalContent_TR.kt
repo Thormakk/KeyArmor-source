@@ -57,7 +57,7 @@ Google Drive Senkronizasyonu tamamen isteğe bağlıdır. Etkinleştirildiğinde
 • Anahtarınızı değiştirirseniz, önceki anahtarları şifrelenmiş olarak telefonunuzda saklayabilirsiniz; kitin PDF dosyası bunları içerebilir. KeyArmor bunları hiçbir sunucuya göndermez.
 • Başka hiçbir Drive dosyasına asla erişmez, görünür klasörler oluşturmaz ve dosya paylaşmaz.
 • İsteğe bağlı olarak yedeğin ikinci bir yerel kopyasını cihazınızın Downloads/KeyArmor/ klasöründe tutar; bu kopya cihazdan asla çıkmaz.
-• İstek üzerine senkronizasyon tüm planlarda mevcuttur (elle tetiklenir). Otomatik günlük senkronizasyon Premium'da mevcuttur.
+• Google Drive yedekleme özelliği, hem manuel (istediğiniz zaman) hem de otomatik günlük olarak Premium ve Aile Planı'nda kullanılabilir. Ücretsiz planda ise mevcut bir yedeği geri yüklemek için Google hesabınızı bağlayabilirsiniz.
 
 Dijital Miras ve Aile Planı, Google Drive'ınızı değil, Google Firebase'i kullanır. Firebase, onayları, davetleri ve bildirimleri koordine eder. Miras kasası, cihazınızda mirasçının açık anahtarıyla uçtan uca şifrelenir ve ortaya çıkan şifreli blok, kısa süreli (15 dakika) imzalı bağlantılar aracılığıyla geliştiricinin Firebase Cloud Storage'daki özel bir depolama kovasına yüklenir. Sunucu bu bloğu saklar ancak mirasçının anahtarını asla almaz, dolayısıyla bloğu okuyamaz.
 
@@ -190,7 +190,7 @@ Sunucularımız, kötüye kullanımı sınırlamak için IP adresinizi geçici o
     ),
     LegalSection(
         "Son güncelleme",
-        "Ekim 2026 (rev. 8)"
+        "Kasım 2026 (rev. 9)"
     )
 )
 
@@ -265,6 +265,8 @@ private fun termsTR() = listOf(
         "Sorumluluğun Sınırlandırılması",
         """
         Yürürlükteki yasaların izin verdiği azami ölçüde, geliştirici; veri kaybı, kasa erişiminin kaybı veya uygulamanın kullanımından ya da kullanılamamasından kaynaklanan doğrudan, dolaylı, arızi, özel veya sonuçsal zararlar için sorumlu tutulamaz.
+
+        Tüketiciyi koruma yasası size feragat edilemeyecek haklar tanıyan bir ülkede yaşıyorsanız, bu şartlar söz konusu haklarınızı kısıtlamaz. Bu şartlarda garantiler ve sorumlulukla ilgili hükümler, yalnızca yasanın izin verdiği ölçüde geçerlidir.
         """.trimIndent()
     ),
     LegalSection(
@@ -275,7 +277,7 @@ private fun termsTR() = listOf(
     ),
     LegalSection(
         "Son güncelleme",
-        "Mayıs 2026 (rev. 2)"
+        "Kasım 2026 (rev. 3)"
     )
 )
 
@@ -344,11 +346,13 @@ Kullanıcı Google Drive senkronizasyonunu (yedekler) etkinleştirdiğinde veya 
         "Uygulanacak Hukuk",
         """
         Bu yasal bildirim, Arjantin Cumhuriyeti'nde yürürlükteki yasalar tarafından yönetilmektedir. Uygulamanın kullanımından doğan herhangi bir anlaşmazlık, o yargı bölgesinin yetkili mahkemelerine sunulacaktır.
+
+        Tüketiciyi koruma yasası size feragat edilemeyecek haklar tanıyan bir ülkede yaşıyorsanız, bu bildirim söz konusu haklarınızı kısıtlamaz. Bu bildirimde garantiler, sorumluluk, geçerli hukuk ve yargı yetkisi ile ilgili olarak belirtilen hususlar, yalnızca yasanın izin verdiği ölçüde geçerlidir.
         """.trimIndent()
     ),
     LegalSection(
         "Son güncelleme",
-        "Mayıs 2026 (rev. 2)"
+        "Kasım 2026 (rev. 3)"
     )
 )
 

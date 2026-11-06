@@ -57,7 +57,7 @@ La synchronisation Google Drive est entièrement facultative. Lorsqu'elle est ac
 • Si vous changez de clé, vous pouvez conserver les anciennes, chiffrées sur votre téléphone ; le fichier PDF du kit peut les inclure. KeyArmor ne les envoie à aucun serveur.
 • N'accède jamais à aucun autre fichier Drive, ne crée jamais de dossier visible et ne partage jamais de fichier.
 • Conserve éventuellement une seconde copie locale de la sauvegarde dans le dossier Downloads/KeyArmor/ de votre appareil, qui ne quitte jamais l'appareil.
-• La synchronisation à la demande est disponible sur tous les forfaits (déclenchée manuellement). La synchronisation quotidienne automatique est disponible avec Premium.
+• La sauvegarde sur Google Drive, qu'elle soit manuelle (lorsque vous en faites la demande) ou automatique et quotidienne, est disponible dans les forfaits Premium et Famille. Avec le forfait gratuit, vous pouvez associer votre compte Google pour restaurer une sauvegarde existante.
 
 L'Héritage Numérique et le Forfait Famille utilisent Google Firebase, et non votre Google Drive. Firebase gère les consentements, les invitations et les notifications. Le coffre-fort d'héritage est chiffré de bout en bout sur votre appareil à l'aide de la clé publique de l'héritier, et le bloc chiffré ainsi obtenu est téléchargé vers un compartiment privé de Firebase Cloud Storage appartenant au développeur via des liens signés à durée limitée (15 minutes). Le serveur conserve ce bloc mais ne reçoit jamais la clé de l'héritier ; il ne peut donc pas le lire.
 
@@ -189,7 +189,7 @@ Nos serveurs peuvent enregistrer temporairement votre adresse IP afin de limiter
     ),
     LegalSection(
         "Dernière mise à jour",
-        "Octobre 2026 (rév. 8)"
+        "Novembre 2026 (rév. 9)"
     )
 )
 
@@ -264,6 +264,8 @@ private fun termsFR() = listOf(
         "Limitation de responsabilité",
         """
         Dans toute la mesure permise par la loi applicable, le développeur ne saurait être tenu responsable de toute perte de données, de tout accès perdu au coffre, ni de tout dommage direct, indirect, accessoire, spécial ou consécutif découlant de l'utilisation ou de l'impossibilité d'utiliser l'application.
+
+        Si vous résidez dans un pays où la législation relative à la protection des consommateurs vous confère des droits auxquels vous ne pouvez pas renoncer, les présentes conditions n'ont pas pour effet de les restreindre. Les dispositions des présentes conditions relatives aux garanties et à la responsabilité s'appliquent uniquement dans la mesure autorisée par la loi.
         """.trimIndent()
     ),
     LegalSection(
@@ -274,7 +276,7 @@ private fun termsFR() = listOf(
     ),
     LegalSection(
         "Dernière mise à jour",
-        "Mai 2026 (rév. 2)"
+        "Novembre 2026 (rév. 3)"
     )
 )
 
@@ -343,11 +345,13 @@ Lorsque l'utilisateur active la synchronisation Google Drive (sauvegardes) ou ut
         "Droit applicable",
         """
         Ces mentions légales sont régies par les lois en vigueur dans la République Argentine. Tout litige découlant de l'utilisation de l'application sera soumis aux tribunaux compétents de cette juridiction.
+
+        Si vous résidez dans un pays où la législation relative à la protection des consommateurs vous confère des droits auxquels vous ne pouvez pas renoncer, la présente mention n'en limite pas la portée. Les dispositions de la présente mention concernant les garanties, la responsabilité, le droit applicable et les juridictions compétentes ne s'appliquent que dans la mesure où la loi le permet.
         """.trimIndent()
     ),
     LegalSection(
         "Dernière mise à jour",
-        "Mai 2026 (rév. 2)"
+        "Novembre 2026 (rév. 3)"
     )
 )
 

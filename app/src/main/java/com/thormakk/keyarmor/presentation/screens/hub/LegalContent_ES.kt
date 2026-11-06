@@ -40,7 +40,7 @@ La función de sincronización con Google Drive es completamente opcional. Cuand
 • Si cambiás tu clave, podés conservar las anteriores, cifradas en tu teléfono; el PDF del kit puede incluirlas. KeyArmor no las envía a ningún servidor.
 • Nunca accede a ningún otro archivo de tu Drive, nunca crea carpetas visibles y nunca comparte archivos.
 • Opcionalmente guarda una segunda copia local del respaldo en la carpeta Downloads/KeyArmor/ de tu dispositivo, que nunca sale del dispositivo.
-• La sincronización bajo demanda está disponible en todos los planes (activada manualmente). La sincronización diaria automática está disponible en el plan Premium.
+• El respaldo en Google Drive, tanto el manual (cuando lo pedís) como el automático diario, está disponible en los planes Premium y Familiar. En el plan gratuito podés conectar tu cuenta de Google para restaurar un respaldo que ya exista.
 
 La Herencia Digital y el Plan Familiar usan Google Firebase, no tu Google Drive. Firebase coordina el consentimiento, las invitaciones y las notificaciones. La bóveda de herencia se cifra de extremo a extremo en tu dispositivo con la clave pública del heredero, y el bloque cifrado resultante se sube a un bucket privado de Firebase Cloud Storage del desarrollador mediante enlaces firmados de corta duración (15 minutos). El servidor guarda ese bloque pero nunca recibe la clave del heredero, así que no puede leerlo.
 
@@ -124,7 +124,7 @@ Tu bóveda se conserva en tu dispositivo (y en tu Google Drive, si activás el b
 KeyArmor no está dirigida a menores de 13 años (ni a la edad mínima que fije la ley de tu país para dar consentimiento digital), y no recopilamos a sabiendas datos de menores. Si creés que un menor nos entregó datos, escribinos a support@thormakk.dev y los eliminaremos.
     """.trimIndent()),
     LegalSection("Contacto", "Para cualquier consulta relacionada con esta política, podés escribir a support@thormakk.dev"),
-    LegalSection("Última actualización", "Octubre de 2026 (rev. 8)")
+    LegalSection("Última actualización", "Noviembre de 2026 (rev. 9)")
 )
 
 private fun termsES() = listOf(
@@ -166,11 +166,13 @@ La aplicación se provee "tal como es" (as is), sin garantías de ningún tipo, 
     """.trimIndent()),
     LegalSection("Limitación de responsabilidad", """
 En la máxima medida permitida por la ley aplicable, el desarrollador no será responsable por pérdida de datos, pérdida de acceso a la bóveda, ni por daños directos, indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de uso de la aplicación.
+
+    Si vivís en un país cuya ley de protección al consumidor te da derechos que no se pueden renunciar, estos términos no los reducen. Lo que estos términos dicen sobre garantías y responsabilidad se aplica solo hasta donde esa ley lo permite.
     """.trimIndent()),
     LegalSection("Actualizaciones de los términos", """
 Estos términos pueden actualizarse en cualquier momento. El uso continuado de la aplicación tras una actualización publicada constituye aceptación de los nuevos términos.
     """.trimIndent()),
-    LegalSection("Última actualización", "Mayo de 2026 (rev. 2)")
+    LegalSection("Última actualización", "Noviembre de 2026 (rev. 3)")
 )
 
 private fun legalES() = listOf(
@@ -209,8 +211,10 @@ KeyArmor utiliza librerías de código abierto de terceros consideradas seguras 
     """.trimIndent()),
     LegalSection("Ley aplicable", """
 Este aviso legal se rige por la legislación vigente en la República Argentina. Cualquier controversia derivada del uso de la aplicación será sometida a los tribunales competentes de dicha jurisdicción.
+
+    Si vivís en un país cuya ley de protección al consumidor te da derechos que no se pueden renunciar, este aviso no los reduce. Lo que este aviso dice sobre garantías, responsabilidad, ley aplicable y tribunales se aplica solo hasta donde esa ley lo permite.
     """.trimIndent()),
-    LegalSection("Última actualización", "Mayo de 2026 (rev. 2)")
+    LegalSection("Última actualización", "Noviembre de 2026 (rev. 3)")
 )
 
 private fun licenseES() = listOf(

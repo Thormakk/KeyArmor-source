@@ -434,6 +434,7 @@ fun SettingsScreen(
     var compensarCierre by remember { mutableStateOf(false) }
     val ultimoVDibujado = remember { intArrayOf(0) }
     val caidaVista = remember { booleanArrayOf(false) }
+    val umbralCaida = remember { intArrayOf(60) }
     LaunchedEffect(Unit) {
         var previo = scrollState.value
         var restituido = false
@@ -469,6 +470,8 @@ fun SettingsScreen(
     fun toggleSection(id: String) {
         val abre = expandedSection != id
         if (!abre || expandedSection != null) {
+            val cerrada = if (!abre) id else expandedSection
+            umbralCaida[0] = if (cerrada == "notifications" || cerrada == "appearance") 20 else 60
             anclaCierre = scrollState.value
             ultimoVDibujado[0] = scrollState.value
             caidaVista[0] = false
@@ -477,7 +480,7 @@ fun SettingsScreen(
             scopeCierre.launch { delay(900); anclaCierre = null; compensarCierre = false }
         }
         expandedSection = if (abre) id else null
-        if (id != "account") {
+        if (id != "account" && id != "privacy" && id != "notifications" && id != "appearance") {
             if (abre) seguidor.abrir(posicionDe(id)) else seguidor.cerrar(posicionDe(id))
         }
     }
@@ -541,7 +544,7 @@ fun SettingsScreen(
                         val ancla = anclaCierre
                         if (ancla != null) {
                             val v = scrollState.value
-                            if (ultimoVDibujado[0] - v > 60) caidaVista[0] = true
+                            if (ultimoVDibujado[0] - v > umbralCaida[0]) caidaVista[0] = true
                             if (v >= ancla - 40) caidaVista[0] = false
                             if (caidaVista[0]) translationY = (v - ancla).toFloat()
                             ultimoVDibujado[0] = v

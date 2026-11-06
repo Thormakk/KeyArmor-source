@@ -40,7 +40,7 @@ Synchronizacja z Google Drive jest całkowicie opcjonalna. Po włączeniu KeyArm
 • Jeśli zmienisz klucz, możesz zachować poprzednie, zaszyfrowane na telefonie; plik PDF z zestawem może je zawierać. KeyArmor nie wysyła ich na żaden serwer.
 • Nigdy nie uzyskuje dostępu do innych plików Drive, nigdy nie tworzy widocznych folderów i nigdy nie udostępnia plików.
 • Opcjonalnie przechowuje drugą lokalną kopię kopii zapasowej w folderze Downloads/KeyArmor/ Twojego urządzenia, która nigdy nie opuszcza urządzenia.
-• Synchronizacja na żądanie jest dostępna we wszystkich planach (uruchamiana ręcznie). Automatyczna codzienna synchronizacja jest dostępna w planie Premium.
+• Kopie zapasowe w Google Drive – zarówno ręczne (na żądanie), jak i automatyczne, wykonywane codziennie – są dostępne w planach Premium i Rodzinnym. W planie bezpłatnym można połączyć swoje konto Google w celu przywrócenia istniejącej kopii zapasowej.
 
 Cyfrowe Dziedzictwo i Plan Rodzinny korzystają z Google Firebase, a nie z Twojego Google Drive. Firebase zarządza zgodami, zaproszeniami i powiadomieniami. Skarbiec spadkowy jest szyfrowany od końca do końca na Twoim urządzeniu za pomocą klucza publicznego spadkobiercy, a powstały zaszyfrowany blok jest przesyłany do prywatnego zasobnika Firebase Cloud Storage dewelopera za pomocą podpisanych linków o krótkim czasie ważności (15 minut). Serwer przechowuje ten blok, ale nigdy nie otrzymuje klucza spadkobiercy, więc nie może go odczytać.
 
@@ -124,7 +124,7 @@ Twój skarbiec jest przechowywany na Twoim urządzeniu (oraz na Twoim Google Dri
 KeyArmor nie jest skierowany do osób poniżej 13. roku życia (ani poniżej minimalnego wieku określonego przez prawo Twojego kraju dla wyrażenia zgody w środowisku cyfrowym) i świadomie nie zbieramy danych osób niepełnoletnich. Jeśli uważasz, że osoba niepełnoletnia przekazała nam dane, napisz do nas na support@thormakk.dev, a my je usuniemy.
     """.trimIndent()),
     LegalSection("Kontakt", "W przypadku jakichkolwiek pytań dotyczących niniejszej polityki możesz napisać na adres support@thormakk.dev"),
-    LegalSection("Ostatnia aktualizacja", "Październik 2026 (wer. 8)")
+    LegalSection("Ostatnia aktualizacja", "Listopad 2026 (wer. 9)")
 )
 
 private fun termsPL() = listOf(
@@ -166,11 +166,13 @@ Aplikacja jest dostarczana „w stanie takim, w jakim jest", bez żadnych wyraź
     """.trimIndent()),
     LegalSection("Ograniczenie odpowiedzialności", """
 W maksymalnym zakresie dozwolonym przez obowiązujące prawo deweloper nie ponosi odpowiedzialności za utratę danych, utratę dostępu do skarbca ani żadne bezpośrednie, pośrednie, przypadkowe, szczególne lub wynikowe szkody wynikające z użytkowania aplikacji lub niemożności jej użytkowania.
+
+    Jeśli mieszkasz w kraju, w którym przepisy dotyczące ochrony konsumentów przyznają Ci prawa, których nie można zrzec się, niniejsze warunki nie ograniczają tych praw. Postanowienia niniejszych warunków dotyczące gwarancji i odpowiedzialności mają zastosowanie wyłącznie w zakresie dozwolonym przez prawo.
     """.trimIndent()),
     LegalSection("Aktualizacje warunków", """
 Niniejsze warunki mogą być aktualizowane w dowolnym momencie. Dalsze korzystanie z aplikacji po opublikowanej aktualizacji stanowi akceptację nowych warunków.
     """.trimIndent()),
-    LegalSection("Ostatnia aktualizacja", "Maj 2026 (wer. 2)")
+    LegalSection("Ostatnia aktualizacja", "Listopad 2026 (wer. 3)")
 )
 
 private fun legalPL() = listOf(
@@ -209,8 +211,10 @@ KeyArmor korzysta z zewnętrznych bibliotek open-source uznanych za bezpieczne w
     """.trimIndent()),
     LegalSection("Prawo właściwe", """
 Niniejsza informacja prawna podlega prawu obowiązującemu w Republice Argentyńskiej. Wszelkie spory wynikające z korzystania z aplikacji będą rozstrzygane przez właściwe sądy tej jurysdykcji.
+
+    Jeśli mieszkasz w kraju, w którym przepisy dotyczące ochrony konsumentów przyznają Ci prawa, których nie można zrzec się, niniejsza informacja nie ogranicza tych praw. Postanowienia niniejszej informacji dotyczące gwarancji, odpowiedzialności, prawa właściwego i sądów mają zastosowanie wyłącznie w zakresie dozwolonym przez prawo.
     """.trimIndent()),
-    LegalSection("Ostatnia aktualizacja", "Maj 2026 (wer. 2)")
+    LegalSection("Ostatnia aktualizacja", "Listopad 2026 (wer. 3)")
 )
 
 private fun licensePL() = listOf(

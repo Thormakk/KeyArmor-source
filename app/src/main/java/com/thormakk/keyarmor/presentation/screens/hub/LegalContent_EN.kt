@@ -40,7 +40,7 @@ Google Drive sync is entirely optional. When enabled, KeyArmor:
 • If you change your key, you can keep the previous ones, encrypted on your phone; the kit PDF may include them. KeyArmor does not send them to any server.
 • Never accesses any other Drive file, never creates visible folders, and never shares files.
 • Optionally keeps a second local copy of the backup in your device's Downloads/KeyArmor/ folder, which never leaves the device.
-• On-demand sync is available on all plans (triggered manually). Automatic daily sync is available on Premium.
+• Google Drive backup, both manual (when you request it) and automatic daily, is available on the Premium and Family plans. On the free plan you can connect your Google account to restore an existing backup.
 
 Digital Inheritance and the Family Plan use Google Firebase, not your Google Drive. Firebase handles consent, invitations, and notifications. The inheritance vault is end-to-end encrypted on your device using the heir's public key, and the resulting encrypted block is uploaded to the developer's private Firebase Cloud Storage bucket via short-lived (15-minute) signed links. The server stores that block but never receives the heir's key, so it cannot read it.
 
@@ -124,7 +124,7 @@ Your vault is kept on your device (and in your Google Drive, if you turn on back
 KeyArmor is not directed to children under 13 (or the minimum age your country's law sets for digital consent), and we do not knowingly collect data from children. If you believe a child has given us data, write to support@thormakk.dev and we will delete it.
     """.trimIndent()),
     LegalSection("Contact", "For any questions related to this policy, you can write to support@thormakk.dev"),
-    LegalSection("Last Updated", "October 2026 (rev. 8)")
+    LegalSection("Last Updated", "November 2026 (rev. 9)")
 )
 
 private fun termsEN() = listOf(
@@ -166,11 +166,13 @@ The app is provided "as is", without warranties of any kind, express or implied.
     """.trimIndent()),
     LegalSection("Limitation of Liability", """
 To the fullest extent permitted by applicable law, the developer shall not be liable for data loss, loss of vault access, or any direct, indirect, incidental, special or consequential damages arising from the use or inability to use the app.
+
+    If you live in a country whose consumer protection law gives you rights that cannot be waived, these terms do not reduce them. What these terms say about warranties and liability applies only to the extent that law allows.
     """.trimIndent()),
     LegalSection("Updates to Terms", """
 These terms may be updated at any time. Continued use of the app after a published update constitutes acceptance of the new terms.
     """.trimIndent()),
-    LegalSection("Last Updated", "May 2026 (rev. 2)")
+    LegalSection("Last Updated", "November 2026 (rev. 3)")
 )
 
 private fun legalEN() = listOf(
@@ -209,8 +211,10 @@ KeyArmor uses third-party open-source libraries considered secure at the time of
     """.trimIndent()),
     LegalSection("Governing Law", """
 This legal notice is governed by the laws in force in the Argentine Republic. Any dispute arising from the use of the app shall be submitted to the competent courts of that jurisdiction.
+
+    If you live in a country whose consumer protection law gives you rights that cannot be waived, this notice does not reduce them. What this notice says about warranties, liability, governing law and courts applies only to the extent that law allows.
     """.trimIndent()),
-    LegalSection("Last Updated", "May 2026 (rev. 2)")
+    LegalSection("Last Updated", "November 2026 (rev. 3)")
 )
 
 private fun licenseEN() = listOf(

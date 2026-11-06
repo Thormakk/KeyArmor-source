@@ -27,9 +27,9 @@ class RegeneratePasswordCallback : ActionCallback {
 
         private val random = SecureRandom()
 
-        private const val UPPER_POOL  = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-        private const val LOWER_POOL  = "abcdefghjkmnpqrstuvwxyz"
-        private const val DIGIT_POOL  = "23456789"
+        private const val UPPER_POOL  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        private const val LOWER_POOL  = "abcdefghijklmnopqrstuvwxyz"
+        private const val DIGIT_POOL  = "0123456789"
         private const val SYMBOL_POOL = "!@#\$%^&*-_=+?"
 
         fun generatePassword(length: Int = 16): String {

@@ -1,6 +1,7 @@
 package com.thormakk.keyarmor.ui.theme
 
 import android.app.Activity
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -424,8 +425,7 @@ fun KeyArmorTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            @Suppress("DEPRECATION")
-            window.statusBarColor = colorScheme.background.toArgb()
+            window.setBackgroundDrawable(ColorDrawable(colorScheme.background.toArgb()))
             WindowCompat.getInsetsController(window, view)
                 .isAppearanceLightStatusBars = isLightTheme
         }

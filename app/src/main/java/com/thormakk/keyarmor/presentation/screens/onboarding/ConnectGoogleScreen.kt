@@ -53,6 +53,7 @@ fun ConnectGoogleScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val verificationFailedMsg = stringResource(R.string.error_google_verification_failed)
+    val accountPickerUnavailableMsg = stringResource(R.string.error_google_account_picker_unavailable)
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { msg ->
@@ -121,6 +122,9 @@ fun ConnectGoogleScreen(
                                     idToken = result.idToken
                                 )
                                 is GoogleConnectResult.Cancelled -> Unit
+                                is GoogleConnectResult.NoCredential -> viewModel.setError(
+                                    accountPickerUnavailableMsg
+                                )
                                 is GoogleConnectResult.Error -> viewModel.setError(
                                     result.message ?: verificationFailedMsg
                                 )
