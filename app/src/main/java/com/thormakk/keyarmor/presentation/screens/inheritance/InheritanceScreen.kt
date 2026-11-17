@@ -189,6 +189,7 @@ fun InheritanceScreen(
 
     if (codigoNoLegible) {
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = { codigoNoLegible = false },
             title = { Text(stringResource(R.string.heir_recovery_code_unavailable_title)) },
             text  = { Text(stringResource(R.string.heir_recovery_code_unavailable_body), style = MaterialTheme.typography.bodyMedium.justified()) },

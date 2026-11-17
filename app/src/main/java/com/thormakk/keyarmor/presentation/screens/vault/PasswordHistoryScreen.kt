@@ -295,7 +295,7 @@ private fun PasswordHistoryItem(
                 IconButton(onClick = onCopy) {
                     Icon(
                         imageVector        = Icons.Default.ContentCopy,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.action_copy),
                         tint               = MaterialTheme.colorScheme.primary,
                         modifier           = Modifier.size(20.dp)
                     )

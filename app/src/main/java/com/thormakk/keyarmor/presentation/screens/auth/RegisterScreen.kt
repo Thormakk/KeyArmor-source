@@ -1,7 +1,26 @@
 package com.thormakk.keyarmor.presentation.screens.auth
 
-import com.thormakk.keyarmor.ui.theme.appFilledContent
-import com.thormakk.keyarmor.ui.theme.appFilledContainer
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
+import com.thormakk.keyarmor.ui.theme.Cream200
+import com.thormakk.keyarmor.ui.theme.InterFamily
+import com.thormakk.keyarmor.ui.theme.NavyAccent
+import com.thormakk.keyarmor.ui.theme.WarningAmber
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,7 +34,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -45,10 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.foundation.clickable
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,11 +81,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thormakk.keyarmor.R
-import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.ui.theme.Cream300
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthFair
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthGood
@@ -89,59 +102,55 @@ fun RegisterScreen(
     var showConfirmPassword by remember { mutableStateOf(false) }
     var understoodNoRecovery by rememberSaveable { mutableStateOf(false) }
 
-    val scrollState = rememberScrollState()
-    val density = LocalDensity.current
-    val imeBottomPx by rememberUpdatedState(WindowInsets.ime.getBottom(density))
-    LaunchedEffect(Unit) {
-        var lastIme = 0
-        var lastImeChange = 0L
-        snapshotFlow { imeBottomPx to scrollState.maxValue }
-            .collect { (ime, max) ->
-                val now = System.nanoTime()
-                if (ime != lastIme) { lastIme = ime; lastImeChange = now }
-                if (ime > 0 && now - lastImeChange < 150_000_000L) scrollState.scrollTo(max)
-            }
-    }
-
     LaunchedEffect(uiState.success) {
         if (uiState.success) onRegisterSuccess()
     }
 
-    Column(
+    val lockBg        = Color(0xFF0D1B2A)
+    val lockOnBg      = Color(0xFFE8EAF0)
+    val lockOnVariant = Color(0xFF9AA3B2)
+    val lockPrimary   = NavyAccent
+
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
+    val animAlpha by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0f,
+        animationSpec = tween(durationMillis = 1100),
+        label         = "registerAlpha"
+    )
+    val animScale by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0.95f,
+        animationSpec = tween(durationMillis = 1100),
+        label         = "registerScale"
+    )
+
+    val fieldColors = TextFieldDefaults.colors(
+        focusedTextColor        = lockOnBg,
+        unfocusedTextColor      = lockOnBg,
+        focusedLabelColor       = lockPrimary,
+        unfocusedLabelColor     = lockOnVariant,
+        cursorColor             = lockPrimary,
+        focusedContainerColor   = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        focusedIndicatorColor   = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        focusedTrailingIconColor   = lockOnVariant,
+        unfocusedTrailingIconColor = lockOnVariant
+    )
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .imePadding()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 7.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(lockBg)
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        val logoSize = (maxHeight * 0.20f).coerceIn(90.dp, 180.dp)
 
-        AppLogoWithVignette(size = 100)
+        val scrollState = rememberScrollState()
+        val density = LocalDensity.current
+        val rootHeightPx = LocalView.current.rootView.height
+        val imeInsets = WindowInsets.ime
+        var pillRestBottomPx by remember { mutableFloatStateOf(0f) }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(R.string.auth_register_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Text(
-            text = stringResource(R.string.auth_register_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 25.dp, end = 25.dp, top = 4.dp, bottom = 32.dp)
-        )
-
-        val gray = MaterialTheme.colorScheme.onSurfaceVariant
-        val fieldColors = TextFieldDefaults.colors(
-            focusedContainerColor   = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor   = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        )
         val canCreate = !uiState.isLoading &&
             understoodNoRecovery &&
             uiState.name.isNotBlank() &&
@@ -151,179 +160,231 @@ fun RegisterScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(gray.copy(alpha = 0.10f))
-        ) {
-            TextField(
-                value = uiState.name,
-                onValueChange = viewModel::onNameChange,
-                label = { Text(stringResource(R.string.auth_your_name)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    autoCorrectEnabled = false,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                shape = RoundedCornerShape(0.dp),
-                colors = fieldColors
-            )
-            HorizontalDivider(modifier = Modifier.padding(start = 16.dp), thickness = 0.5.dp, color = gray)
-
-            TextField(
-                value = uiState.password,
-                onValueChange = viewModel::onPasswordChange,
-                label = { Text(stringResource(R.string.auth_master_password)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (showPassword) VisualTransformation.None
-                                       else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { showPassword = !showPassword }) {
-                        Icon(
-                            imageVector = if (showPassword) Icons.Default.VisibilityOff
-                                          else Icons.Default.Visibility,
-                            contentDescription = null
-                        )
+                .fillMaxSize()
+                .alpha(animAlpha)
+                .scale(animScale)
+                .graphicsLayer {
+                    val imeBottom = imeInsets.getBottom(density)
+                    if (imeBottom > 0 && pillRestBottomPx > 0f) {
+                        val keyboardTop = rootHeightPx - imeBottom
+                        val shift = pillRestBottomPx + 20.dp.toPx() - keyboardTop
+                        translationY = -shift.coerceAtLeast(0f)
                     }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next,
-                    autoCorrectEnabled = false
+                }
+                .verticalScroll(scrollState)
+                .padding(horizontal = 7.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            AppLogoWithVignette(size = logoSize.value.toInt(), bgColor = lockBg)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text  = "KeyArmor",
+                style = TextStyle(
+                    fontFamily    = InterFamily,
+                    fontWeight    = FontWeight.Black,
+                    fontSize      = 30.sp,
+                    letterSpacing = 1.sp
                 ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                shape = RoundedCornerShape(0.dp),
-                colors = fieldColors
+                color = lockOnBg
+            )
+            Text(
+                text      = stringResource(R.string.auth_create_intro),
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = lockOnVariant,
+                textAlign = TextAlign.Center,
+                modifier  = Modifier.padding(horizontal = 25.dp).padding(top = 8.dp)
             )
 
-            if (uiState.password.isNotEmpty()) {
-                PasswordStrengthBar(
-                    strength = viewModel.passwordStrength(uiState.password),
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(lockOnVariant.copy(alpha = 0.10f))
+            ) {
+                TextField(
+                    value = uiState.name,
+                    onValueChange = viewModel::onNameChange,
+                    label = { Text(stringResource(R.string.auth_your_name)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        autoCorrectEnabled = false,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    shape = RoundedCornerShape(0.dp),
+                    colors = fieldColors
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 16.dp), thickness = 0.5.dp, color = lockOnVariant)
+
+                TextField(
+                    value = uiState.password,
+                    onValueChange = viewModel::onPasswordChange,
+                    label = { Text(stringResource(R.string.auth_master_password)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (showPassword) VisualTransformation.None
+                                           else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { showPassword = !showPassword }) {
+                            Icon(
+                                imageVector = if (showPassword) Icons.Default.VisibilityOff
+                                              else Icons.Default.Visibility,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next,
+                        autoCorrectEnabled = false
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    shape = RoundedCornerShape(0.dp),
+                    colors = fieldColors
+                )
+
+                if (uiState.password.isNotEmpty()) {
+                    PasswordStrengthBar(
+                        strength = viewModel.passwordStrength(uiState.password),
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                        emptyColor = lockOnVariant.copy(alpha = 0.25f)
+                    )
+                }
+                HorizontalDivider(modifier = Modifier.padding(start = 16.dp), thickness = 0.5.dp, color = lockOnVariant)
+
+                TextField(
+                    value = uiState.confirmPassword,
+                    onValueChange = viewModel::onConfirmPasswordChange,
+                    label = { Text(stringResource(R.string.auth_confirm_password)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (showConfirmPassword) VisualTransformation.None
+                                           else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
+                            Icon(
+                                imageVector = if (showConfirmPassword) Icons.Default.VisibilityOff
+                                              else Icons.Default.Visibility,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                        autoCorrectEnabled = false
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus(); viewModel.register() }
+                    ),
+                    shape = RoundedCornerShape(0.dp),
+                    colors = fieldColors
                 )
             }
-            HorizontalDivider(modifier = Modifier.padding(start = 16.dp), thickness = 0.5.dp, color = gray)
 
-            TextField(
-                value = uiState.confirmPassword,
-                onValueChange = viewModel::onConfirmPasswordChange,
-                label = { Text(stringResource(R.string.auth_confirm_password)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (showConfirmPassword) VisualTransformation.None
-                                       else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
-                        Icon(
-                            imageVector = if (showConfirmPassword) Icons.Default.VisibilityOff
-                                          else Icons.Default.Visibility,
-                            contentDescription = null
-                        )
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
-                    autoCorrectEnabled = false
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus(); viewModel.register() }
-                ),
-                shape = RoundedCornerShape(0.dp),
-                colors = fieldColors
-            )
-        }
-
-        val muyCorta = uiState.password.isNotEmpty() &&
-            uiState.password.length < RegisterViewModel.MIN_LENGTH
-        val noCoinciden = uiState.confirmPassword.isNotEmpty() &&
-            uiState.confirmPassword != uiState.password
-        if (muyCorta || noCoinciden) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = if (muyCorta) {
-                    stringResource(R.string.error_password_too_short)
-                } else {
-                    stringResource(R.string.error_passwords_mismatch)
-                },
-                color = warningColor(),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 25.dp)
-            )
-        }
-
-        if (uiState.error != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = uiState.error!!.asString(),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 25.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp)
-                .clickable { understoodNoRecovery = !understoodNoRecovery },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked         = understoodNoRecovery,
-                onCheckedChange = { understoodNoRecovery = it }
-            )
-            Text(
-                text  = stringResource(R.string.register_understand_no_recovery),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextButton(
-            onClick = { focusManager.clearFocus(); viewModel.register() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp),
-            enabled = canCreate,
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.textButtonColors(
-                containerColor         = if (pillOn) appFilledContainer() else Color.Transparent,
-                contentColor           = appFilledContent(),
-                disabledContainerColor = if (pillOn) appFilledContainer() else Color.Transparent,
-                disabledContentColor   = gray.copy(alpha = 0.5f)
-            ),
-            border = BorderStroke(
-                0.5.dp, if (pillOn) appFilledContainer() else gray.copy(alpha = 0.4f)
-            )
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = appFilledContent(),
-                    strokeWidth = 2.dp
-                )
-            } else {
+            val muyCorta = uiState.password.isNotEmpty() &&
+                uiState.password.length < RegisterViewModel.MIN_LENGTH
+            val noCoinciden = uiState.confirmPassword.isNotEmpty() &&
+                uiState.confirmPassword != uiState.password
+            if (muyCorta || noCoinciden) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.auth_action_create_account),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
+                    text = if (muyCorta) {
+                        stringResource(R.string.error_password_too_short)
+                    } else {
+                        stringResource(R.string.error_passwords_mismatch)
+                    },
+                    color = WarningAmber,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 25.dp)
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            if (uiState.error != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.error!!.asString(),
+                    color = WarningAmber,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 25.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp)
+                    .clickable { understoodNoRecovery = !understoodNoRecovery },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked         = understoodNoRecovery,
+                    onCheckedChange = null,
+                    colors = CheckboxDefaults.colors(
+                        checkedColor   = lockPrimary,
+                        uncheckedColor = lockPrimary.copy(alpha = 0.6f)
+                    )
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text  = stringResource(R.string.register_understand_no_recovery),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = lockPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = { focusManager.clearFocus(); viewModel.register() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp)
+                    .onGloballyPositioned {
+                        if (imeInsets.getBottom(density) == 0 || pillRestBottomPx == 0f) {
+                            pillRestBottomPx = it.positionInWindow().y + it.size.height
+                        }
+                    },
+                enabled = canCreate,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor         = if (pillOn) Cream200 else Color.Transparent,
+                    contentColor           = Color.Black,
+                    disabledContainerColor = if (pillOn) Cream200 else Color.Transparent,
+                    disabledContentColor   = lockOnVariant.copy(alpha = 0.5f)
+                ),
+                border = BorderStroke(
+                    0.5.dp, if (pillOn) Cream200 else lockOnVariant.copy(alpha = 0.4f)
+                )
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.Black,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.auth_create_vault),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -331,7 +392,8 @@ fun RegisterScreen(
 fun PasswordStrengthBar(
     strength:  Int,
     modifier:  Modifier = Modifier,
-    barHeight: Dp       = 4.dp
+    barHeight: Dp       = 4.dp,
+    emptyColor: Color   = Cream300
 ) {
     if (strength < 0) return
     val displaySegments = maxOf(1, strength)
@@ -361,7 +423,7 @@ fun PasswordStrengthBar(
                         .weight(1f)
                         .height(barHeight)
                         .background(
-                            color = if (index < displaySegments) color else Cream300,
+                            color = if (index < displaySegments) color else emptyColor,
                             shape = RoundedCornerShape(2.dp)
                         )
                 )

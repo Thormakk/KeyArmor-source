@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.vault
 
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.presentation.util.ServiceIconProvider
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
@@ -505,7 +506,7 @@ fun AddEditEntryScreen(
             val mergedGapColor     = MaterialTheme.colorScheme.background
             val passwordNotBlank   = uiState.password.isNotEmpty()
             Column(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
+            AmberErrors { OutlinedTextField(
                 value = uiState.title,
                 onValueChange = { autoLockManager?.recordInteraction(); viewModel.onTitleChange(it) },
                 placeholder = {
@@ -550,7 +551,7 @@ fun AddEditEntryScreen(
                 ),
                 shape  = entryItemShape(isFirst = true, isLast = false, radius = MergedCardRadius),
                 colors = titleFieldColors()
-            )
+            ) }
             EntryGroupDivider(
                 startInset = 0.dp,
                 endInset   = 0.dp,
@@ -596,7 +597,7 @@ fun AddEditEntryScreen(
                 gapColor   = mergedGapColor
             )
 
-            OutlinedTextField(
+            AmberErrors { OutlinedTextField(
                     value         = uiState.email,
                     onValueChange = { autoLockManager?.recordInteraction(); viewModel.onEmailChange(it) },
                     placeholder   = { Text(stringResource(R.string.field_email), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
@@ -630,7 +631,7 @@ fun AddEditEntryScreen(
                     ),
                     shape  = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius),
                     colors = fieldColors()
-                )
+                ) }
             EntryGroupDivider(
                 startInset = MergedCardStartInset,
                 endInset   = MergedCardEndInset,
@@ -872,7 +873,7 @@ fun AddEditEntryScreen(
                     if (uiState.urlBeingAddedError) {
                         Text(
                             text     = stringResource(R.string.error_url_invalid),
-                            color    = MaterialTheme.colorScheme.error,
+                            color    = warningColor(),
                             style    = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )
@@ -902,14 +903,23 @@ fun AddEditEntryScreen(
                 DatePickerDialog(
                     onDismissRequest = { showExpiryDatePicker = false },
                     confirmButton    = {
-                        TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let { viewModel.onExpiryDateChange(it) }
-                            showExpiryDatePicker = false
-                        }) { Text(stringResource(R.string.action_accept)) }
+                        Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                            Button(
+                                onClick = {
+                                    datePickerState.selectedDateMillis?.let { viewModel.onExpiryDateChange(it) }
+                                    showExpiryDatePicker = false
+                                },
+                                shape  = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text(stringResource(R.string.action_accept)) }
+                        }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showExpiryDatePicker = false }) {
-                            Text(stringResource(R.string.action_cancel))
+                        Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                            TextButton(onClick = { showExpiryDatePicker = false }) {
+                                Text(stringResource(R.string.action_cancel))
+                            }
                         }
                     }
                 ) {
@@ -918,7 +928,7 @@ fun AddEditEntryScreen(
             }
             val trailingEndPad = if (expiryDate != null) 92.dp else 44.dp
             Box(modifier = Modifier.fillMaxWidth().height(58.dp)) {
-                OutlinedTextField(
+                AmberErrors { OutlinedTextField(
                     value         = expiryDateFormatted ?: "",
                     onValueChange = {},
                     readOnly      = true,
@@ -957,7 +967,7 @@ fun AddEditEntryScreen(
                     modifier = Modifier.fillMaxWidth().height(58.dp),
                     shape    = entryItemShape(isFirst = false, isLast = false, radius = MergedCardRadius),
                     colors   = fieldColors()
-                )
+                ) }
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -1277,7 +1287,7 @@ internal fun EntryOptionsSheet(
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
                     text  = {
-                        OutlinedTextField(
+                        AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                             value          = renameText,
                             onValueChange  = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -1287,7 +1297,7 @@ internal fun EntryOptionsSheet(
                             modifier       = Modifier.fillMaxWidth(),
                             isError        = renameError != null,
                             supportingText = { renameError?.let { Text(it) } }
-                        )
+                        ) }
                     },
                     confirmButton = {
                         Button(
@@ -1427,7 +1437,7 @@ internal fun EntryOptionsSheet(
                 if (newTagError != null) {
                     Text(
                         text     = newTagError!!,
-                        color    = MaterialTheme.colorScheme.error,
+                        color    = warningColor(),
                         style    = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(vertical = 2.dp)
                     )

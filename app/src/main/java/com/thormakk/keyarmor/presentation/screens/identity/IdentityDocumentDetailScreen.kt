@@ -1,6 +1,10 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.identity
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -42,6 +46,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material.icons.outlined.PushPin
@@ -121,6 +126,8 @@ fun IdentityDocumentDetailScreen(
     onAttachmentsClick: (String) -> Unit = {},
     onShare:            (String) -> Unit = {},
     onPlansClick:       () -> Unit = {},
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:          AddEditIdentityDocumentViewModel = hiltViewModel()
 ) {
     val uiState    by viewModel.uiState.collectAsStateWithLifecycle()
@@ -185,9 +192,15 @@ fun IdentityDocumentDetailScreen(
             text  = { Text(stringResource(if (viewModel.canProtectNew) R.string.protect_unlock_body else R.string.protect_unlock_body_free),
                 color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showUnlockDialog = false; viewModel.setProtected(false) }) {
-                    Text(stringResource(R.string.lock_action_unlock))
-                }
+                Button(
+                    onClick = { showUnlockDialog = false; viewModel.setProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showUnlockDialog = false }) {
@@ -204,7 +217,12 @@ fun IdentityDocumentDetailScreen(
                 color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showProtectPremium = false; onPlansClick() }) {
+                Button(
+                    onClick = { showProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) {
                     Text(stringResource(R.string.plans_upgrade_cta))
                 }
             },
@@ -326,16 +344,24 @@ fun IdentityDocumentDetailScreen(
                     windowInsets = WindowInsets(0),
                     title = {
                         val identityDocFallbackTitle = stringResource(R.string.identity_doc_fallback_title)
-                        val topBarTitle = listOf(uiState.docType, uiState.number)
-                            .filter { it.isNotEmpty() }
-                            .joinToString(" - ")
-                            .ifEmpty { identityDocFallbackTitle }
-                        TextoDeUnaLinea(
-                            topBarTitle,
-                            style      = MaterialTheme.typography.titleLarge.copy(fontSize = SectionTitleFontSize),
-                            fontWeight = FontWeight.SemiBold,
-                            color      = sectionTitleColor()
-                        )
+                        val topBarTitle = uiState.docType.ifEmpty { identityDocFallbackTitle }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector        = Icons.Outlined.Badge,
+                                contentDescription = null,
+                                tint               = MaterialTheme.colorScheme.primary,
+                                modifier           = Modifier
+                                    .sharedAvatar("identity_icon_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                                    .size(24.dp)
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            TextoDeUnaLinea(
+                                topBarTitle,
+                                style      = MaterialTheme.typography.titleLarge.copy(fontSize = SectionTitleFontSize),
+                                fontWeight = FontWeight.SemiBold,
+                                color      = sectionTitleColor()
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
@@ -857,7 +883,7 @@ private fun IdentityDetailRow(
             IconButton(onClick = onCopy, modifier = Modifier.size(40.dp)) {
                 Icon(
                     imageVector        = Icons.Default.ContentCopy,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.action_copy),
                     tint               = MaterialTheme.colorScheme.primary,
                     modifier           = Modifier.size(18.dp)
                 )

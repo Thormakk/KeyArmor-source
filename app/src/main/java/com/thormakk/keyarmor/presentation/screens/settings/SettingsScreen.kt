@@ -670,7 +670,7 @@ fun SettingsScreen(
                                     ) {
                                         Text(
                                             stringResource(R.string.delete_all_local_only_button),
-                                            color = MaterialTheme.colorScheme.error
+                                            color = warningColor()
                                         )
                                     }
                                 } else {
@@ -2183,7 +2183,7 @@ private fun ExpiryNotifDialog(
                             IconButton(onClick = onLockTapped) {
                                 Icon(
                                     imageVector        = Icons.Default.Lock,
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.action_lock_app),
                                     tint               = MaterialTheme.colorScheme.primary,
                                     modifier           = Modifier.size(18.dp)
                                 )
@@ -2318,7 +2318,7 @@ private fun BiometricGateDialog(
                             IconButton(onClick = onLockTapped) {
                                 Icon(
                                     imageVector        = Icons.Default.Lock,
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.action_lock_app),
                                     tint               = MaterialTheme.colorScheme.primary,
                                     modifier           = Modifier.size(18.dp)
                                 )
@@ -2515,7 +2515,7 @@ private fun BreachCheckDialog(
                             IconButton(onClick = onLockTapped) {
                                 Icon(
                                     imageVector        = Icons.Default.Lock,
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.action_lock_app),
                                     tint               = MaterialTheme.colorScheme.primary,
                                     modifier           = Modifier.size(18.dp)
                                 )

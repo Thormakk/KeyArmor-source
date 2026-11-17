@@ -1,7 +1,23 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.search
 
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerEventPass
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import androidx.compose.material.icons.outlined.Badge
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
+import com.thormakk.keyarmor.presentation.screens.vehicle.VehicleAwareAvatar
 import com.thormakk.keyarmor.presentation.util.ServiceIconProvider
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -131,6 +147,8 @@ fun SearchScreen(
     onTrashClick:              (String) -> Unit = {},
     onArchiveClick:            (String) -> Unit = {},
     onBackupResultClick:       (String, String) -> Unit = { _, _ -> },
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState        by viewModel.uiState.collectAsStateWithLifecycle()
@@ -339,7 +357,8 @@ fun SearchScreen(
             }
             val hasAnyActiveFilter = hiddenActiveFilters.isNotEmpty() ||
                 uiState.onlyFavorites || uiState.onlyWithAttachments || uiState.onlyProtected
-            if (hasAnyActiveFilter) {
+            AnimatedVisibility(visible = hasAnyActiveFilter) {
+                Column {
                 Spacer(modifier = Modifier.height(8.dp))
                 FlowRow(
                     modifier              = Modifier
@@ -384,381 +403,412 @@ fun SearchScreen(
                         )
                     }
                 }
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            val hasExact       = uiState.totalCount > 0
-            val hasFuzzy       = uiState.fuzzy.totalCount > 0
+            val keyboardController = LocalSoftwareKeyboardController.current
+            val focusManager       = LocalFocusManager.current
             val hasBackupsInfo = searchBackupsEnabled && (isLoadingBackups || backupResults.isNotEmpty())
 
-            when {
-                uiState.isInitial -> {
-                    if (recentEntries.isNotEmpty()) {
-                        RecentEntriesSection(
-                            entries                 = recentEntries,
-                            onPasswordClick         = onPasswordClick,
-                            onBankAccountClick      = onBankAccountClick,
-                            onCreditCardClick       = onCreditCardClick,
-                            onSecureNoteClick       = onSecureNoteClick,
-                            onCustomEntryClick      = onCustomEntryClick,
-                            onCryptoWalletClick     = onCryptoWalletClick,
-                            onIdentityDocumentClick = onIdentityDocumentClick,
-                            onVehicleClick          = onVehicleClick,
-                            onTwoFactorClick        = onTwoFactorClick,
-                            onRecordAccess          = viewModel::recordRecentAccess
-                        )
-                    } else {
-                        EmptyHint(text = stringResource(R.string.search_empty_hint))
+            AnimatedContent(
+                targetState = uiState,
+                contentKey  = { st ->
+                    when {
+                        st.isInitial -> 0
+                        st.totalCount == 0 && st.fuzzy.totalCount == 0 && !hasBackupsInfo -> 1
+                        else -> 2
                     }
-                }
-                !hasExact && !hasFuzzy && !hasBackupsInfo -> {
-                    EmptyHint(text = stringResource(R.string.search_no_results))
-                }
-                else -> {
-                    val primaryVaultName = stringResource(R.string.vault_name_primary)
-                    val privateVaultName = stringResource(R.string.vault_name_private)
-                    fun vaultLabel(ref: SearchVaultRef): String = when (ref.id) {
-                        VaultMetadata.PRIMARY_VAULT_ID -> primaryVaultName
-                        VaultMetadata.PRIVATE_VAULT_ID -> privateVaultName
-                        else                           -> ref.name
-                    }
-                    fun hasExactInVault(vId: String): Boolean =
-                        uiState.passwords.any { it.vaultId == vId } ||
-                        uiState.bankAccounts.any { it.vaultId == vId } ||
-                        uiState.creditCards.any { it.vaultId == vId } ||
-                        uiState.secureNotes.any { it.vaultId == vId } ||
-                        uiState.customEntries.any { it.vaultId == vId } ||
-                        uiState.twoFactorAccounts.any { it.vaultId == vId } ||
-                        uiState.cryptoWallets.any { it.vaultId == vId } ||
-                        uiState.passkeys.any { it.vaultId == vId } ||
-                        uiState.identityDocuments.any { it.vaultId == vId } ||
-                        uiState.vehicles.any { it.vaultId == vId }
-                    fun hasFuzzyInVault(vId: String): Boolean =
-                        uiState.fuzzy.passwords.any { it.vaultId == vId } ||
-                        uiState.fuzzy.bankAccounts.any { it.vaultId == vId } ||
-                        uiState.fuzzy.creditCards.any { it.vaultId == vId } ||
-                        uiState.fuzzy.secureNotes.any { it.vaultId == vId } ||
-                        uiState.fuzzy.customEntries.any { it.vaultId == vId } ||
-                        uiState.fuzzy.twoFactorAccounts.any { it.vaultId == vId } ||
-                        uiState.fuzzy.cryptoWallets.any { it.vaultId == vId } ||
-                        uiState.fuzzy.passkeys.any { it.vaultId == vId } ||
-                        uiState.fuzzy.identityDocuments.any { it.vaultId == vId } ||
-                        uiState.fuzzy.vehicles.any { it.vaultId == vId }
+                },
+                modifier    = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val e = awaitPointerEvent(PointerEventPass.Initial)
+                                if (e.type == PointerEventType.Press) {
+                                    keyboardController?.hide()
+                                    focusManager.clearFocus()
+                                }
+                            }
+                        }
+                    },
+                label       = "search_state"
+            ) { uiState ->
+                val hasExact = uiState.totalCount > 0
+                val hasFuzzy = uiState.fuzzy.totalCount > 0
 
-                    fun LazyListScope.emitExactForVault(vId: String) {
-                        val pw = uiState.passwords.filter { it.vaultId == vId }
-                        if (pw.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_passwords), count = pw.size) }
-                            items(pw, key = { "p_${it.id}" }) { entry ->
-                                PasswordResultRow(entry = entry, onClick = {
-                                    when {
-                                        entry.isDeleted          -> onTrashClick(entry.id)
-                                        entry.archivedAt != null -> guardedArchiveClick(entry.id)
-                                        else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.PASSWORD); onPasswordClick(entry.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val acc = uiState.bankAccounts.filter { it.vaultId == vId }
-                        if (acc.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_bank_accounts), count = acc.size) }
-                            items(acc, key = { "b_${it.id}" }) { account ->
-                                BankAccountResultRow(account = account, onClick = {
-                                    when {
-                                        account.isDeleted          -> onTrashClick(account.id)
-                                        account.archivedAt != null -> guardedArchiveClick(account.id)
-                                        else                       -> { viewModel.recordRecentAccess(account.id, HubEntryType.BANK_ACCOUNT); onBankAccountClick(account.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val cards = uiState.creditCards.filter { it.vaultId == vId }
-                        if (cards.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_credit_cards), count = cards.size) }
-                            items(cards, key = { "c_${it.id}" }) { card ->
-                                CreditCardResultRow(card = card, onClick = {
-                                    when {
-                                        card.isDeleted          -> onTrashClick(card.id)
-                                        card.archivedAt != null -> guardedArchiveClick(card.id)
-                                        else                    -> { viewModel.recordRecentAccess(card.id, HubEntryType.CREDIT_CARD); onCreditCardClick(card.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val notes = uiState.secureNotes.filter { it.vaultId == vId }
-                        if (notes.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_secure_notes), count = notes.size) }
-                            items(notes, key = { "n_${it.id}" }) { note ->
-                                SecureNoteResultRow(note = note, onClick = {
-                                    when {
-                                        note.isDeleted          -> onTrashClick(note.id)
-                                        note.archivedAt != null -> guardedArchiveClick(note.id)
-                                        else                    -> { viewModel.recordRecentAccess(note.id, HubEntryType.SECURE_NOTE); onSecureNoteClick(note.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val custom = uiState.customEntries.filter { it.vaultId == vId }
-                        if (custom.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_custom_entries), count = custom.size) }
-                            items(custom, key = { "x_${it.id}" }) { entry ->
-                                CustomEntryResultRow(entry = entry, onClick = {
-                                    when {
-                                        entry.isDeleted          -> onTrashClick(entry.id)
-                                        entry.archivedAt != null -> guardedArchiveClick(entry.id)
-                                        else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.CUSTOM_ENTRY); onCustomEntryClick(entry.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val twoFa = uiState.twoFactorAccounts.filter { it.vaultId == vId }
-                        if (twoFa.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.twofa_section_search), count = twoFa.size) }
-                            items(twoFa, key = { "t_${it.id}" }) { account ->
-                                TwoFactorResultRow(account = account, onClick = {
-                                    when {
-                                        account.isDeleted          -> onTrashClick(account.id)
-                                        account.archivedAt != null -> guardedArchiveClick(account.id)
-                                        else                       -> onTwoFactorClick(account.id, uiState.query)
-                                    }
-                                })
-                            }
-                        }
-                        val crypto = uiState.cryptoWallets.filter { it.vaultId == vId }
-                        if (crypto.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_crypto_wallets), count = crypto.size) }
-                            items(crypto, key = { "w_${it.id}" }) { wallet ->
-                                CryptoWalletResultRow(wallet = wallet, onClick = {
-                                    when {
-                                        wallet.isDeleted          -> onTrashClick(wallet.id)
-                                        wallet.archivedAt != null -> guardedArchiveClick(wallet.id)
-                                        else                      -> { viewModel.recordRecentAccess(wallet.id, HubEntryType.CRYPTO_WALLET); onCryptoWalletClick(wallet.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val pks = uiState.passkeys.filter { it.vaultId == vId }
-                        if (pks.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_passkeys), count = pks.size) }
-                            items(pks, key = { "pk_${it.credentialId}" }) { passkey ->
-                                PasskeyResultRow(passkey = passkey, onClick = {
-                                    if (passkey.isDeleted) onTrashClick(passkey.credentialId) else onPasskeyClick(passkey.credentialId, uiState.query)
-                                })
-                            }
-                        }
-                        val ids = uiState.identityDocuments.filter { it.vaultId == vId }
-                        if (ids.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_identity_documents), count = ids.size) }
-                            items(ids, key = { "id_${it.id}" }) { doc ->
-                                IdentityDocumentResultRow(doc = doc, onClick = {
-                                    when {
-                                        doc.isDeleted          -> onTrashClick(doc.id)
-                                        doc.archivedAt != null -> guardedArchiveClick(doc.id)
-                                        else                   -> { viewModel.recordRecentAccess(doc.id, HubEntryType.IDENTITY_DOCUMENT); onIdentityDocumentClick(doc.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val vhs = uiState.vehicles.filter { it.vaultId == vId }
-                        if (vhs.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_vehicles), count = vhs.size) }
-                            items(vhs, key = { "v_${it.id}" }) { vehicle ->
-                                VehicleResultRow(vehicle = vehicle, onClick = {
-                                    when {
-                                        vehicle.isDeleted          -> onTrashClick(vehicle.id)
-                                        vehicle.archivedAt != null -> guardedArchiveClick(vehicle.id)
-                                        else                       -> { viewModel.recordRecentAccess(vehicle.id, HubEntryType.VEHICLE); onVehicleClick(vehicle.id, uiState.query) }
-                                    }
-                                })
-                            }
+                when {
+                    uiState.isInitial -> {
+                        if (recentEntries.isNotEmpty()) {
+                            RecentEntriesSection(
+                                entries                 = recentEntries,
+                                onPasswordClick         = onPasswordClick,
+                                onBankAccountClick      = onBankAccountClick,
+                                onCreditCardClick       = onCreditCardClick,
+                                onSecureNoteClick       = onSecureNoteClick,
+                                onCustomEntryClick      = onCustomEntryClick,
+                                onCryptoWalletClick     = onCryptoWalletClick,
+                                onIdentityDocumentClick = onIdentityDocumentClick,
+                                onVehicleClick          = onVehicleClick,
+                                onTwoFactorClick        = onTwoFactorClick,
+                                onRecordAccess          = viewModel::recordRecentAccess,
+                                sharedTransitionScope   = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope
+                            )
+                        } else {
+                            EmptyHint(text = stringResource(R.string.search_empty_hint))
                         }
                     }
-
-                    fun LazyListScope.emitFuzzyForVault(vId: String) {
-                        val pw = uiState.fuzzy.passwords.filter { it.vaultId == vId }
-                        if (pw.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_passwords), count = pw.size) }
-                            items(pw, key = { "fp_${it.id}" }) { entry ->
-                                PasswordResultRow(entry = entry, onClick = {
-                                    when {
-                                        entry.isDeleted          -> onTrashClick(entry.id)
-                                        entry.archivedAt != null -> guardedArchiveClick(entry.id)
-                                        else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.PASSWORD); onPasswordClick(entry.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val acc = uiState.fuzzy.bankAccounts.filter { it.vaultId == vId }
-                        if (acc.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_bank_accounts), count = acc.size) }
-                            items(acc, key = { "fb_${it.id}" }) { account ->
-                                BankAccountResultRow(account = account, onClick = {
-                                    when {
-                                        account.isDeleted          -> onTrashClick(account.id)
-                                        account.archivedAt != null -> guardedArchiveClick(account.id)
-                                        else                       -> { viewModel.recordRecentAccess(account.id, HubEntryType.BANK_ACCOUNT); onBankAccountClick(account.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val cards = uiState.fuzzy.creditCards.filter { it.vaultId == vId }
-                        if (cards.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_credit_cards), count = cards.size) }
-                            items(cards, key = { "fc_${it.id}" }) { card ->
-                                CreditCardResultRow(card = card, onClick = {
-                                    when {
-                                        card.isDeleted          -> onTrashClick(card.id)
-                                        card.archivedAt != null -> guardedArchiveClick(card.id)
-                                        else                    -> { viewModel.recordRecentAccess(card.id, HubEntryType.CREDIT_CARD); onCreditCardClick(card.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val notes = uiState.fuzzy.secureNotes.filter { it.vaultId == vId }
-                        if (notes.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_secure_notes), count = notes.size) }
-                            items(notes, key = { "fn_${it.id}" }) { note ->
-                                SecureNoteResultRow(note = note, onClick = {
-                                    when {
-                                        note.isDeleted          -> onTrashClick(note.id)
-                                        note.archivedAt != null -> guardedArchiveClick(note.id)
-                                        else                    -> { viewModel.recordRecentAccess(note.id, HubEntryType.SECURE_NOTE); onSecureNoteClick(note.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val custom = uiState.fuzzy.customEntries.filter { it.vaultId == vId }
-                        if (custom.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_custom_entries), count = custom.size) }
-                            items(custom, key = { "fx_${it.id}" }) { entry ->
-                                CustomEntryResultRow(entry = entry, onClick = {
-                                    when {
-                                        entry.isDeleted          -> onTrashClick(entry.id)
-                                        entry.archivedAt != null -> guardedArchiveClick(entry.id)
-                                        else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.CUSTOM_ENTRY); onCustomEntryClick(entry.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val twoFa = uiState.fuzzy.twoFactorAccounts.filter { it.vaultId == vId }
-                        if (twoFa.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.twofa_section_search), count = twoFa.size) }
-                            items(twoFa, key = { "ft_${it.id}" }) { account ->
-                                TwoFactorResultRow(account = account, onClick = {
-                                    when {
-                                        account.isDeleted          -> onTrashClick(account.id)
-                                        account.archivedAt != null -> guardedArchiveClick(account.id)
-                                        else                       -> onTwoFactorClick(account.id, uiState.query)
-                                    }
-                                })
-                            }
-                        }
-                        val crypto = uiState.fuzzy.cryptoWallets.filter { it.vaultId == vId }
-                        if (crypto.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_crypto_wallets), count = crypto.size) }
-                            items(crypto, key = { "fw_${it.id}" }) { wallet ->
-                                CryptoWalletResultRow(wallet = wallet, onClick = {
-                                    when {
-                                        wallet.isDeleted          -> onTrashClick(wallet.id)
-                                        wallet.archivedAt != null -> guardedArchiveClick(wallet.id)
-                                        else                      -> { viewModel.recordRecentAccess(wallet.id, HubEntryType.CRYPTO_WALLET); onCryptoWalletClick(wallet.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val pks = uiState.fuzzy.passkeys.filter { it.vaultId == vId }
-                        if (pks.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_passkeys), count = pks.size) }
-                            items(pks, key = { "fpk_${it.credentialId}" }) { passkey ->
-                                PasskeyResultRow(passkey = passkey, onClick = {
-                                    if (passkey.isDeleted) onTrashClick(passkey.credentialId) else onPasskeyClick(passkey.credentialId, uiState.query)
-                                })
-                            }
-                        }
-                        val ids = uiState.fuzzy.identityDocuments.filter { it.vaultId == vId }
-                        if (ids.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_identity_documents), count = ids.size) }
-                            items(ids, key = { "fid_${it.id}" }) { doc ->
-                                IdentityDocumentResultRow(doc = doc, onClick = {
-                                    when {
-                                        doc.isDeleted          -> onTrashClick(doc.id)
-                                        doc.archivedAt != null -> guardedArchiveClick(doc.id)
-                                        else                   -> { viewModel.recordRecentAccess(doc.id, HubEntryType.IDENTITY_DOCUMENT); onIdentityDocumentClick(doc.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
-                        val vhs = uiState.fuzzy.vehicles.filter { it.vaultId == vId }
-                        if (vhs.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_vehicles), count = vhs.size) }
-                            items(vhs, key = { "fv_${it.id}" }) { vehicle ->
-                                VehicleResultRow(vehicle = vehicle, onClick = {
-                                    when {
-                                        vehicle.isDeleted          -> onTrashClick(vehicle.id)
-                                        vehicle.archivedAt != null -> guardedArchiveClick(vehicle.id)
-                                        else                       -> { viewModel.recordRecentAccess(vehicle.id, HubEntryType.VEHICLE); onVehicleClick(vehicle.id, uiState.query) }
-                                    }
-                                })
-                            }
-                        }
+                    !hasExact && !hasFuzzy && !hasBackupsInfo -> {
+                        EmptyHint(text = stringResource(R.string.search_no_results))
                     }
+                    else -> {
+                        val primaryVaultName = stringResource(R.string.vault_name_primary)
+                        val privateVaultName = stringResource(R.string.vault_name_private)
+                        fun vaultLabel(ref: SearchVaultRef): String = when (ref.id) {
+                            VaultMetadata.PRIMARY_VAULT_ID -> primaryVaultName
+                            VaultMetadata.PRIVATE_VAULT_ID -> privateVaultName
+                            else                           -> ref.name
+                        }
+                        fun hasExactInVault(vId: String): Boolean =
+                            uiState.passwords.any { it.vaultId == vId } ||
+                            uiState.bankAccounts.any { it.vaultId == vId } ||
+                            uiState.creditCards.any { it.vaultId == vId } ||
+                            uiState.secureNotes.any { it.vaultId == vId } ||
+                            uiState.customEntries.any { it.vaultId == vId } ||
+                            uiState.twoFactorAccounts.any { it.vaultId == vId } ||
+                            uiState.cryptoWallets.any { it.vaultId == vId } ||
+                            uiState.passkeys.any { it.vaultId == vId } ||
+                            uiState.identityDocuments.any { it.vaultId == vId } ||
+                            uiState.vehicles.any { it.vaultId == vId }
+                        fun hasFuzzyInVault(vId: String): Boolean =
+                            uiState.fuzzy.passwords.any { it.vaultId == vId } ||
+                            uiState.fuzzy.bankAccounts.any { it.vaultId == vId } ||
+                            uiState.fuzzy.creditCards.any { it.vaultId == vId } ||
+                            uiState.fuzzy.secureNotes.any { it.vaultId == vId } ||
+                            uiState.fuzzy.customEntries.any { it.vaultId == vId } ||
+                            uiState.fuzzy.twoFactorAccounts.any { it.vaultId == vId } ||
+                            uiState.fuzzy.cryptoWallets.any { it.vaultId == vId } ||
+                            uiState.fuzzy.passkeys.any { it.vaultId == vId } ||
+                            uiState.fuzzy.identityDocuments.any { it.vaultId == vId } ||
+                            uiState.fuzzy.vehicles.any { it.vaultId == vId }
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 7.dp, end = 7.dp, bottom = 24.dp)
-                    ) {
-                        if (!hasExact) {
-                            item {
-                                NoExactMatchBanner(
-                                    text = stringResource(R.string.search_no_exact_match)
-                                )
+                        fun LazyListScope.emitExactForVault(vId: String) {
+                            val pw = uiState.passwords.filter { it.vaultId == vId }
+                            if (pw.isNotEmpty()) {
+                                item(key = "hdr_search_section_passwords_$vId") { SectionHeader(title = stringResource(R.string.search_section_passwords), count = pw.size, modifier = Modifier.animateItem()) }
+                                items(pw, key = { "p_${it.id}" }) { entry ->
+                                    PasswordResultRow(modifier = Modifier.animateItem(), entry = entry, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        when {
+                                            entry.isDeleted          -> onTrashClick(entry.id)
+                                            entry.archivedAt != null -> guardedArchiveClick(entry.id)
+                                            else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.PASSWORD); onPasswordClick(entry.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val acc = uiState.bankAccounts.filter { it.vaultId == vId }
+                            if (acc.isNotEmpty()) {
+                                item(key = "hdr_search_section_bank_accounts_$vId") { SectionHeader(title = stringResource(R.string.search_section_bank_accounts), count = acc.size, modifier = Modifier.animateItem()) }
+                                items(acc, key = { "b_${it.id}" }) { account ->
+                                    BankAccountResultRow(modifier = Modifier.animateItem(), account = account, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        when {
+                                            account.isDeleted          -> onTrashClick(account.id)
+                                            account.archivedAt != null -> guardedArchiveClick(account.id)
+                                            else                       -> { viewModel.recordRecentAccess(account.id, HubEntryType.BANK_ACCOUNT); onBankAccountClick(account.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val cards = uiState.creditCards.filter { it.vaultId == vId }
+                            if (cards.isNotEmpty()) {
+                                item(key = "hdr_search_section_credit_cards_$vId") { SectionHeader(title = stringResource(R.string.search_section_credit_cards), count = cards.size, modifier = Modifier.animateItem()) }
+                                items(cards, key = { "c_${it.id}" }) { card ->
+                                    CreditCardResultRow(modifier = Modifier.animateItem(), card = card, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        when {
+                                            card.isDeleted          -> onTrashClick(card.id)
+                                            card.archivedAt != null -> guardedArchiveClick(card.id)
+                                            else                    -> { viewModel.recordRecentAccess(card.id, HubEntryType.CREDIT_CARD); onCreditCardClick(card.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val notes = uiState.secureNotes.filter { it.vaultId == vId }
+                            if (notes.isNotEmpty()) {
+                                item(key = "hdr_search_section_secure_notes_$vId") { SectionHeader(title = stringResource(R.string.search_section_secure_notes), count = notes.size, modifier = Modifier.animateItem()) }
+                                items(notes, key = { "n_${it.id}" }) { note ->
+                                    SecureNoteResultRow(modifier = Modifier.animateItem(), note = note, onClick = {
+                                        when {
+                                            note.isDeleted          -> onTrashClick(note.id)
+                                            note.archivedAt != null -> guardedArchiveClick(note.id)
+                                            else                    -> { viewModel.recordRecentAccess(note.id, HubEntryType.SECURE_NOTE); onSecureNoteClick(note.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val custom = uiState.customEntries.filter { it.vaultId == vId }
+                            if (custom.isNotEmpty()) {
+                                item(key = "hdr_search_section_custom_entries_$vId") { SectionHeader(title = stringResource(R.string.search_section_custom_entries), count = custom.size, modifier = Modifier.animateItem()) }
+                                items(custom, key = { "x_${it.id}" }) { entry ->
+                                    CustomEntryResultRow(modifier = Modifier.animateItem(), entry = entry, onClick = {
+                                        when {
+                                            entry.isDeleted          -> onTrashClick(entry.id)
+                                            entry.archivedAt != null -> guardedArchiveClick(entry.id)
+                                            else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.CUSTOM_ENTRY); onCustomEntryClick(entry.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val twoFa = uiState.twoFactorAccounts.filter { it.vaultId == vId }
+                            if (twoFa.isNotEmpty()) {
+                                item(key = "hdr_twofa_section_search_$vId") { SectionHeader(title = stringResource(R.string.twofa_section_search), count = twoFa.size, modifier = Modifier.animateItem()) }
+                                items(twoFa, key = { "t_${it.id}" }) { account ->
+                                    TwoFactorResultRow(modifier = Modifier.animateItem(), account = account, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        when {
+                                            account.isDeleted          -> onTrashClick(account.id)
+                                            account.archivedAt != null -> guardedArchiveClick(account.id)
+                                            else                       -> onTwoFactorClick(account.id, uiState.query)
+                                        }
+                                    })
+                                }
+                            }
+                            val crypto = uiState.cryptoWallets.filter { it.vaultId == vId }
+                            if (crypto.isNotEmpty()) {
+                                item(key = "hdr_search_section_crypto_wallets_$vId") { SectionHeader(title = stringResource(R.string.search_section_crypto_wallets), count = crypto.size, modifier = Modifier.animateItem()) }
+                                items(crypto, key = { "w_${it.id}" }) { wallet ->
+                                    CryptoWalletResultRow(modifier = Modifier.animateItem(), wallet = wallet, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        when {
+                                            wallet.isDeleted          -> onTrashClick(wallet.id)
+                                            wallet.archivedAt != null -> guardedArchiveClick(wallet.id)
+                                            else                      -> { viewModel.recordRecentAccess(wallet.id, HubEntryType.CRYPTO_WALLET); onCryptoWalletClick(wallet.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val pks = uiState.passkeys.filter { it.vaultId == vId }
+                            if (pks.isNotEmpty()) {
+                                item(key = "hdr_search_section_passkeys_$vId") { SectionHeader(title = stringResource(R.string.search_section_passkeys), count = pks.size, modifier = Modifier.animateItem()) }
+                                items(pks, key = { "pk_${it.credentialId}" }) { passkey ->
+                                    PasskeyResultRow(modifier = Modifier.animateItem(), passkey = passkey, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        if (passkey.isDeleted) onTrashClick(passkey.credentialId) else onPasskeyClick(passkey.credentialId, uiState.query)
+                                    })
+                                }
+                            }
+                            val ids = uiState.identityDocuments.filter { it.vaultId == vId }
+                            if (ids.isNotEmpty()) {
+                                item(key = "hdr_search_section_identity_documents_$vId") { SectionHeader(title = stringResource(R.string.search_section_identity_documents), count = ids.size, modifier = Modifier.animateItem()) }
+                                items(ids, key = { "id_${it.id}" }) { doc ->
+                                    IdentityDocumentResultRow(modifier = Modifier.animateItem(), doc = doc, onClick = {
+                                        when {
+                                            doc.isDeleted          -> onTrashClick(doc.id)
+                                            doc.archivedAt != null -> guardedArchiveClick(doc.id)
+                                            else                   -> { viewModel.recordRecentAccess(doc.id, HubEntryType.IDENTITY_DOCUMENT); onIdentityDocumentClick(doc.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val vhs = uiState.vehicles.filter { it.vaultId == vId }
+                            if (vhs.isNotEmpty()) {
+                                item(key = "hdr_search_section_vehicles_$vId") { SectionHeader(title = stringResource(R.string.search_section_vehicles), count = vhs.size, modifier = Modifier.animateItem()) }
+                                items(vhs, key = { "v_${it.id}" }) { vehicle ->
+                                    VehicleResultRow(modifier = Modifier.animateItem(), vehicle = vehicle, sts = sharedTransitionScope, avs = animatedVisibilityScope, onClick = {
+                                        when {
+                                            vehicle.isDeleted          -> onTrashClick(vehicle.id)
+                                            vehicle.archivedAt != null -> guardedArchiveClick(vehicle.id)
+                                            else                       -> { viewModel.recordRecentAccess(vehicle.id, HubEntryType.VEHICLE); onVehicleClick(vehicle.id, uiState.query) }
+                                        }
+                                    })
+                                }
                             }
                         }
 
-                        uiState.vaults.forEach { v ->
-                            if (hasExactInVault(v.id)) {
-                                item(key = "vh_e_${v.id}") { VaultGroupHeader(name = vaultLabel(v)) }
-                                emitExactForVault(v.id)
+                        fun LazyListScope.emitFuzzyForVault(vId: String) {
+                            val pw = uiState.fuzzy.passwords.filter { it.vaultId == vId }
+                            if (pw.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_passwords_$vId") { SectionHeader(title = stringResource(R.string.search_section_passwords), count = pw.size, modifier = Modifier.animateItem()) }
+                                items(pw, key = { "fp_${it.id}" }) { entry ->
+                                    PasswordResultRow(modifier = Modifier.animateItem(), entry = entry, onClick = {
+                                        when {
+                                            entry.isDeleted          -> onTrashClick(entry.id)
+                                            entry.archivedAt != null -> guardedArchiveClick(entry.id)
+                                            else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.PASSWORD); onPasswordClick(entry.id, uiState.query) }
+                                        }
+                                    })
+                                }
                             }
-                        }
-                        if (uiState.reminders.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_reminders), count = uiState.reminders.size) }
-                            items(uiState.reminders, key = { "rem_${it.id}" }) { reminder ->
-                                ReminderResultRow(reminder = reminder, onClick = { onReminderClick(reminder.id) })
+                            val acc = uiState.fuzzy.bankAccounts.filter { it.vaultId == vId }
+                            if (acc.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_bank_accounts_$vId") { SectionHeader(title = stringResource(R.string.search_section_bank_accounts), count = acc.size, modifier = Modifier.animateItem()) }
+                                items(acc, key = { "fb_${it.id}" }) { account ->
+                                    BankAccountResultRow(modifier = Modifier.animateItem(), account = account, onClick = {
+                                        when {
+                                            account.isDeleted          -> onTrashClick(account.id)
+                                            account.archivedAt != null -> guardedArchiveClick(account.id)
+                                            else                       -> { viewModel.recordRecentAccess(account.id, HubEntryType.BANK_ACCOUNT); onBankAccountClick(account.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val cards = uiState.fuzzy.creditCards.filter { it.vaultId == vId }
+                            if (cards.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_credit_cards_$vId") { SectionHeader(title = stringResource(R.string.search_section_credit_cards), count = cards.size, modifier = Modifier.animateItem()) }
+                                items(cards, key = { "fc_${it.id}" }) { card ->
+                                    CreditCardResultRow(modifier = Modifier.animateItem(), card = card, onClick = {
+                                        when {
+                                            card.isDeleted          -> onTrashClick(card.id)
+                                            card.archivedAt != null -> guardedArchiveClick(card.id)
+                                            else                    -> { viewModel.recordRecentAccess(card.id, HubEntryType.CREDIT_CARD); onCreditCardClick(card.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val notes = uiState.fuzzy.secureNotes.filter { it.vaultId == vId }
+                            if (notes.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_secure_notes_$vId") { SectionHeader(title = stringResource(R.string.search_section_secure_notes), count = notes.size, modifier = Modifier.animateItem()) }
+                                items(notes, key = { "fn_${it.id}" }) { note ->
+                                    SecureNoteResultRow(modifier = Modifier.animateItem(), note = note, onClick = {
+                                        when {
+                                            note.isDeleted          -> onTrashClick(note.id)
+                                            note.archivedAt != null -> guardedArchiveClick(note.id)
+                                            else                    -> { viewModel.recordRecentAccess(note.id, HubEntryType.SECURE_NOTE); onSecureNoteClick(note.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val custom = uiState.fuzzy.customEntries.filter { it.vaultId == vId }
+                            if (custom.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_custom_entries_$vId") { SectionHeader(title = stringResource(R.string.search_section_custom_entries), count = custom.size, modifier = Modifier.animateItem()) }
+                                items(custom, key = { "fx_${it.id}" }) { entry ->
+                                    CustomEntryResultRow(modifier = Modifier.animateItem(), entry = entry, onClick = {
+                                        when {
+                                            entry.isDeleted          -> onTrashClick(entry.id)
+                                            entry.archivedAt != null -> guardedArchiveClick(entry.id)
+                                            else                     -> { viewModel.recordRecentAccess(entry.id, HubEntryType.CUSTOM_ENTRY); onCustomEntryClick(entry.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val twoFa = uiState.fuzzy.twoFactorAccounts.filter { it.vaultId == vId }
+                            if (twoFa.isNotEmpty()) {
+                                item(key = "fzhdr_twofa_section_search_$vId") { SectionHeader(title = stringResource(R.string.twofa_section_search), count = twoFa.size, modifier = Modifier.animateItem()) }
+                                items(twoFa, key = { "ft_${it.id}" }) { account ->
+                                    TwoFactorResultRow(modifier = Modifier.animateItem(), account = account, onClick = {
+                                        when {
+                                            account.isDeleted          -> onTrashClick(account.id)
+                                            account.archivedAt != null -> guardedArchiveClick(account.id)
+                                            else                       -> onTwoFactorClick(account.id, uiState.query)
+                                        }
+                                    })
+                                }
+                            }
+                            val crypto = uiState.fuzzy.cryptoWallets.filter { it.vaultId == vId }
+                            if (crypto.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_crypto_wallets_$vId") { SectionHeader(title = stringResource(R.string.search_section_crypto_wallets), count = crypto.size, modifier = Modifier.animateItem()) }
+                                items(crypto, key = { "fw_${it.id}" }) { wallet ->
+                                    CryptoWalletResultRow(modifier = Modifier.animateItem(), wallet = wallet, onClick = {
+                                        when {
+                                            wallet.isDeleted          -> onTrashClick(wallet.id)
+                                            wallet.archivedAt != null -> guardedArchiveClick(wallet.id)
+                                            else                      -> { viewModel.recordRecentAccess(wallet.id, HubEntryType.CRYPTO_WALLET); onCryptoWalletClick(wallet.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val pks = uiState.fuzzy.passkeys.filter { it.vaultId == vId }
+                            if (pks.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_passkeys_$vId") { SectionHeader(title = stringResource(R.string.search_section_passkeys), count = pks.size, modifier = Modifier.animateItem()) }
+                                items(pks, key = { "fpk_${it.credentialId}" }) { passkey ->
+                                    PasskeyResultRow(modifier = Modifier.animateItem(), passkey = passkey, onClick = {
+                                        if (passkey.isDeleted) onTrashClick(passkey.credentialId) else onPasskeyClick(passkey.credentialId, uiState.query)
+                                    })
+                                }
+                            }
+                            val ids = uiState.fuzzy.identityDocuments.filter { it.vaultId == vId }
+                            if (ids.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_identity_documents_$vId") { SectionHeader(title = stringResource(R.string.search_section_identity_documents), count = ids.size, modifier = Modifier.animateItem()) }
+                                items(ids, key = { "fid_${it.id}" }) { doc ->
+                                    IdentityDocumentResultRow(modifier = Modifier.animateItem(), doc = doc, onClick = {
+                                        when {
+                                            doc.isDeleted          -> onTrashClick(doc.id)
+                                            doc.archivedAt != null -> guardedArchiveClick(doc.id)
+                                            else                   -> { viewModel.recordRecentAccess(doc.id, HubEntryType.IDENTITY_DOCUMENT); onIdentityDocumentClick(doc.id, uiState.query) }
+                                        }
+                                    })
+                                }
+                            }
+                            val vhs = uiState.fuzzy.vehicles.filter { it.vaultId == vId }
+                            if (vhs.isNotEmpty()) {
+                                item(key = "fzhdr_search_section_vehicles_$vId") { SectionHeader(title = stringResource(R.string.search_section_vehicles), count = vhs.size, modifier = Modifier.animateItem()) }
+                                items(vhs, key = { "fv_${it.id}" }) { vehicle ->
+                                    VehicleResultRow(modifier = Modifier.animateItem(), vehicle = vehicle, onClick = {
+                                        when {
+                                            vehicle.isDeleted          -> onTrashClick(vehicle.id)
+                                            vehicle.archivedAt != null -> guardedArchiveClick(vehicle.id)
+                                            else                       -> { viewModel.recordRecentAccess(vehicle.id, HubEntryType.VEHICLE); onVehicleClick(vehicle.id, uiState.query) }
+                                        }
+                                    })
+                                }
                             }
                         }
 
-                        if (hasFuzzy && hasExact) {
-                            item {
-                                FuzzySectionDivider(
-                                    text = stringResource(R.string.search_similar_results)
-                                )
-                            }
-                        }
-                        uiState.vaults.forEach { v ->
-                            if (hasFuzzyInVault(v.id)) {
-                                item(key = "vh_f_${v.id}") { VaultGroupHeader(name = vaultLabel(v)) }
-                                emitFuzzyForVault(v.id)
-                            }
-                        }
-                        if (uiState.fuzzy.reminders.isNotEmpty()) {
-                            item { SectionHeader(title = stringResource(R.string.search_section_reminders), count = uiState.fuzzy.reminders.size) }
-                            items(uiState.fuzzy.reminders, key = { "frem_${it.id}" }) { reminder ->
-                                ReminderResultRow(reminder = reminder, onClick = { onReminderClick(reminder.id) })
-                            }
-                        }
-
-                        if (searchBackupsEnabled) {
-                            item { BackupsSectionHeader(count = backupResults.size, isLoading = isLoadingBackups) }
-                            if (isLoadingBackups) {
-                                item { BackupsLoadingRow() }
-                            } else {
-                                items(backupResults, key = { "bk_${it.snapshotId}_${it.entryId}" }) { result ->
-                                    BackupResultRow(
-                                        result  = result,
-                                        onClick = { onBackupResultClick(result.snapshotId, uiState.query) }
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(start = 7.dp, end = 7.dp, bottom = 24.dp)
+                        ) {
+                            if (!hasExact) {
+                                item {
+                                    NoExactMatchBanner(
+                                        text = stringResource(R.string.search_no_exact_match)
                                     )
+                                }
+                            }
+
+                            uiState.vaults.forEach { v ->
+                                if (hasExactInVault(v.id)) {
+                                    item(key = "vh_e_${v.id}") { VaultGroupHeader(name = vaultLabel(v)) }
+                                    emitExactForVault(v.id)
+                                }
+                            }
+                            if (uiState.reminders.isNotEmpty()) {
+                                item(key = "hdr_reminders") { SectionHeader(title = stringResource(R.string.search_section_reminders), count = uiState.reminders.size, modifier = Modifier.animateItem()) }
+                                items(uiState.reminders, key = { "rem_${it.id}" }) { reminder ->
+                                    ReminderResultRow(modifier = Modifier.animateItem(), reminder = reminder, onClick = { onReminderClick(reminder.id) })
+                                }
+                            }
+
+                            if (hasFuzzy && hasExact) {
+                                item {
+                                    FuzzySectionDivider(
+                                        text = stringResource(R.string.search_similar_results)
+                                    )
+                                }
+                            }
+                            uiState.vaults.forEach { v ->
+                                if (hasFuzzyInVault(v.id)) {
+                                    item(key = "vh_f_${v.id}") { VaultGroupHeader(name = vaultLabel(v)) }
+                                    emitFuzzyForVault(v.id)
+                                }
+                            }
+                            if (uiState.fuzzy.reminders.isNotEmpty()) {
+                                item(key = "fzhdr_reminders") { SectionHeader(title = stringResource(R.string.search_section_reminders), count = uiState.fuzzy.reminders.size, modifier = Modifier.animateItem()) }
+                                items(uiState.fuzzy.reminders, key = { "frem_${it.id}" }) { reminder ->
+                                    ReminderResultRow(modifier = Modifier.animateItem(), reminder = reminder, onClick = { onReminderClick(reminder.id) })
+                                }
+                            }
+
+                            if (searchBackupsEnabled) {
+                                item { BackupsSectionHeader(count = backupResults.size, isLoading = isLoadingBackups) }
+                                if (isLoadingBackups) {
+                                    item { BackupsLoadingRow() }
+                                } else {
+                                    items(backupResults, key = { "bk_${it.snapshotId}_${it.entryId}" }) { result ->
+                                        BackupResultRow(
+                                            result  = result,
+                                            onClick = { onBackupResultClick(result.snapshotId, uiState.query) }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -845,8 +895,8 @@ private fun EmptyHint(text: String) {
 }
 
 @Composable
-private fun SectionHeader(title: String, count: Int) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+private fun SectionHeader(title: String, count: Int, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -894,18 +944,20 @@ private fun ResultRowBase(
     subtitle:    String?,
     url:         String  = "",
     statusLabel: String? = null,
+    avatar:      (@Composable () -> Unit)? = null,
+    modifier:    Modifier = Modifier,
     onClick:     () -> Unit
 ) {
     val searchQuery    = LocalSearchQuery.current
     val highlightColor = MaterialTheme.colorScheme.primary
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ServiceAwareAvatar(title = title, url = url)
+        if (avatar != null) avatar() else ServiceAwareAvatar(title = title, url = url)
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -949,94 +1001,123 @@ private fun entryStatusLabel(isDeleted: Boolean, isArchived: Boolean): String? =
 }
 
 @Composable
-private fun PasswordResultRow(entry: VaultEntry, onClick: () -> Unit) {
+private fun PasswordResultRow(entry: VaultEntry, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val sub    = entry.email.ifEmpty { entry.username }.ifEmpty { entry.url }
     val status = entryStatusLabel(entry.isDeleted, entry.archivedAt != null)
-    ResultRowBase(title = entry.title, subtitle = sub, url = ServiceIconProvider.bestUrl(entry.urls), statusLabel = status, onClick = onClick)
+    val avUrl = ServiceIconProvider.bestUrl(entry.urls)
+    ResultRowBase(
+        title = entry.title, subtitle = sub, url = avUrl, statusLabel = status,
+        avatar = { ServiceAwareAvatar(title = entry.title, url = avUrl, modifier = Modifier.sharedAvatar("entry_avatar_${entry.id}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun BankAccountResultRow(account: BankAccount, onClick: () -> Unit) {
+private fun BankAccountResultRow(account: BankAccount, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val bankLabel = account.bankName.ifEmpty { account.alias }
     val detail    = account.accountType.trim()
     val title     = if (detail.isNotEmpty()) "$bankLabel – $detail" else bankLabel
     val sub       = account.swiftBic.takeIf { it.isNotBlank() }
         ?: account.alias.takeIf { it.isNotBlank() }
     val status    = entryStatusLabel(account.isDeleted, account.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(
+        title = title, subtitle = sub, statusLabel = status,
+        avatar = { BankAwareAvatar(bankName = account.bankName, modifier = Modifier.sharedAvatar("bank_avatar_${account.id}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun CreditCardResultRow(card: CreditCard, onClick: () -> Unit) {
+private fun CreditCardResultRow(card: CreditCard, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val title  = card.issuer.ifEmpty { card.brand }
     val sub    = listOf(card.brand, card.issuer).filter { it.isNotBlank() && it != title }.joinToString(" · ")
     val status = entryStatusLabel(card.isDeleted, card.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub.ifBlank { null }, statusLabel = status, onClick = onClick)
+    ResultRowBase(
+        title = title, subtitle = sub.ifBlank { null }, statusLabel = status,
+        avatar = { CreditCardAwareAvatar(brand = card.brand, modifier = Modifier.sharedAvatar("card_avatar_${card.id}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun SecureNoteResultRow(note: SecureNote, onClick: () -> Unit) {
+private fun SecureNoteResultRow(note: SecureNote, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val sub    = note.content.lineSequence().firstOrNull { it.isNotBlank() }?.take(60)
     val status = entryStatusLabel(note.isDeleted, note.archivedAt != null)
-    ResultRowBase(title = note.title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(title = note.title, subtitle = sub, statusLabel = status, onClick = onClick, modifier = modifier)
 }
 
 @Composable
-private fun CustomEntryResultRow(entry: CustomEntry, onClick: () -> Unit) {
+private fun CustomEntryResultRow(entry: CustomEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val status = entryStatusLabel(entry.isDeleted, entry.archivedAt != null)
-    ResultRowBase(title = entry.title, subtitle = null, statusLabel = status, onClick = onClick)
+    ResultRowBase(title = entry.title, subtitle = null, statusLabel = status, onClick = onClick, modifier = modifier)
 }
 
 @Composable
-private fun TwoFactorResultRow(account: TwoFactorAccount, onClick: () -> Unit) {
+private fun TwoFactorResultRow(account: TwoFactorAccount, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val title  = account.issuer.ifEmpty { account.name }
     val sub    = account.accountLabel.takeIf { it.isNotBlank() }
         ?: account.name.takeIf { it.isNotBlank() && it != title }
     val status = entryStatusLabel(account.isDeleted, account.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(
+        title = title, subtitle = sub, statusLabel = status,
+        avatar = { ServiceAwareAvatar(title = title, url = account.url, modifier = Modifier.sharedAvatar("twofa_avatar_${account.id}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun CryptoWalletResultRow(wallet: CryptoWallet, onClick: () -> Unit) {
+private fun CryptoWalletResultRow(wallet: CryptoWallet, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val title  = listOf(wallet.network, wallet.asset).filter { it.isNotBlank() }.joinToString(" / ")
         .ifEmpty { wallet.address.take(12).ifEmpty { stringResource(R.string.hub_pinned_fallback_crypto_wallet) } }
     val sub    = wallet.address.takeIf { it.isNotBlank() }?.let {
         if (it.length > 20) it.take(10) + "…" + it.takeLast(8) else it
     }
     val status = entryStatusLabel(wallet.isDeleted, wallet.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(
+        title = title, subtitle = sub, statusLabel = status,
+        avatar = { CryptoAwareAvatar(asset = wallet.asset.ifEmpty { wallet.network }, modifier = Modifier.sharedAvatar("crypto_avatar_${wallet.id}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun PasskeyResultRow(passkey: PasskeyCredential, onClick: () -> Unit) {
+private fun PasskeyResultRow(passkey: PasskeyCredential, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val title  = passkey.rpName.ifEmpty { passkey.userName }
     val sub    = passkey.userName.takeIf { it.isNotBlank() && it != title }
     val status = entryStatusLabel(passkey.isDeleted, passkey.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(
+        title = title, subtitle = sub, statusLabel = status,
+        avatar = { ServiceAwareAvatar(title = passkey.displayName, url = "https://${passkey.rpId}", modifier = Modifier.sharedAvatar("passkey_avatar_${passkey.credentialId}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun IdentityDocumentResultRow(doc: IdentityDocument, onClick: () -> Unit) {
+private fun IdentityDocumentResultRow(doc: IdentityDocument, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val title  = doc.holderName.ifEmpty { doc.docType }
     val sub    = doc.docType.takeIf { it.isNotBlank() && it != title }
         ?: doc.number.takeIf { it.isNotBlank() }
     val status = entryStatusLabel(doc.isDeleted, doc.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick, modifier = modifier)
 }
 
 @Composable
-private fun VehicleResultRow(vehicle: Vehicle, onClick: () -> Unit) {
+private fun VehicleResultRow(vehicle: Vehicle, onClick: () -> Unit, modifier: Modifier = Modifier, sts: SharedTransitionScope? = null, avs: AnimatedVisibilityScope? = null) {
     val title  = listOf(vehicle.make, vehicle.model).filter { it.isNotBlank() }.joinToString(" ")
         .ifEmpty { vehicle.licensePlate.ifEmpty { stringResource(R.string.hub_pinned_fallback_vehicle) } }
     val sub    = vehicle.licensePlate.takeIf { it.isNotBlank() }
     val status = entryStatusLabel(vehicle.isDeleted, vehicle.archivedAt != null)
-    ResultRowBase(title = title, subtitle = sub, statusLabel = status, onClick = onClick)
+    ResultRowBase(
+        title = title, subtitle = sub, statusLabel = status,
+        avatar = { VehicleAwareAvatar(make = vehicle.make, modifier = Modifier.sharedAvatar("vehicle_avatar_${vehicle.id}", sts, avs)) },
+        onClick = onClick, modifier = modifier
+    )
 }
 
 @Composable
-private fun ReminderResultRow(reminder: Reminder, onClick: () -> Unit) {
+private fun ReminderResultRow(reminder: Reminder, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val sub = reminder.note.lineSequence().firstOrNull { it.isNotBlank() }?.take(60)
-    ResultRowBase(title = reminder.name, subtitle = sub, onClick = onClick)
+    ResultRowBase(title = reminder.name, subtitle = sub, onClick = onClick, modifier = modifier)
 }
 
 @Composable
@@ -1153,7 +1234,9 @@ internal fun RecentEntriesSection(
     onIdentityDocumentClick: (String, String) -> Unit,
     onVehicleClick:          (String, String) -> Unit,
     onTwoFactorClick:        (String, String) -> Unit,
-    onRecordAccess:          (String, HubEntryType) -> Unit
+    onRecordAccess:          (String, HubEntryType) -> Unit,
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     Column(
         modifier = Modifier
@@ -1176,6 +1259,8 @@ internal fun RecentEntriesSection(
                     RecentEntryCard(
                         entry    = entry,
                         modifier = Modifier.weight(1f),
+                        sharedTransitionScope   = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope,
                         onClick  = {
                             onRecordAccess(entry.id, entry.type)
                             when (entry.type) {
@@ -1204,8 +1289,23 @@ internal fun RecentEntriesSection(
 private fun RecentEntryCard(
     entry:    RecentHubEntry,
     modifier: Modifier = Modifier,
-    onClick:  () -> Unit
+    onClick:  () -> Unit,
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
+    val avatarKey = when (entry.type) {
+        HubEntryType.PASSWORD      -> "entry_avatar_${entry.id}"
+        HubEntryType.BANK_ACCOUNT  -> "bank_avatar_${entry.id}"
+        HubEntryType.CREDIT_CARD   -> "card_avatar_${entry.id}"
+        HubEntryType.CRYPTO_WALLET -> "crypto_avatar_${entry.id}"
+        HubEntryType.VEHICLE       -> "vehicle_avatar_${entry.id}"
+        HubEntryType.SECURE_NOTE   -> "note_icon_${entry.id}"
+        HubEntryType.CUSTOM_ENTRY  -> "custom_icon_${entry.id}"
+        HubEntryType.IDENTITY_DOCUMENT -> "identity_icon_${entry.id}"
+        HubEntryType.TWO_FACTOR    -> "twofa_avatar_${entry.id}"
+        else                       -> null
+    }
+    val avatarMod = if (avatarKey != null) Modifier.sharedAvatar(avatarKey, sharedTransitionScope, animatedVisibilityScope) else Modifier
     Column(
         modifier              = modifier
             .clickable(onClick = onClick)
@@ -1219,13 +1319,23 @@ private fun RecentEntryCard(
         ) {
             when (entry.type) {
                 HubEntryType.PASSWORD ->
-                    ServiceAwareAvatar(title = entry.displayTitle, url = entry.url, size = 40.dp)
+                    ServiceAwareAvatar(title = entry.displayTitle, url = entry.url, size = 40.dp, modifier = avatarMod)
                 HubEntryType.BANK_ACCOUNT ->
-                    BankAwareAvatar(bankName = entry.avatarLabel, size = 40.dp)
+                    BankAwareAvatar(bankName = entry.avatarLabel, size = 40.dp, modifier = avatarMod)
                 HubEntryType.CREDIT_CARD ->
-                    CreditCardAwareAvatar(brand = entry.avatarLabel, size = 40.dp)
+                    CreditCardAwareAvatar(brand = entry.avatarLabel, size = 40.dp, modifier = avatarMod)
                 HubEntryType.CRYPTO_WALLET ->
-                    CryptoAwareAvatar(asset = entry.avatarLabel, size = 40.dp)
+                    CryptoAwareAvatar(asset = entry.avatarLabel, size = 40.dp, modifier = avatarMod)
+                HubEntryType.VEHICLE ->
+                    VehicleAwareAvatar(make = entry.avatarLabel, size = 40.dp, modifier = avatarMod)
+                HubEntryType.SECURE_NOTE ->
+                    Icon(Icons.AutoMirrored.Outlined.StickyNote2, contentDescription = null, tint = notesAccentColor(), modifier = avatarMod.size(28.dp))
+                HubEntryType.CUSTOM_ENTRY ->
+                    Icon(Icons.Outlined.GridView, contentDescription = null, tint = notesAccentColor(), modifier = avatarMod.size(28.dp))
+                HubEntryType.IDENTITY_DOCUMENT ->
+                    Icon(Icons.Outlined.Badge, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = avatarMod.size(28.dp))
+                HubEntryType.TWO_FACTOR ->
+                    ServiceAwareAvatar(title = entry.displayTitle, url = entry.url, size = 40.dp, modifier = avatarMod)
                 else ->
                     EntryAvatar(title = entry.avatarLabel.ifEmpty { entry.displayTitle }, size = 40.dp)
             }

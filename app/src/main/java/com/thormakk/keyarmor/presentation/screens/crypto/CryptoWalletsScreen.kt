@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.crypto
 
+import com.thormakk.keyarmor.presentation.components.hideWhenLeaving
 import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -383,7 +384,7 @@ fun CryptoWalletsScreen(
         },
         floatingActionButton = {
             val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            Box(Modifier.offset(y = -navBarHeight)) {
+            Box(Modifier.offset(y = -navBarHeight).hideWhenLeaving(animatedVisibilityScope)) {
                 FloatingActionButton(
                     modifier = Modifier
                         .coachMarkAnchor("crypto_wallets", "fab"),
@@ -912,7 +913,15 @@ fun CryptoWalletsScreen(
             title = { Text(stringResource(R.string.protect_bulk_unlock_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(if (isFreeUser) R.string.protect_bulk_unlock_body_free else R.string.protect_bulk_unlock_body), color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showBulkUnlock = false; viewModel.bulkSetProtected(false) }) { Text(stringResource(R.string.lock_action_unlock)) }
+                Button(
+                    onClick = { showBulkUnlock = false; viewModel.bulkSetProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkUnlock = false }) { Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground) }
@@ -926,7 +935,12 @@ fun CryptoWalletsScreen(
             title = { Text(stringResource(R.string.protect_premium_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showBulkProtectPremium = false; onPlansClick() }) { Text(stringResource(R.string.plans_upgrade_cta)) }
+                Button(
+                    onClick = { showBulkProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.plans_upgrade_cta)) }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkProtectPremium = false }) { Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground) }
@@ -1212,7 +1226,7 @@ private fun CryptoGroupHeader(
                 IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
                     Icon(
                         imageVector        = Icons.Default.IndeterminateCheckBox,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.bulk_select_all),
                         tint               = MaterialTheme.colorScheme.primary,
                         modifier           = Modifier.size(24.dp)
                     )

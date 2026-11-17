@@ -1,5 +1,6 @@
 package com.thormakk.keyarmor.presentation.screens.inheritance
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -156,21 +157,21 @@ fun HeirRecoveryCodeScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
+                containerColor = warningColor().copy(alpha = 0.18f),
             ),
         ) {
             Row(modifier = Modifier.padding(16.dp)) {
                 Icon(
                     imageVector = Icons.Outlined.WarningAmber,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(22.dp),
                 )
                 Text(
                     text = stringResource(R.string.heir_recovery_code_warning),
                     modifier = Modifier.padding(start = 12.dp),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

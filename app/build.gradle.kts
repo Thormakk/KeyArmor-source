@@ -24,8 +24,8 @@ android {
         applicationId = "com.thormakk.keyarmor"
         minSdk = 26
         targetSdk = 37
-        versionCode = 40
-        versionName = "1.02"
+        versionCode = 43
+        versionName = "1.05"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

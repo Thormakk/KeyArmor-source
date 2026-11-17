@@ -1,5 +1,6 @@
 package com.thormakk.keyarmor.presentation.screens.inheritance
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -128,7 +129,7 @@ fun HeirConsentScreen(
                         TextButton(onClick = { viewModel.onOwnerKeyChangeRejected() }) {
                             Text(
                                 text  = stringResource(R.string.heir_consent_owner_key_changed_reject),
-                                color = MaterialTheme.colorScheme.error
+                                color = warningColor()
                             )
                         }
                     }
@@ -242,7 +243,7 @@ private fun HeirConsentContent(
             Text(
                 text      = stringResource(res),
                 style     = MaterialTheme.typography.bodyMedium,
-                color     = MaterialTheme.colorScheme.error,
+                color     = warningColor(),
                 textAlign = TextAlign.Center
             )
         }

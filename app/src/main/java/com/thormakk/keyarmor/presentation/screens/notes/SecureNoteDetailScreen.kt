@@ -1,7 +1,13 @@
-@file:OptIn(ExperimentalMaterial3Api::class, com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.notes
 
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.justified
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
@@ -118,6 +124,8 @@ fun SecureNoteDetailScreen(
     onAttachmentsClick: (String) -> Unit = {},
     onPlansClick:       () -> Unit = {},
     onHistoryClick:     (String) -> Unit = {},
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:          AddEditSecureNoteViewModel = hiltViewModel()
 ) {
     val uiState              by viewModel.uiState.collectAsStateWithLifecycle()
@@ -253,9 +261,15 @@ fun SecureNoteDetailScreen(
             text  = { Text(stringResource(if (viewModel.canProtectNew) R.string.protect_unlock_body else R.string.protect_unlock_body_free),
                 color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showUnlockDialog = false; viewModel.setProtected(false) }) {
-                    Text(stringResource(R.string.lock_action_unlock))
-                }
+                Button(
+                    onClick = { showUnlockDialog = false; viewModel.setProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showUnlockDialog = false }) {
@@ -272,7 +286,12 @@ fun SecureNoteDetailScreen(
                 color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showProtectPremium = false; onPlansClick() }) {
+                Button(
+                    onClick = { showProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) {
                     Text(stringResource(R.string.plans_upgrade_cta))
                 }
             },
@@ -508,7 +527,17 @@ fun SecureNoteDetailScreen(
                         Box(modifier = Modifier.padding(horizontal = 4.dp)) {
                             DetailRow(
                                 label = stringResource(R.string.notes_field_title_placeholder),
-                                value = uiState.title
+                                value = uiState.title,
+                                leading = {
+                                    Icon(
+                                        imageVector        = Icons.AutoMirrored.Outlined.StickyNote2,
+                                        contentDescription = null,
+                                        tint               = notesAccentColor(),
+                                        modifier           = Modifier
+                                            .sharedAvatar("note_icon_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                                            .size(24.dp)
+                                    )
+                                }
                             )
                             if ((!isReadOnly || uiState.isProtected) && !uiState.isNew) {
                                 val greenLock = if (contrastRatio(MaterialTheme.colorScheme.background, SuccessGreen) < 3f)

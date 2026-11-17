@@ -690,7 +690,7 @@ class SearchViewModel @Inject constructor(
                                 id           = ref.id,
                                 type         = ref.type,
                                 displayTitle = name,
-                                avatarLabel  = name,
+                                avatarLabel  = e.make,
                                 subtitle     = e.licensePlate.ifBlank { null }
                             )
                         }
@@ -703,6 +703,7 @@ class SearchViewModel @Inject constructor(
                                 type         = ref.type,
                                 displayTitle = title,
                                 avatarLabel  = title,
+                                url          = e.url,
                                 subtitle     = e.accountLabel.ifBlank { null }
                             )
                         }

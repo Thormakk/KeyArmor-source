@@ -579,6 +579,7 @@ fun TimeMachineScreen(
     clavePendiente?.let { pend ->
         var palabras by remember(pend.info.driveFileId) { mutableStateOf("") }
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.cuadroConTeclado(),
         properties = propiedadesConTeclado(),
             onDismissRequest = { if (!isRestoring) viewModel.cancelarClavePendiente() },
@@ -1181,7 +1182,7 @@ internal fun triggerColor(trigger: SnapshotTrigger): Color {
         SnapshotTrigger.WEEKLY            -> MaterialTheme.colorScheme.primary
         SnapshotTrigger.MANUAL            -> readable(Color(0xFF00897B), Color(0xFF4DB6AC))
         SnapshotTrigger.PRE_BULK_DELETE   -> readable(Color(0xFFE65100), Color(0xFFFFA726))
-        SnapshotTrigger.PRE_MASTER_CHANGE -> readable(Color(0xFFC62828), Color(0xFFEF5350))
+        SnapshotTrigger.PRE_MASTER_CHANGE -> readable(Color(0xFFFF8F00), Color(0xFFFFB74D))
         SnapshotTrigger.PRE_RESTORE       -> readable(Color(0xFF6A1B9A), Color(0xFFBA68C8))
         SnapshotTrigger.PRE_IMPORT_CSV,
         SnapshotTrigger.PRE_IMPORT_JSON,

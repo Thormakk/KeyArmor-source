@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 package com.thormakk.keyarmor.presentation.navigation
 
+import com.thormakk.keyarmor.presentation.components.LocalBottomBarShown
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -32,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
@@ -278,6 +281,13 @@ fun KeyArmorNavGraph(
     )
     fun String?.isModalRoute() = this != null && this in modalRoutes
 
+    fun isRemindersPair(from: String?, to: String?) =
+        (from == Screen.Reminders.route && to == Screen.ReminderAddEdit.route) ||
+        (from == Screen.ReminderAddEdit.route && to == Screen.Reminders.route)
+    val modalEnterOpaque    : EnterTransition = slideInHorizontally(tween(300, easing = FastOutSlowInEasing))   { it }
+    val modalPopEnterOpaque : EnterTransition = slideInHorizontally(tween(300, easing = LinearOutSlowInEasing)) { -it }
+    val modalPopExitOpaque  : ExitTransition  = slideOutHorizontally(tween(220, easing = FastOutLinearInEasing)) { it }
+
     val vaultSectionRoutes = setOf(
         Screen.BankAccounts.route,
         Screen.CreditCards.route,
@@ -397,7 +407,10 @@ fun KeyArmorNavGraph(
     }
 
     val isBlackChrome = LocalIsBlackChrome.current
-    CompositionLocalProvider(LocalCoachMarks provides coachMarks) {
+    CompositionLocalProvider(
+        LocalCoachMarks provides coachMarks,
+        LocalBottomBarShown provides (activeTab != BottomNavTab.NONE)
+    ) {
     Box(Modifier.fillMaxSize()) {
     Scaffold(
         containerColor       = if (isBlackChrome) Color.Black else MaterialTheme.colorScheme.background,
@@ -462,6 +475,7 @@ fun KeyArmorNavGraph(
             val to   = targetState.destination.route
             when {
                 from.isTabRoute() && to.isTabRoute()     -> tabFadeEnter
+                isRemindersPair(from, to)                -> modalEnterOpaque
                 to.isModalRoute() || from.isModalRoute() -> modalEnter
                 else -> slideInHorizontally(initialOffsetX = { it }, animationSpec = slideEnterSpec)
             }
@@ -480,6 +494,7 @@ fun KeyArmorNavGraph(
             val to   = targetState.destination.route
             when {
                 from.isTabRoute() && to.isTabRoute()     -> tabFadeEnter
+                isRemindersPair(from, to)                -> modalPopEnterOpaque
                 to.isModalRoute() || from.isModalRoute() -> modalPopEnter
                 else -> slideInHorizontally(initialOffsetX = { -it }, animationSpec = slidePopEnterSpec)
             }
@@ -489,6 +504,27 @@ fun KeyArmorNavGraph(
             val to   = targetState.destination.route
             when {
                 from.isTabRoute() && to.isTabRoute()     -> tabFadeExit
+                isRemindersPair(from, to)                -> modalPopExitOpaque
+                to.isModalRoute() || from.isModalRoute() -> modalPopExit
+                else -> slideOutHorizontally(targetOffsetX = { it }, animationSpec = slidePopExitSpec)
+            }
+        },
+        predictivePopEnterTransition = {
+            val from = initialState.destination.route
+            val to   = targetState.destination.route
+            when {
+                from.isTabRoute() && to.isTabRoute()     -> tabFadeEnter
+                isRemindersPair(from, to)                -> modalPopEnterOpaque
+                to.isModalRoute() || from.isModalRoute() -> modalPopEnter
+                else -> slideInHorizontally(initialOffsetX = { -it }, animationSpec = slidePopEnterSpec)
+            }
+        },
+        predictivePopExitTransition  = {
+            val from = initialState.destination.route
+            val to   = targetState.destination.route
+            when {
+                from.isTabRoute() && to.isTabRoute()     -> tabFadeExit
+                isRemindersPair(from, to)                -> modalPopExitOpaque
                 to.isModalRoute() || from.isModalRoute() -> modalPopExit
                 else -> slideOutHorizontally(targetOffsetX = { it }, animationSpec = slidePopExitSpec)
             }
@@ -602,11 +638,11 @@ fun KeyArmorNavGraph(
                         HubEntryType.BANK_ACCOUNT      -> navigateShared(Screen.BankAccountDetail.createRoute(id))
                         HubEntryType.CREDIT_CARD       -> navigateShared(Screen.CreditCardDetail.createRoute(id))
                         HubEntryType.CRYPTO_WALLET     -> navigateShared(Screen.CryptoWalletDetail.createRoute(id))
-                        HubEntryType.SECURE_NOTE       -> navController.navigate(Screen.SecureNoteDetail.createRoute(id))
-                        HubEntryType.CUSTOM_ENTRY      -> navController.navigate(Screen.CustomEntryDetail.createRoute(id))
-                        HubEntryType.IDENTITY_DOCUMENT -> navController.navigate(Screen.IdentityDocumentDetail.createRoute(id))
-                        HubEntryType.VEHICLE           -> navController.navigate(Screen.VehicleDetail.createRoute(id))
-                        HubEntryType.TWO_FACTOR        -> navController.navigate(Screen.TwoFactorDetail.createRoute(id))
+                        HubEntryType.SECURE_NOTE       -> navigateShared(Screen.SecureNoteDetail.createRoute(id))
+                        HubEntryType.CUSTOM_ENTRY      -> navigateShared(Screen.CustomEntryDetail.createRoute(id))
+                        HubEntryType.IDENTITY_DOCUMENT -> navigateShared(Screen.IdentityDocumentDetail.createRoute(id))
+                        HubEntryType.VEHICLE           -> navigateShared(Screen.VehicleDetail.createRoute(id))
+                        HubEntryType.TWO_FACTOR        -> navigateShared(Screen.TwoFactorDetail.createRoute(id))
                     }
                 },
                 sharedTransitionScope   = sharedTransitionScope,
@@ -669,7 +705,12 @@ fun KeyArmorNavGraph(
                     navigateShared(Screen.PasswordDetail.createRoute(id))
                 },
                 onEditEntry             = { id -> navController.navigate(Screen.AddEditEntry.createRoute(id)) },
-                onVaultHubClick         = { navController.popBackStack() },
+                onVaultHubClick         = {
+                    navController.navigate(Screen.VaultHub.route) {
+                        popUpTo(Screen.VaultHub.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
                 onPlansClick            = { navController.navigate(Screen.Plans.route) },
                 viewModel               = vaultVm,
                 sharedTransitionScope   = sharedTransitionScope,
@@ -680,21 +721,23 @@ fun KeyArmorNavGraph(
         composable(Screen.Search.route) {
             SearchScreen(
                 onBack             = { navController.popBackStack() },
-                onPasswordClick    = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.PasswordDetail.createRoute(id)) },
-                onBankAccountClick = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.BankAccountDetail.createRoute(id)) },
-                onCreditCardClick  = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.CreditCardDetail.createRoute(id)) },
-                onSecureNoteClick  = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.SecureNoteDetail.createRoute(id)) },
-                onCustomEntryClick  = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.CustomEntryDetail.createRoute(id)) },
-                onTwoFactorClick    = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.TwoFactorDetail.createRoute(id)) },
-                onCryptoWalletClick       = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.CryptoWalletDetail.createRoute(id)) },
-                onPasskeyClick            = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.PasskeyDetail.createRoute(id)) },
-                onIdentityDocumentClick   = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.IdentityDocumentDetail.createRoute(id)) },
-                onVehicleClick            = { id, sq -> BusquedaEnCurso.recordar(sq, id); navController.navigate(Screen.VehicleDetail.createRoute(id)) },
+                onPasswordClick    = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.PasswordDetail.createRoute(id)) },
+                onBankAccountClick = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.BankAccountDetail.createRoute(id)) },
+                onCreditCardClick  = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.CreditCardDetail.createRoute(id)) },
+                onSecureNoteClick  = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.SecureNoteDetail.createRoute(id)) },
+                onCustomEntryClick  = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.CustomEntryDetail.createRoute(id)) },
+                onTwoFactorClick    = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.TwoFactorDetail.createRoute(id)) },
+                onCryptoWalletClick       = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.CryptoWalletDetail.createRoute(id)) },
+                onPasskeyClick            = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.PasskeyDetail.createRoute(id)) },
+                onIdentityDocumentClick   = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.IdentityDocumentDetail.createRoute(id)) },
+                onVehicleClick            = { id, sq -> BusquedaEnCurso.recordar(sq, id); navigateShared(Screen.VehicleDetail.createRoute(id)) },
                 onReminderClick           = { id -> navController.navigate(Screen.ReminderAddEdit.createRoute(id)) },
                 onArchiveClick            = { id -> navController.navigate(Screen.Archive.withScrollTo(id)) },
                 onTrashClick              = { id -> navController.navigate(Screen.Trash.withScrollTo(id)) },
                 onPlansClick              = { navController.navigate(Screen.Plans.route) },
-                onBackupResultClick       = { snapshotId, sq -> BusquedaEnCurso.recordar(sq, snapshotId); navController.navigate(Screen.SnapshotPreview.createRoute(snapshotId)) }
+                onBackupResultClick       = { snapshotId, sq -> BusquedaEnCurso.recordar(sq, snapshotId); navController.navigate(Screen.SnapshotPreview.createRoute(snapshotId)) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -870,7 +913,9 @@ fun KeyArmorNavGraph(
             )
         ) {
             ShareEntryScreen(
-                onBack       = { navController.popBackStack() }
+                onBack       = { navController.popBackStack() },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -999,10 +1044,12 @@ fun KeyArmorNavGraph(
                 onAddEntry       = { navController.navigate(Screen.AddEditCustomEntry.createRoute("new")) },
                 onEditEntry      = { id ->
                     recentEntriesVm.recordAccess(id, HubEntryType.CUSTOM_ENTRY)
-                    navController.navigate(Screen.CustomEntryDetail.createRoute(id))
+                    navigateShared(Screen.CustomEntryDetail.createRoute(id))
                 },
                 onOpenEdit       = { id -> navController.navigate(Screen.AddEditCustomEntry.createRoute(id)) },
-                onPlansClick     = { navController.navigate(Screen.Plans.route) }
+                onPlansClick     = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1015,7 +1062,9 @@ fun KeyArmorNavGraph(
         ) {
             AddEditCustomEntryScreen(
                 onBack             = { navController.popBackStack() },
-                onSaved            = { navController.popBackStack() }
+                onSaved            = { navController.popBackStack() },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1025,10 +1074,12 @@ fun KeyArmorNavGraph(
                 onAddNote        = { navController.navigate(Screen.AddEditSecureNote.createRoute("new")) },
                 onEditNote       = { id ->
                     recentEntriesVm.recordAccess(id, HubEntryType.SECURE_NOTE)
-                    navController.navigate(Screen.SecureNoteDetail.createRoute(id))
+                    navigateShared(Screen.SecureNoteDetail.createRoute(id))
                 },
                 onOpenEdit       = { id -> navController.navigate(Screen.AddEditSecureNote.createRoute(id)) },
-                onPlansClick     = { navController.navigate(Screen.Plans.route) }
+                onPlansClick     = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1041,7 +1092,9 @@ fun KeyArmorNavGraph(
         ) {
             AddEditSecureNoteScreen(
                 onBack             = { navController.popBackStack() },
-                onSaved            = { navController.popBackStack() }
+                onSaved            = { navController.popBackStack() },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1338,7 +1391,9 @@ fun KeyArmorNavGraph(
                 onShareClick       = { id -> navController.navigate(Screen.ShareEntry.createRoute("SECURE_NOTE", id)) },
                 onAttachmentsClick = { id -> navController.navigate(Screen.Attachments.createRoute(id)) },
                 onPlansClick       = { navController.navigate(Screen.Plans.route) },
-                onHistoryClick     = { id -> navController.navigate(Screen.SecureNoteHistory.createRoute(id)) }
+                onHistoryClick     = { id -> navController.navigate(Screen.SecureNoteHistory.createRoute(id)) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
             }
         }
@@ -1365,7 +1420,9 @@ fun KeyArmorNavGraph(
                 onCloneClick       = { id -> navController.navigate(Screen.AddEditCustomEntry.createRoute("new", cloneOf = id)) },
                 onShareClick       = { id -> navController.navigate(Screen.ShareEntry.createRoute("CUSTOM_ENTRY", id)) },
                 onAttachmentsClick = { id -> navController.navigate(Screen.Attachments.createRoute(id)) },
-                onPlansClick       = { navController.navigate(Screen.Plans.route) }
+                onPlansClick       = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
             }
         }
@@ -1464,9 +1521,11 @@ fun KeyArmorNavGraph(
                 onAddDocument  = { navController.navigate(Screen.AddEditIdentityDocument.createRoute("new")) },
                 onEditDocument = { id ->
                     recentEntriesVm.recordAccess(id, HubEntryType.IDENTITY_DOCUMENT)
-                    navController.navigate(Screen.IdentityDocumentDetail.createRoute(id))
+                    navigateShared(Screen.IdentityDocumentDetail.createRoute(id))
                 },
-                onPlansClick   = { navController.navigate(Screen.Plans.route) }
+                onPlansClick   = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1495,7 +1554,9 @@ fun KeyArmorNavGraph(
                 onEdit             = { id -> navController.navigate(Screen.AddEditIdentityDocument.createRoute(id)) },
                 onDeleted          = { navController.navigate(Screen.IdentityDocuments.route) { popUpTo(Screen.IdentityDocuments.route) { inclusive = false } } },
                 onAttachmentsClick = { id -> navController.navigate(Screen.Attachments.createRoute(id)) },
-                onPlansClick       = { navController.navigate(Screen.Plans.route) }
+                onPlansClick       = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
             }
         }
@@ -1506,9 +1567,11 @@ fun KeyArmorNavGraph(
                 onAddVehicle  = { navController.navigate(Screen.AddEditVehicle.createRoute("new")) },
                 onEditVehicle = { id ->
                     recentEntriesVm.recordAccess(id, HubEntryType.VEHICLE)
-                    navController.navigate(Screen.VehicleDetail.createRoute(id))
+                    navigateShared(Screen.VehicleDetail.createRoute(id))
                 },
-                onPlansClick  = { navController.navigate(Screen.Plans.route) }
+                onPlansClick  = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1522,7 +1585,9 @@ fun KeyArmorNavGraph(
             AddEditVehicleScreen(
                 onBack       = { navController.popBackStack() },
                 onSaved      = { navController.popBackStack() },
-                onDeleted    = { navController.popBackStack() }
+                onDeleted    = { navController.popBackStack() },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1538,7 +1603,9 @@ fun KeyArmorNavGraph(
                 onDeleted           = { navController.navigate(Screen.Vehicles.route) { popUpTo(Screen.Vehicles.route) { inclusive = false } } },
                 onPlansClick        = { navController.navigate(Screen.Plans.route) },
                 onAttachmentsClick  = { id -> navController.navigate(Screen.Attachments.createRoute(id)) },
-                onShareClick        = { id -> navController.navigate(Screen.ShareEntry.createRoute("VEHICLE", id)) }
+                onShareClick        = { id -> navController.navigate(Screen.ShareEntry.createRoute("VEHICLE", id)) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
             }
         }
@@ -1551,8 +1618,10 @@ fun KeyArmorNavGraph(
                         Screen.ReminderAddEdit.createRoute(Screen.ReminderAddEdit.NEW_ID, initialDateMs)
                     )
                 },
-                onEditClick  = { id -> navController.navigate(Screen.ReminderAddEdit.createRoute(id)) },
-                onPlansClick = { navController.navigate(Screen.Plans.route) }
+                onEditClick  = { id -> navigateShared(Screen.ReminderAddEdit.createRoute(id)) },
+                onPlansClick = { navController.navigate(Screen.Plans.route) },
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 
@@ -1566,7 +1635,10 @@ fun KeyArmorNavGraph(
             val reminderId = it.arguments?.getString("id") ?: ""
             ReminderAddEditScreen(
                 onBack             = { navController.popBackStack() },
-                onAttachmentsClick = { navController.navigate(Screen.Attachments.createRoute(reminderId)) }
+                onAttachmentsClick = { navController.navigate(Screen.Attachments.createRoute(reminderId)) },
+                reminderId         = reminderId,
+                sharedTransitionScope   = sharedTransitionScope,
+                animatedVisibilityScope = this
             )
         }
 

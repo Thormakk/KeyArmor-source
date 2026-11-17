@@ -46,6 +46,7 @@ import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.presentation.components.sectionTitleColor
 import com.thormakk.keyarmor.presentation.components.TextoDeUnaLinea
 import com.thormakk.keyarmor.presentation.components.SectionTitleFontSize
+import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.WindowInsets
@@ -134,7 +135,8 @@ fun TwoFactorRecoveryCodesScreen(
                                 tint               = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                    }
+                    },
+                    actions = { CaptureAllowedBadge() }
                 )
             }
         }

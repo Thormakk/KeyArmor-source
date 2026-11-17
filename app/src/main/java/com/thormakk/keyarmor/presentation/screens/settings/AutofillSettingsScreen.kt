@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.settings
 
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivo
 import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
 import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
@@ -448,7 +449,7 @@ fun AutofillSettingsScreen(
                         .bringIntoViewRequester(addBlockIntoView)
                         .padding(16.dp),
                 ) {
-                    OutlinedTextField(
+                    AmberErrors { OutlinedTextField(
                         value = manualInput,
                         onValueChange = {
                             manualInput = it.filterNot(Char::isWhitespace)
@@ -467,7 +468,7 @@ fun AutofillSettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .onFocusChanged { manualFocused = it.isFocused },
-                    )
+                    ) }
                     if (manualInvalid) {
                         Text(
                             text = stringResource(R.string.autofill_add_manual_invalid),

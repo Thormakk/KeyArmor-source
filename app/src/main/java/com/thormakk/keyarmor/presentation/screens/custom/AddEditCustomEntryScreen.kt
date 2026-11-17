@@ -1,7 +1,14 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.custom
 
+import com.thormakk.keyarmor.presentation.components.AmberErrors
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.exclude
@@ -180,6 +187,8 @@ private val MergedCardEndInset   = 16.dp
 fun AddEditCustomEntryScreen(
     onBack:      () -> Unit,
     onSaved:     () -> Unit,
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel: AddEditCustomEntryViewModel = hiltViewModel()
 ) {
     val uiState       = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -418,7 +427,17 @@ fun AddEditCustomEntryScreen(
                     onNext        = { focusManager.moveFocus(FocusDirection.Down) },
                     isError       = uiState.titleError,
                     errorMessage  = stringResource(R.string.custom_title_required),
-                    shape         = entryItemShape(isFirst = true, isLast = !hasFields, radius = MergedCardRadius)
+                    shape         = entryItemShape(isFirst = true, isLast = !hasFields, radius = MergedCardRadius),
+                    leadingIcon   = {
+                        Icon(
+                            imageVector        = Icons.Outlined.GridView,
+                            contentDescription = null,
+                            tint               = notesAccentColor(),
+                            modifier           = Modifier
+                                .sharedAvatar("custom_icon_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                                .size(24.dp)
+                        )
+                    }
                 )
 
                 if (hasFields) {
@@ -463,7 +482,7 @@ fun AddEditCustomEntryScreen(
             if (uiState.cloneNameError) {
                 Text(
                     text  = stringResource(R.string.clone_name_error),
-                    color = MaterialTheme.colorScheme.error,
+                    color = warningColor(),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(start = 16.dp, top = 2.dp)
                 )
@@ -514,14 +533,16 @@ private fun EntryTitleField(
     onNext:        () -> Unit,
     isError:       Boolean = false,
     errorMessage:  String  = "",
-    shape:         Shape   = RoundedCornerShape(8.dp)
+    shape:         Shape   = RoundedCornerShape(8.dp),
+    leadingIcon:   (@Composable () -> Unit)? = null
 ) {
     val autoLockManager = LocalAutoLockManager.current
-    OutlinedTextField(
+    AmberErrors { OutlinedTextField(
         value           = value,
         onValueChange   = { autoLockManager?.recordInteraction(); onValueChange(it) },
         placeholder     = { Text(stringResource(R.string.custom_field_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
         singleLine      = true,
+        leadingIcon     = leadingIcon,
         isError         = isError,
         supportingText  = if (isError) {{ Text(errorMessage, color = MaterialTheme.colorScheme.error) }} else null,
         textStyle       = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
@@ -530,7 +551,7 @@ private fun EntryTitleField(
         colors          = titleFieldColors(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false, imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(onNext = { onNext() })
-    )
+    ) }
 }
 
 @Composable
@@ -654,21 +675,32 @@ private fun CustomFieldItem(
                     DatePickerDialog(
                         onDismissRequest = { showDatePicker = false },
                         confirmButton = {
-                            TextButton(onClick = {
-                                pickerState.selectedDateMillis?.let {
-                                    autoLockManager?.recordInteraction()
-                                    onValueChange(it.toDateDigits())
-                                }
-                                showDatePicker = false
-                            }) { Text(stringResource(R.string.action_ok)) }
+                            Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                                Button(
+                                    onClick = {
+                                        pickerState.selectedDateMillis?.let {
+                                            autoLockManager?.recordInteraction()
+                                            onValueChange(it.toDateDigits())
+                                        }
+                                        showDatePicker = false
+                                    },
+                                    shape  = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                                ) { Text(stringResource(R.string.action_ok)) }
+                            }
                         },
-                        dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) } }
+                        dismissButton = {
+                            Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                            }
+                        }
                     ) { DatePicker(state = pickerState) }
                 }
             }
 
             if (field.type != CustomFieldType.PHONE && field.type != CustomFieldType.DATE) Box {
-            OutlinedTextField(
+            AmberErrors { OutlinedTextField(
                 value                = field.value,
                 onValueChange        = { autoLockManager?.recordInteraction(); onValueChange(applyFormatting(field.type, it)) },
                 placeholder          = { Text(field.label, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
@@ -758,7 +790,7 @@ private fun CustomFieldItem(
                     imeAction    = ImeAction.Next,
                     autoCorrectEnabled  = field.type == CustomFieldType.NOTE
                 )
-            )
+            ) }
             if (field.type == CustomFieldType.NOTE) {
                 Text(
                     text     = "${field.value.length} chars",
@@ -777,7 +809,7 @@ private fun CustomFieldItem(
                 Text(
                     text     = "${stringResource(R.string.field_format_hint_prefix)}${stringResource(hintResId)}",
                     style    = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color    = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+                    color    = warningColor().copy(alpha = 0.8f),
                     modifier = Modifier.padding(start = 4.dp, top = 4.dp)
                 )
             }
@@ -793,6 +825,7 @@ fun FieldTypePickerDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.custom_field_type_dialog_title)) },
         text  = {
@@ -1081,7 +1114,7 @@ internal fun CustomEntryOptionsSheet(
                             if (renameError != null) {
                                 Text(
                                     text  = renameError!!,
-                                    color = MaterialTheme.colorScheme.error,
+                                    color = warningColor(),
                                     style = MaterialTheme.typography.bodySmall,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
@@ -1262,7 +1295,7 @@ internal fun CustomEntryOptionsSheet(
             if (newTagError != null) {
                 Text(
                     text     = newTagError!!,
-                    color    = MaterialTheme.colorScheme.error,
+                    color    = warningColor(),
                     style    = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp)
                 )
@@ -1425,7 +1458,7 @@ private fun PhoneSubFields(
         )
 
         val context = LocalContext.current
-        OutlinedTextField(
+        AmberErrors { OutlinedTextField(
             value         = localNumber,
             onValueChange = { v ->
                 autoLockManager?.recordInteraction()
@@ -1459,14 +1492,14 @@ private fun PhoneSubFields(
             modifier        = Modifier.weight(2f),
             shape           = RoundedCornerShape(8.dp),
             colors          = fieldColors()
-        )
+        ) }
     }
 
     if (localNumber.isNotEmpty() && totalDigits > 15) {
         Text(
             text     = stringResource(R.string.field_phone_hint),
             style    = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color    = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+            color    = warningColor().copy(alpha = 0.8f),
             modifier = Modifier.padding(start = 4.dp, top = 4.dp)
         )
     }

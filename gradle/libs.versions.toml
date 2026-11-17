@@ -1,7 +1,7 @@
 [versions]
 agp = "9.5.1"
 kotlin = "2.4.21"
-ksp = "2.3.6"
+ksp = "2.3.14"
 hilt = "2.60.1"
 coreKtx = "1.19.1"
 junit = "4.13.2"
@@ -23,11 +23,11 @@ accompanist = "0.37.3"
 playServicesAuth = "22.0.0"
 playServicesTime = "16.0.1"
 googleApiClient = "2.9.2"
-googleApiServicesDrive = "v3-rev20261023-2.9.2"
+googleApiServicesDrive = "v3-rev20261106-2.9.2"
 googleHttpClient = "2.2.0"
 workManager = "2.12.0"
 glance = "1.2.0"
-revenuecat = "11.1.0"
+revenuecat = "11.3.0"
 jodaTime = "2.15.1"
 jodaConvert = "3.0.1"
 credentials = "1.6.0"
@@ -36,14 +36,14 @@ profileInstaller = "1.4.1"
 mlkitTextRecognition = "16.0.1"
 camerax = "1.6.2"
 richeditor = "1.2.1"
-firebaseBom = "35.1.0"
-bouncycastle = "1.86"
+firebaseBom = "35.2.0"
+bouncycastle = "1.87"
 pdfboxAndroid = "2.0.27.0"
 coreSplashscreen = "1.2.0"
 coroutinesTest = "1.11.0"
 turbine = "1.2.1"
-mockk = "1.14.11"
-robolectric = "4.17"
+mockk = "1.14.12"
+robolectric = "4.18"
 androidxTestCore = "1.7.0"
 
 [libraries]
@@ -122,4 +122,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-google-services = { id = "com.google.gms.google-services", version = "4.5.0" }
+google-services = { id = "com.google.gms.google-services", version = "4.6.0" }

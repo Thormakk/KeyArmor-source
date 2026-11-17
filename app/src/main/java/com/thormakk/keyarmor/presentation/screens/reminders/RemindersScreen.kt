@@ -1,9 +1,16 @@
-@file:OptIn(
+@file:OptIn(ExperimentalSharedTransitionApi::class, 
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class,
     ExperimentalLayoutApi::class
 )
 package com.thormakk.keyarmor.presentation.screens.reminders
+import com.thormakk.keyarmor.presentation.components.hideDuringTransition
+import com.thormakk.keyarmor.presentation.components.hideWhenLeaving
+import com.thormakk.keyarmor.presentation.components.AmberErrors
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 
@@ -257,6 +264,8 @@ fun RemindersScreen(
     onAddClick:   (initialDateMs: Long?) -> Unit,
     onEditClick:  (String) -> Unit,
     onPlansClick: () -> Unit = {},
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:    RemindersViewModel = hiltViewModel()
 ) {
     val filteredReminders    by viewModel.filteredReminders.collectAsStateWithLifecycle()
@@ -373,9 +382,15 @@ fun RemindersScreen(
             text  = { Text(stringResource(if (!isFreeUser) R.string.protect_unlock_body else R.string.protect_unlock_body_free),
                 color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { unlockTargetId = null; viewModel.setProtected(id, false) }) {
-                    Text(stringResource(R.string.lock_action_unlock))
-                }
+                Button(
+                    onClick = { unlockTargetId = null; viewModel.setProtected(id, false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { unlockTargetId = null }) {
@@ -392,7 +407,12 @@ fun RemindersScreen(
                 color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showProtectPremium = false; onPlansClick() }) {
+                Button(
+                    onClick = { showProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) {
                     Text(stringResource(R.string.plans_upgrade_cta))
                 }
             },
@@ -410,7 +430,15 @@ fun RemindersScreen(
             title = { Text(stringResource(R.string.protect_bulk_unlock_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(if (isFreeUser) R.string.protect_bulk_unlock_body_free else R.string.protect_bulk_unlock_body), color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showBulkUnlock = false; viewModel.bulkSetProtected(false) }) { Text(stringResource(R.string.lock_action_unlock)) }
+                Button(
+                    onClick = { showBulkUnlock = false; viewModel.bulkSetProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkUnlock = false }) {
@@ -598,6 +626,7 @@ fun RemindersScreen(
                 FloatingActionButton(
                     modifier = Modifier
                         .offset(y = -navBarHeight)
+                        .hideWhenLeaving(animatedVisibilityScope)
                         .coachMarkAnchor("reminders", "fab"),
                     onClick        = { if (!isFreeUser) onAddClick(null) },
                     containerColor = if (isFreeUser) MaterialTheme.colorScheme.surfaceVariant
@@ -890,6 +919,7 @@ fun RemindersScreen(
                 Row(
                     modifier          = Modifier
                         .fillMaxWidth()
+                        .hideDuringTransition(animatedVisibilityScope)
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -1002,6 +1032,8 @@ fun RemindersScreen(
                     itemsIndexed(pinnedReminders, key = { _, it -> it.id }) { index, reminder ->
                         ReminderCard(
                             reminder        = reminder,
+                            sharedTransitionScope   = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                             isFirst         = index == 0,
                             isLast          = index == pinnedReminders.lastIndex,
                             isSelected      = reminder.id in selectedIds,
@@ -1041,6 +1073,8 @@ fun RemindersScreen(
                 itemsIndexed(unpinnedReminders, key = { _, it -> it.id }) { index, reminder ->
                     ReminderCard(
                         reminder        = reminder,
+                        sharedTransitionScope   = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope,
                         isFirst         = index == 0,
                         isLast          = index == unpinnedReminders.lastIndex,
                         isSelected      = reminder.id in selectedIds,
@@ -1446,7 +1480,7 @@ private fun RemindersFiltersSheet(
                         onDismissRequest = { renameTarget = null; renameError = null },
                         title = { Text(stringResource(R.string.tag_rename_title)) },
                         text  = {
-                            OutlinedTextField(
+                            AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                                 value          = renameText,
                                 onValueChange  = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -1456,7 +1490,7 @@ private fun RemindersFiltersSheet(
                                 modifier       = Modifier.fillMaxWidth(),
                                 isError        = renameError != null,
                                 supportingText = { renameError?.let { Text(it) } }
-                            )
+                            ) }
                         },
                         confirmButton = {
                             Button(
@@ -1732,7 +1766,9 @@ private fun ReminderCard(
     modifier:        Modifier = Modifier,
     isReadOnly:      Boolean = false,
     isFirst:         Boolean = false,
-    isLast:          Boolean = false
+    isLast:          Boolean = false,
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     var showMenu          by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -1808,7 +1844,9 @@ private fun ReminderCard(
                         imageVector        = Icons.Outlined.EditCalendar,
                         contentDescription = null,
                         tint               = notesAccentColor(),
-                        modifier           = Modifier.size(24.dp)
+                        modifier           = Modifier
+                            .sharedAvatar("reminder_icon_${reminder.id}", sharedTransitionScope, animatedVisibilityScope)
+                            .size(24.dp)
                     )
                     if (reminder.isProtected) {
                         ProtectedLockBadge(Modifier.align(Alignment.TopEnd))

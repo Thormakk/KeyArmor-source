@@ -396,18 +396,22 @@ class DriveSyncViewModel @Inject constructor(
     }
 
     fun showRestoreDialog() {
-        _uiState.value = _uiState.value.copy(
-            showRestoreDialog    = true,
-            restoreNeedsPassword = !claveDeRespaldo.confirmada(),
-            restorePasswordError = false,
-            restoreKeyError      = null
-        )
         viewModelScope.launch {
             val vacia = exportImportRepo.countAllEntries() == 0
+            val claveGuardada = claveDeRespaldo.confirmada()
+            val esFree = _uiState.value.userPlan == UserPlan.FREE
             _uiState.value = _uiState.value.copy(
-                restoreVaultEmpty = vacia,
-                restoreMode       = if (vacia) RestoreMode.MERGE else _uiState.value.restoreMode
+                restoreVaultEmpty    = vacia,
+                restoreMode          = if (vacia) RestoreMode.MERGE else _uiState.value.restoreMode,
+                restoreNeedsPassword = !claveGuardada,
+                restorePasswordError = false,
+                restoreKeyError      = null
             )
+            if (vacia && claveGuardada && !esFree) {
+                restore()
+            } else {
+                _uiState.value = _uiState.value.copy(showRestoreDialog = true)
+            }
         }
     }
     fun hideRestoreDialog()  { _uiState.value = _uiState.value.copy(showRestoreDialog = false) }
@@ -541,6 +545,7 @@ class DriveSyncViewModel @Inject constructor(
             if (e.message == "kab_wrong_key" || e.message == "kab_needs_key") {
                 _uiState.value = _uiState.value.copy(
                     isWorking            = false,
+                    showRestoreDialog    = true,
                     restoreNeedsPassword = true,
                     restoreKeyError      = if (e.message == "kab_wrong_key")
                         context.getString(R.string.key_err_wrong_key) else null
@@ -552,6 +557,7 @@ class DriveSyncViewModel @Inject constructor(
         } catch (e: BadPaddingException) {
             _uiState.value = _uiState.value.copy(
                 isWorking            = false,
+                showRestoreDialog    = true,
                 restoreNeedsPassword = true,
                 restorePasswordError = true,
                 restoreKeyError      = context.getString(R.string.key_err_wrong_key)

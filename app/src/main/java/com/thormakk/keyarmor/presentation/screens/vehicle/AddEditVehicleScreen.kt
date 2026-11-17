@@ -1,6 +1,12 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.vehicle
 
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -122,6 +128,8 @@ fun AddEditVehicleScreen(
     onBack:       () -> Unit,
     onSaved:      () -> Unit,
     onDeleted:    () -> Unit,
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:    AddEditVehicleViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -198,15 +206,27 @@ fun AddEditVehicleScreen(
                 DatePickerDialog(
                     onDismissRequest = { showInspectionPicker = false },
                     confirmButton = {
-                        TextButton(onClick = {
-                            pickerState.selectedDateMillis?.let {
-                                viewModel.onInspectionExpiryDateChange(it.toDateString())
-                            }
-                            showInspectionPicker = false
-                        }) { Text(stringResource(R.string.action_ok)) }
+                        Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                            Button(
+                                onClick = {
+                                    pickerState.selectedDateMillis?.let {
+                                        viewModel.onInspectionExpiryDateChange(it.toDateString())
+                                    }
+                                    showInspectionPicker = false
+                                },
+                                shape   = RoundedCornerShape(8.dp),
+                                colors  = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor   = MaterialTheme.colorScheme.primary
+                                ),
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text(stringResource(R.string.action_ok)) }
+                        }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showInspectionPicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                        Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                            TextButton(onClick = { showInspectionPicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                        }
                     }
                 ) { DatePicker(state = pickerState) }
             }
@@ -218,15 +238,27 @@ fun AddEditVehicleScreen(
                 DatePickerDialog(
                     onDismissRequest = { showInsurancePicker = false },
                     confirmButton = {
-                        TextButton(onClick = {
-                            pickerState.selectedDateMillis?.let {
-                                viewModel.onInsuranceExpiryDateChange(it.toDateString())
-                            }
-                            showInsurancePicker = false
-                        }) { Text(stringResource(R.string.action_ok)) }
+                        Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                            Button(
+                                onClick = {
+                                    pickerState.selectedDateMillis?.let {
+                                        viewModel.onInsuranceExpiryDateChange(it.toDateString())
+                                    }
+                                    showInsurancePicker = false
+                                },
+                                shape   = RoundedCornerShape(8.dp),
+                                colors  = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor   = MaterialTheme.colorScheme.primary
+                                ),
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text(stringResource(R.string.action_ok)) }
+                        }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showInsurancePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                        Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                            TextButton(onClick = { showInsurancePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                        }
                     }
                 ) { DatePicker(state = pickerState) }
             }
@@ -238,15 +270,27 @@ fun AddEditVehicleScreen(
                 DatePickerDialog(
                     onDismissRequest = { showDriverLicensePicker = false },
                     confirmButton = {
-                        TextButton(onClick = {
-                            pickerState.selectedDateMillis?.let {
-                                viewModel.onDriverLicenseExpiryDateChange(it.toDateString())
-                            }
-                            showDriverLicensePicker = false
-                        }) { Text(stringResource(R.string.action_ok)) }
+                        Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                            Button(
+                                onClick = {
+                                    pickerState.selectedDateMillis?.let {
+                                        viewModel.onDriverLicenseExpiryDateChange(it.toDateString())
+                                    }
+                                    showDriverLicensePicker = false
+                                },
+                                shape   = RoundedCornerShape(8.dp),
+                                colors  = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor   = MaterialTheme.colorScheme.primary
+                                ),
+                                border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text(stringResource(R.string.action_ok)) }
+                        }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDriverLicensePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                        Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                            TextButton(onClick = { showDriverLicensePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                        }
                     }
                 ) { DatePicker(state = pickerState) }
             }
@@ -258,7 +302,11 @@ fun AddEditVehicleScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        VehicleAwareAvatar(make = uiState.make, size = 36.dp)
+                        VehicleAwareAvatar(
+                            make     = uiState.make,
+                            size     = 36.dp,
+                            modifier = Modifier.sharedAvatar("vehicle_avatar_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                        )
                         OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),value = uiState.make, onValueChange = { autoLockManager?.recordInteraction(); viewModel.onMakeChange(it) }, placeholder = { Text(stringResource(R.string.vehicle_field_make), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp),
                         colors        = transparentFieldColors(), singleLine = true)
@@ -626,7 +674,7 @@ internal fun VehicleOptionsSheet(
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
                     text  = {
-                        OutlinedTextField(
+                        AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                             value          = renameText,
                             onValueChange  = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -636,7 +684,7 @@ internal fun VehicleOptionsSheet(
                             modifier       = Modifier.fillMaxWidth(),
                             isError        = renameError != null,
                             supportingText = { renameError?.let { Text(it) } }
-                        )
+                        ) }
                     },
                     confirmButton = {
                         Button(
@@ -759,7 +807,7 @@ internal fun VehicleOptionsSheet(
                     }
                 }
                 if (newTagError != null) {
-                    Text(text = newTagError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp))
+                    Text(text = newTagError!!, color = warningColor(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp))
                 }
             } else {
                 Spacer(modifier = Modifier.height(8.dp))

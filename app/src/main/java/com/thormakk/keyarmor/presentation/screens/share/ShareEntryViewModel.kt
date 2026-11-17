@@ -47,6 +47,10 @@ enum class ShareExpiry(val durationMillis: Long) {
 
 data class ShareEntryUiState(
     val entryName:      String     = "",
+    val entryType:      String     = "",
+    val entryId:        String     = "",
+    val avatarLabel:    String     = "",
+    val avatarUrl:      String     = "",
     val hasAttachments: Boolean    = false,
     val password:       String     = "",
     val passwordConfirm: String    = "",
@@ -140,25 +144,32 @@ class ShareEntryViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 val type = EntryType.valueOf(typeArg)
+                var avatarLabel = ""
+                var avatarUrl   = ""
                 val (shared, name) = when (type) {
                     EntryType.PASSWORD -> {
                         val e = vaultRepo.getEntry(idArg) ?: error("Password entry $idArg not found")
+                        avatarLabel = e.title; avatarUrl = com.thormakk.keyarmor.presentation.util.ServiceIconProvider.bestUrl(e.urls)
                         ShareSerializer.SharedEntry(type, e) to e.title
                     }
                     EntryType.TWO_FACTOR -> {
                         val e = twoFactorRepo.getAccount(idArg) ?: error("2FA account $idArg not found")
+                        avatarLabel = e.issuer.ifEmpty { e.name }; avatarUrl = e.url
                         ShareSerializer.SharedEntry(type, e) to e.name
                     }
                     EntryType.CREDIT_CARD -> {
                         val e = creditCardRepo.getCard(idArg) ?: error("Credit card $idArg not found")
+                        avatarLabel = e.brand
                         ShareSerializer.SharedEntry(type, e) to e.issuer.ifEmpty { e.brand }
                     }
                     EntryType.BANK_ACCOUNT -> {
                         val e = bankAccountRepo.getAccount(idArg) ?: error("Bank account $idArg not found")
-                        ShareSerializer.SharedEntry(type, e) to e.bankName
+                        avatarLabel = e.bankName
+                        ShareSerializer.SharedEntry(type, e) to e.bankName.ifEmpty { e.alias }
                     }
                     EntryType.CRYPTO_WALLET -> {
                         val e = cryptoRepo.getWallet(idArg) ?: error("Crypto wallet $idArg not found")
+                        avatarLabel = e.asset.ifEmpty { e.network }
                         ShareSerializer.SharedEntry(type, e) to e.asset.ifEmpty { e.network }
                     }
                     EntryType.SECURE_NOTE -> {
@@ -171,12 +182,24 @@ class ShareEntryViewModel @Inject constructor(
                     }
                     EntryType.VEHICLE -> {
                         val e = vehicleRepo.getVehicle(idArg) ?: error("Vehicle $idArg not found")
-                        ShareSerializer.SharedEntry(type, e) to listOf(e.make, e.model).filter { it.isNotEmpty() }.joinToString(" ")
+                        avatarLabel = e.make
+                        ShareSerializer.SharedEntry(type, e) to listOf(e.make, e.model).filter { it.isNotEmpty() }.joinToString(" ").ifEmpty { e.licensePlate }
                     }
                 }
                 loadedShared = shared
                 val hasAttachments = attachmentRepo.countForEntry(idArg) > 0
-                _uiState.update { it.copy(entryName = name, hasAttachments = hasAttachments) }
+                val fallbackRes = when (type) {
+                    EntryType.PASSWORD      -> R.string.hub_pinned_fallback_password
+                    EntryType.TWO_FACTOR    -> R.string.hub_pinned_fallback_two_factor
+                    EntryType.CREDIT_CARD   -> R.string.hub_pinned_fallback_credit_card
+                    EntryType.BANK_ACCOUNT  -> R.string.hub_pinned_fallback_bank_account
+                    EntryType.CRYPTO_WALLET -> R.string.hub_pinned_fallback_crypto_wallet
+                    EntryType.SECURE_NOTE   -> R.string.hub_pinned_fallback_secure_note
+                    EntryType.CUSTOM_ENTRY  -> R.string.hub_pinned_fallback_custom_entry
+                    EntryType.VEHICLE       -> R.string.hub_pinned_fallback_vehicle
+                }
+                val shownName = name.ifBlank { appContext.getString(fallbackRes) }
+                _uiState.update { it.copy(entryName = shownName, hasAttachments = hasAttachments, entryType = typeArg, entryId = idArg, avatarLabel = avatarLabel, avatarUrl = avatarUrl) }
             }.onFailure { err ->
                 _events.send(ShareEntryEvent.Error(appContext.getString(R.string.share_error_loading_entry)))
             }

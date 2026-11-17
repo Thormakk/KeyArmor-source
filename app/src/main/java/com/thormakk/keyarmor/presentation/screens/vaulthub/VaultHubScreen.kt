@@ -1,6 +1,10 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.vaulthub
 
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import com.thormakk.keyarmor.presentation.screens.vehicle.VehicleAwareAvatar
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import androidx.compose.foundation.text.KeyboardOptions
@@ -206,6 +210,15 @@ fun VaultHubScreen(
     viewModel: VaultHubViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val settingsSimple by viewModel.settingsSimple.collectAsStateWithLifecycle()
+    val hideEmptyPaid     = uiState.isFreeUser && settingsSimple
+    val showCards         = !hideEmptyPaid || uiState.creditCardCount > 0
+    val showBank          = !hideEmptyPaid || uiState.bankAccountCount > 0
+    val showReminders     = !hideEmptyPaid || uiState.reminderCount > 0
+    val showIdDocs        = !hideEmptyPaid || uiState.identityDocumentCount > 0
+    val showVehicles      = !hideEmptyPaid || uiState.vehicleCount > 0
+    val showIdentityGroup = showIdDocs || showVehicles
+    val showArchive       = !hideEmptyPaid || uiState.hasArchivedEntries
     val notesColor = if (MaterialTheme.colorScheme.background.luminance() > 0.5f)
         Color(0xFFB36A00)
     else
@@ -213,7 +226,6 @@ fun VaultHubScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     var showAboutMenu           by remember { mutableStateOf(false) }
-    var showRemindersLockedDialog by remember { mutableStateOf(false) }
     var lockedSectionTitle by remember { mutableStateOf<String?>(null) }
     var showVaultSelector       by remember { mutableStateOf(false) }
     var showConsolidateDialog   by remember { mutableStateOf(false) }
@@ -283,7 +295,7 @@ fun VaultHubScreen(
                 Column {
                     Text(stringResource(R.string.inheritance_recovery_prompt_body), style = MaterialTheme.typography.bodyMedium.justified())
                     Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
+                    AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                         value = recoveryCode,
                         onValueChange = { recoveryCode = it },
@@ -291,12 +303,12 @@ fun VaultHubScreen(
                         isError = uiState.inheritanceRecoveryKeyError,
                         label = { Text(stringResource(R.string.inheritance_recovery_prompt_label)) },
                         modifier = Modifier.fillMaxWidth()
-                    )
+                    ) }
                     if (uiState.inheritanceRecoveryKeyError) {
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.inheritance_recovery_prompt_error),
-                            color = MaterialTheme.colorScheme.error,
+                            color = warningColor(),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -304,7 +316,7 @@ fun VaultHubScreen(
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = stringResource(res),
-                            color = MaterialTheme.colorScheme.error,
+                            color = warningColor(),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -396,48 +408,6 @@ fun VaultHubScreen(
             dismissButton = {
                 TextButton(onClick = { showConsolidateDialog = false }) {
                     Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground)
-                }
-            }
-        )
-    }
-
-    if (showRemindersLockedDialog) {
-        AlertDialog(
-            onDismissRequest = { showRemindersLockedDialog = false },
-            containerColor   = MaterialTheme.colorScheme.background,
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Lock, null,
-                        tint     = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        stringResource(R.string.settings_reminders),
-                        fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            },
-            text = {
-                Text(
-                    stringResource(R.string.premium_locked_dialog_message),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showRemindersLockedDialog = false; onPlansClick() },
-                    shape   = RoundedCornerShape(8.dp),
-                    colors  = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor   = MaterialTheme.colorScheme.primary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
-                ) { Text(stringResource(R.string.premium_gate_cta)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRemindersLockedDialog = false }) {
-                    Text(stringResource(R.string.action_understood), color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         )
@@ -773,6 +743,7 @@ fun VaultHubScreen(
                     stringResource(R.string.hub_group_finance), HubColorFinance,
                     uiState.creditCardCount + uiState.bankAccountCount + uiState.cryptoWalletCount
                 )
+                if (showCards) {
                 val cardsTitle = stringResource(R.string.vault_hub_credit_cards)
                 VaultCategoryItem(
                     icon        = Icons.Outlined.CreditCard,
@@ -789,6 +760,8 @@ fun VaultHubScreen(
                     modifier    = Modifier.height(56.dp)
                 )
                 VaultItemDivider()
+                }
+                if (showBank) {
                 val bankTitle = stringResource(R.string.bank_title)
                 VaultCategoryItem(
                     icon        = Icons.Outlined.AccountBalance,
@@ -805,6 +778,7 @@ fun VaultHubScreen(
                     modifier    = Modifier.height(56.dp)
                 )
                 VaultItemDivider()
+                }
                 VaultCategoryItem(
                     icon        = Icons.Outlined.CurrencyBitcoin,
                     title       = stringResource(R.string.crypto_screen_title),
@@ -834,21 +808,24 @@ fun VaultHubScreen(
                     stringResource(R.string.hub_group_notes), notesColor,
                     uiState.reminderCount + uiState.secureNoteCount + uiState.customEntryCount
                 )
+                if (showReminders) {
+                val remindersTitle = stringResource(R.string.settings_reminders)
                 VaultCategoryItem(
                     icon        = Icons.Outlined.EditCalendar,
-                    title       = stringResource(R.string.settings_reminders),
-                    count       = if (uiState.isFreeUser) null else uiState.reminderCount,
-                    locked      = uiState.isFreeUser,
+                    title       = remindersTitle,
+                    count       = uiState.reminderCount,
+                    locked      = uiState.isFreeUser && uiState.reminderCount == 0,
                     isReadOnly  = uiState.isActiveVaultReadOnly,
                     accentColor = notesColor,
                     onClick     = {
-                        if (uiState.isFreeUser) showRemindersLockedDialog = true
+                        if (uiState.isFreeUser && uiState.reminderCount == 0) lockedSectionTitle = remindersTitle
                         else onRemindersClick()
                     },
                     onAddClick  = if (uiState.isFreeUser) null else onAddReminderClick,
                     modifier    = Modifier.height(56.dp)
                 )
                 VaultItemDivider()
+                }
                 VaultCategoryItem(
                     icon        = Icons.AutoMirrored.Outlined.StickyNote2,
                     title       = stringResource(R.string.notes_title),
@@ -873,6 +850,7 @@ fun VaultHubScreen(
             }
             }
 
+            if (showIdentityGroup) {
             AnimatedVisibility(visible = group4Visible, enter = enterAnim) {
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -889,6 +867,7 @@ fun VaultHubScreen(
                     stringResource(R.string.hub_group_identity), HubColorIdentity,
                     uiState.identityDocumentCount + uiState.vehicleCount
                 )
+                if (showIdDocs) {
                 val idTitle = stringResource(R.string.ie_type_identity)
                 VaultCategoryItem(
                     icon        = Icons.Outlined.Badge,
@@ -904,7 +883,9 @@ fun VaultHubScreen(
                     accentColor = HubColorIdentity,
                     modifier    = Modifier.height(56.dp)
                 )
-                VaultItemDivider()
+                if (showVehicles) VaultItemDivider()
+                }
+                if (showVehicles) {
                 val vehicleTitle = stringResource(R.string.ie_type_vehicles)
                 VaultCategoryItem(
                     icon        = Icons.Outlined.DirectionsCar,
@@ -920,6 +901,8 @@ fun VaultHubScreen(
                     accentColor = HubColorIdentity,
                     modifier    = Modifier.height(56.dp)
                 )
+                }
+            }
             }
             }
 
@@ -936,17 +919,23 @@ fun VaultHubScreen(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 VaultGroupHeader(stringResource(R.string.hub_archive_trash_group), HubColorArchive)
+                if (showArchive) {
+                val archiveTitle = stringResource(R.string.hub_archive_title)
                 VaultCategoryItem(
                     icon        = Icons.Outlined.Archive,
-                    title       = stringResource(R.string.hub_archive_title),
+                    title       = archiveTitle,
                     count       = null,
-                    locked      = uiState.isFreeUser,
+                    locked      = uiState.isFreeUser && !uiState.hasArchivedEntries,
                     isReadOnly  = uiState.isActiveVaultReadOnly,
                     accentColor = HubColorArchive,
-                    onClick     = onArchiveClick,
+                    onClick     = {
+                        if (uiState.isFreeUser && !uiState.hasArchivedEntries) lockedSectionTitle = archiveTitle
+                        else onArchiveClick()
+                    },
                     modifier    = Modifier.height(56.dp)
                 )
                 VaultItemDivider()
+                }
                 VaultCategoryItem(
                     icon        = Icons.Outlined.Delete,
                     title       = stringResource(R.string.hub_trash_title),
@@ -1190,6 +1179,11 @@ private fun PinnedEntryAvatar(
         HubEntryType.BANK_ACCOUNT  -> "bank_avatar_${entry.id}"
         HubEntryType.CREDIT_CARD   -> "card_avatar_${entry.id}"
         HubEntryType.CRYPTO_WALLET -> "crypto_avatar_${entry.id}"
+        HubEntryType.VEHICLE       -> "vehicle_avatar_${entry.id}"
+        HubEntryType.SECURE_NOTE   -> "note_icon_${entry.id}"
+        HubEntryType.CUSTOM_ENTRY  -> "custom_icon_${entry.id}"
+        HubEntryType.IDENTITY_DOCUMENT -> "identity_icon_${entry.id}"
+        HubEntryType.TWO_FACTOR    -> "twofa_avatar_${entry.id}"
         else                       -> null
     }
     val sharedMod = if (sharedKey != null && sharedTransitionScope != null && animatedVisibilityScope != null) {
@@ -1225,6 +1219,16 @@ private fun PinnedEntryAvatar(
                 CreditCardAwareAvatar(brand = entry.avatarLabel, size = 40.dp, modifier = sharedMod)
             HubEntryType.CRYPTO_WALLET ->
                 CryptoAwareAvatar(asset = entry.avatarLabel, size = 40.dp, modifier = sharedMod)
+            HubEntryType.VEHICLE ->
+                VehicleAwareAvatar(make = entry.avatarLabel, size = 40.dp, modifier = sharedMod)
+            HubEntryType.SECURE_NOTE ->
+                Icon(Icons.AutoMirrored.Outlined.StickyNote2, contentDescription = null, tint = notesAccentColor(), modifier = sharedMod.size(28.dp))
+            HubEntryType.CUSTOM_ENTRY ->
+                Icon(Icons.Outlined.GridView, contentDescription = null, tint = notesAccentColor(), modifier = sharedMod.size(28.dp))
+            HubEntryType.IDENTITY_DOCUMENT ->
+                Icon(Icons.Outlined.Badge, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = sharedMod.size(28.dp))
+            HubEntryType.TWO_FACTOR ->
+                ServiceAwareAvatar(title = entry.displayTitle, url = entry.url, size = 40.dp, modifier = sharedMod)
             else ->
                 EntryAvatar(title = entry.avatarLabel.ifEmpty { entry.displayTitle }, size = 40.dp)
         }

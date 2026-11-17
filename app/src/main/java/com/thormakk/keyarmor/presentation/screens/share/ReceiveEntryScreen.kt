@@ -1,6 +1,23 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.share
 
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.geometry.Offset
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoObjetivoEnfocado
+import com.thormakk.keyarmor.presentation.components.sigueAlTecladoContenido
+import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
+import com.thormakk.keyarmor.presentation.components.rememberSigueAlTeclado
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.ContentPaste
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -77,6 +94,12 @@ fun ReceiveEntryScreen(
     val uiState  by viewModel.uiState.collectAsStateWithLifecycle()
     val autoLockManager = LocalAutoLockManager.current
     val snackHost = remember { SnackbarHostState() }
+    val sigueTeclado = rememberSigueAlTeclado()
+    val scrollForm = rememberScrollState()
+    val contextoPegar = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val botonDescifrar = remember { arrayOfNulls<LayoutCoordinates>(1) }
 
     val copiedText  = stringResource(R.string.receive_saved)
 
@@ -120,13 +143,24 @@ fun ReceiveEntryScreen(
                 colors = topBarColors()
             )
         },
+        contentWindowInsets = WindowInsets(0),
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                .sigueAlTeclado(scrollForm, sigueTeclado, margen = 8.dp, habilitado = { sigueTeclado.campoEnfocado },
+                    objetivoY = {
+                        val c = sigueTeclado.contenido
+                        val b = botonDescifrar[0]
+                        if (c != null && b != null && c.isAttached && b.isAttached)
+                            c.localPositionOf(b, Offset.Zero).y + b.size.height
+                        else null
+                    })
+                .verticalScroll(scrollForm)
+                .sigueAlTecladoContenido(sigueTeclado)
                 .padding(horizontal = 7.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -171,6 +205,17 @@ fun ReceiveEntryScreen(
                 label         = { Text(stringResource(R.string.receive_paste_hint)) },
                 minLines      = 4,
                 maxLines      = 8,
+                trailingIcon  = {
+                    IconButton(onClick = {
+                        val cm = contextoPegar.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        cm.primaryClip?.getItemAt(0)?.coerceToText(contextoPegar)?.toString()?.let {
+                            autoLockManager?.recordInteraction()
+                            viewModel.onPastedTextChange(it)
+                        }
+                    }) {
+                        Icon(Icons.Default.ContentPaste, contentDescription = stringResource(R.string.key_paste))
+                    }
+                },
                 modifier      = Modifier.fillMaxWidth(),
                 colors        = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -193,7 +238,7 @@ fun ReceiveEntryScreen(
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().sigueAlTecladoObjetivoEnfocado(sigueTeclado),
                 colors   = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                 )
@@ -203,14 +248,18 @@ fun ReceiveEntryScreen(
                 Text(
                     text  = msg,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = warningColor()
                 )
             }
 
             Button(
-                onClick  = viewModel::onDecrypt,
+                onClick  = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    viewModel.onDecrypt()
+                },
                 enabled  = uiState.canDecrypt,
-                modifier = Modifier.fillMaxWidth(), colors = appButtonColors()
+                modifier = Modifier.fillMaxWidth().onGloballyPositioned { botonDescifrar[0] = it }, colors = appButtonColors()
             ) {
                 if (uiState.isDecrypting) {
                     CircularProgressIndicator(

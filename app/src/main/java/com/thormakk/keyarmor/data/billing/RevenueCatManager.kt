@@ -7,6 +7,7 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Offerings
 import com.revenuecat.purchases.Package
 import com.revenuecat.purchases.PurchaseParams
+import com.revenuecat.purchases.models.StoreReplacementMode
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesError
 import com.revenuecat.purchases.interfaces.LogInCallback
@@ -36,6 +37,8 @@ class RevenueCatManager @Inject constructor(
     private val inheritancePrefs: InheritancePrefs,
     private val inheritanceDisarmer: InheritanceDisarmer
 ) {
+
+    @Volatile private var lastCustomerInfo: CustomerInfo? = null
 
     private val _offerings = MutableStateFlow<Offerings?>(null)
     val offerings: StateFlow<Offerings?> = _offerings
@@ -80,7 +83,21 @@ class RevenueCatManager @Inject constructor(
     }
 
     fun purchasePackage(activity: Activity, rcPackage: Package) {
-        val params = PurchaseParams.Builder(activity, rcPackage).build()
+        val builder = PurchaseParams.Builder(activity, rcPackage)
+
+        if (rcPackage.product.id.substringBefore(':') == BillingProductIds.FAMILY_YEARLY) {
+            val premiumToReplace = lastCustomerInfo?.activeSubscriptions
+                ?.firstOrNull {
+                    it.substringBefore(':') == BillingProductIds.PREMIUM_MONTHLY ||
+                        it.substringBefore(':') == BillingProductIds.PREMIUM_YEARLY
+                }
+            if (premiumToReplace != null) {
+                builder.oldProductId(premiumToReplace.substringBefore(':'))
+                    .replacementMode(StoreReplacementMode.CHARGE_PRORATED_PRICE)
+            }
+        }
+
+        val params = builder.build()
         Purchases.sharedInstance.purchase(params, object : PurchaseCallback {
             override fun onCompleted(storeTransaction: StoreTransaction, customerInfo: CustomerInfo) {
                 syncPlan(customerInfo)
@@ -136,12 +153,20 @@ class RevenueCatManager @Inject constructor(
     }
 
     private fun syncPlan(customerInfo: CustomerInfo) {
+        lastCustomerInfo = customerInfo
         val previousPlan = planPrefs.getUserPlan()
         val entitlement  = customerInfo.entitlements[ENTITLEMENT_ID]
+        val familySubscription = customerInfo.subscriptionsByProductIdentifier.entries.firstOrNull {
+            it.key.substringBefore(':') == BillingProductIds.FAMILY_YEARLY && it.value.isActive
+        }?.value
+        val familyActive = customerInfo.activeSubscriptions.any {
+            it.substringBefore(':') == BillingProductIds.FAMILY_YEARLY
+        } || familySubscription != null
         val plan = when {
-            entitlement?.isActive == true -> when (entitlement.productIdentifier) {
-                BillingProductIds.FAMILY_YEARLY -> UserPlan.FAMILY
-                else                            -> UserPlan.PREMIUM
+            entitlement?.isActive == true -> when {
+                entitlement.productIdentifier.substringBefore(':') == BillingProductIds.FAMILY_YEARLY ||
+                    familyActive -> UserPlan.FAMILY
+                else             -> UserPlan.PREMIUM
             }
             else -> UserPlan.FREE
         }
@@ -158,12 +183,23 @@ class RevenueCatManager @Inject constructor(
         planPrefs.setUserPlan(plan)
 
         if (entitlement?.isActive == true) {
-            planPrefs.setSubscriptionInfo(
-                purchaseDateMs     = entitlement.originalPurchaseDate.time,
-                expirationDateMs   = entitlement.expirationDate?.time,
-                willRenew          = entitlement.willRenew,
-                productIdentifier  = entitlement.productIdentifier
-            )
+            if (familySubscription != null
+                && entitlement.productIdentifier.substringBefore(':') != BillingProductIds.FAMILY_YEARLY
+            ) {
+                planPrefs.setSubscriptionInfo(
+                    purchaseDateMs     = (familySubscription.originalPurchaseDate ?: familySubscription.purchaseDate).time,
+                    expirationDateMs   = familySubscription.expiresDate?.time,
+                    willRenew          = familySubscription.willRenew,
+                    productIdentifier  = BillingProductIds.FAMILY_YEARLY
+                )
+            } else {
+                planPrefs.setSubscriptionInfo(
+                    purchaseDateMs     = entitlement.originalPurchaseDate.time,
+                    expirationDateMs   = entitlement.expirationDate?.time,
+                    willRenew          = entitlement.willRenew,
+                    productIdentifier  = entitlement.productIdentifier
+                )
+            }
         } else {
             planPrefs.clearSubscriptionInfo()
         }

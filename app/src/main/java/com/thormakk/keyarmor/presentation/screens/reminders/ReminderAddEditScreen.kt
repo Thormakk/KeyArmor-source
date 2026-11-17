@@ -1,6 +1,12 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 package com.thormakk.keyarmor.presentation.screens.reminders
 
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import androidx.compose.material.icons.outlined.EditCalendar
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.compose.foundation.BorderStroke
@@ -109,6 +115,9 @@ private enum class AlertType { PUNCTUAL, WEEKLY, MONTHLY, YEARLY, INTERVAL, BEFO
 fun ReminderAddEditScreen(
     onBack:             () -> Unit,
     onAttachmentsClick: () -> Unit = {},
+    reminderId:         String = "",
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:          ReminderAddEditViewModel = hiltViewModel()
 ) {
     val autoLockManager = LocalAutoLockManager.current
@@ -197,14 +206,26 @@ fun ReminderAddEditScreen(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { viewModel.onDateChange(it) }
-                    showDatePicker = false
-                }) { Text(stringResource(R.string.action_accept)) }
+                Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                    Button(
+                        onClick = {
+                            pickerState.selectedDateMillis?.let { viewModel.onDateChange(it) }
+                            showDatePicker = false
+                        },
+                        shape   = RoundedCornerShape(8.dp),
+                        colors  = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor   = MaterialTheme.colorScheme.primary
+                        ),
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                    ) { Text(stringResource(R.string.action_accept)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
                 }
             }
         ) { DatePicker(state = pickerState) }
@@ -354,6 +375,16 @@ fun ReminderAddEditScreen(
                     colors        = fieldColors(),
                     singleLine    = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
+                    leadingIcon   = {
+                        Icon(
+                            imageVector        = Icons.Outlined.EditCalendar,
+                            contentDescription = null,
+                            tint               = notesAccentColor(),
+                            modifier           = Modifier
+                                .sharedAvatar("reminder_icon_$reminderId", sharedTransitionScope, animatedVisibilityScope)
+                                .size(24.dp)
+                        )
+                    },
                     trailingIcon  = {
                         IconButton(onClick = { viewModel.toggleFavorite() }) {
                             Icon(
@@ -693,14 +724,26 @@ private fun AddAlertSheet(
         DatePickerDialog(
             onDismissRequest = { showPunctualDatePicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { punctualDateMs = it }
-                    showPunctualDatePicker = false
-                }) { Text(stringResource(R.string.action_accept)) }
+                Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                    Button(
+                        onClick = {
+                            pickerState.selectedDateMillis?.let { punctualDateMs = it }
+                            showPunctualDatePicker = false
+                        },
+                        shape   = RoundedCornerShape(8.dp),
+                        colors  = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor   = MaterialTheme.colorScheme.primary
+                        ),
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                    ) { Text(stringResource(R.string.action_accept)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showPunctualDatePicker = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                    TextButton(onClick = { showPunctualDatePicker = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
                 }
             }
         ) { DatePicker(state = pickerState) }
@@ -711,14 +754,26 @@ private fun AddAlertSheet(
         DatePickerDialog(
             onDismissRequest = { showStartDatePicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { intervalStartMs = it }
-                    showStartDatePicker = false
-                }) { Text(stringResource(R.string.action_accept)) }
+                Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                    Button(
+                        onClick = {
+                            pickerState.selectedDateMillis?.let { intervalStartMs = it }
+                            showStartDatePicker = false
+                        },
+                        shape   = RoundedCornerShape(8.dp),
+                        colors  = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor   = MaterialTheme.colorScheme.primary
+                        ),
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                    ) { Text(stringResource(R.string.action_accept)) }
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showStartDatePicker = false }) {
-                    Text(stringResource(R.string.action_cancel))
+                Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                    TextButton(onClick = { showStartDatePicker = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
                 }
             }
         ) { DatePicker(state = pickerState) }

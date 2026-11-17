@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.vault
+import com.thormakk.keyarmor.presentation.components.hideWhenLeaving
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.FabAddIcon
 import java.util.Locale
@@ -457,7 +459,7 @@ fun VaultScreen(
             val navBarHeight = WindowInsets.navigationBars
                 .asPaddingValues()
                 .calculateBottomPadding()
-            Box(Modifier.offset(y = -navBarHeight)) {
+            Box(Modifier.offset(y = -navBarHeight).hideWhenLeaving(animatedVisibilityScope)) {
                 FloatingActionButton(
                     onClick        = { if (isActiveVaultReadOnly) showReadOnlyGate = true else onAddEntry() },
                     modifier       = Modifier
@@ -1005,7 +1007,7 @@ fun VaultScreen(
         )
     }
 
-    emptyVaultInfo?.let { (_, vaultName) ->
+    emptyVaultInfo?.let { (emptyVaultId, vaultName) ->
         AlertDialog(
             onDismissRequest = { emptyVaultInfo = null },
             containerColor   = MaterialTheme.colorScheme.background,
@@ -1024,25 +1026,22 @@ fun VaultScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { emptyVaultInfo = null },
-                    shape   = RoundedCornerShape(8.dp),
-                    colors  = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor   = MaterialTheme.colorScheme.primary
-                    ),
-                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
-                ) { Text(stringResource(R.string.action_keep_vault), fontWeight = FontWeight.SemiBold) }
-            },
-            dismissButton = {
-                TextButton(
                     onClick = {
                         emptyVaultInfo = null
-                        onVaultHubClick()
-                    }
-                ) {
+                        viewModel.deleteEmptyVault(emptyVaultId) { onVaultHubClick() }
+                    },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor   = MaterialTheme.colorScheme.onError
+                    )
+                ) { Text(stringResource(R.string.action_delete_vault), fontWeight = FontWeight.SemiBold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { emptyVaultInfo = null }) {
                     Text(
-                        stringResource(R.string.action_delete_vault),
-                        color = MaterialTheme.colorScheme.error
+                        stringResource(R.string.action_keep_vault),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -1184,7 +1183,15 @@ fun VaultScreen(
             title = { Text(stringResource(R.string.protect_bulk_unlock_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(if (isFreeUser) R.string.protect_bulk_unlock_body_free else R.string.protect_bulk_unlock_body), color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showBulkUnlock = false; viewModel.bulkSetProtected(false) }) { Text(stringResource(R.string.lock_action_unlock)) }
+                Button(
+                    onClick = { showBulkUnlock = false; viewModel.bulkSetProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkUnlock = false }) { Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground) }
@@ -1198,7 +1205,12 @@ fun VaultScreen(
             title = { Text(stringResource(R.string.protect_premium_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showBulkProtectPremium = false; onPlansClick() }) { Text(stringResource(R.string.plans_upgrade_cta)) }
+                Button(
+                    onClick = { showBulkProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.plans_upgrade_cta)) }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkProtectPremium = false }) { Text(stringResource(R.string.action_cancel), color = MaterialTheme.colorScheme.onBackground) }
@@ -1755,7 +1767,7 @@ internal fun FiltersSheet(
                         onDismissRequest = { renameTarget = null; renameError = null },
                         title = { Text(stringResource(R.string.tag_rename_title)) },
                         text  = {
-                            OutlinedTextField(
+                            AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                                 value           = renameText,
                                 onValueChange   = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -1765,7 +1777,7 @@ internal fun FiltersSheet(
                                 modifier        = Modifier.fillMaxWidth(),
                                 isError         = renameError != null,
                                 supportingText  = { renameError?.let { Text(it) } }
-                            )
+                            ) }
                         },
                         confirmButton = {
                             Button(

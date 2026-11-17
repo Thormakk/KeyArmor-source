@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 package com.thormakk.keyarmor.presentation.screens.family
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -188,7 +189,7 @@ fun FamilyScreen(
                     color = sectionTitleColor()) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = topBarColors()
@@ -236,7 +237,7 @@ fun FamilyScreen(
             inviteError?.let { msg ->
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
+                        containerColor = warningColor().copy(alpha = 0.18f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -244,7 +245,7 @@ fun FamilyScreen(
                 ) {
                     Text(
                         text = msg,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(14.dp)
                     )

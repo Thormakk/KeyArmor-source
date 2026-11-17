@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.trash
 
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import androidx.activity.compose.BackHandler
@@ -1056,7 +1057,7 @@ private fun TrashItemRow(
                 else null
                 val countdownColor = when {
                     daysLeft == null -> MaterialTheme.colorScheme.onSurfaceVariant
-                    daysLeft <= 3    -> Color(0xFFFF5252)
+                    daysLeft <= 3    -> warningColor()
                     daysLeft <= 10   -> Color(0xFFFFA000)
                     else             -> Color(0xFF4CAF50)
                 }
@@ -1065,7 +1066,8 @@ private fun TrashItemRow(
                     Text(
                         text  = countdown,
                         style = MaterialTheme.typography.labelSmall,
-                        color = countdownColor
+                        color = countdownColor,
+                        fontWeight = if (daysLeft != null && daysLeft <= 3) FontWeight.Bold else null
                     )
                 }
             }

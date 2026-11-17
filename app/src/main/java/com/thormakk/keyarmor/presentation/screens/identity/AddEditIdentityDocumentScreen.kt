@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.identity
 
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -261,12 +263,26 @@ fun AddEditIdentityDocumentScreen(
         DatePickerDialog(
             onDismissRequest = { showExpiryPicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { viewModel.onExpiryDateChange(it.toDateString()) }
-                    showExpiryPicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
+                Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                    Button(
+                        onClick = {
+                            pickerState.selectedDateMillis?.let { viewModel.onExpiryDateChange(it.toDateString()) }
+                            showExpiryPicker = false
+                        },
+                        shape   = RoundedCornerShape(8.dp),
+                        colors  = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor   = MaterialTheme.colorScheme.primary
+                        ),
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                    ) { Text(stringResource(R.string.action_ok)) }
+                }
             },
-            dismissButton = { TextButton(onClick = { showExpiryPicker = false }) { Text(stringResource(R.string.action_cancel)) } }
+            dismissButton = {
+                Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                    TextButton(onClick = { showExpiryPicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                }
+            }
         ) { DatePicker(state = pickerState) }
     }
 
@@ -275,12 +291,26 @@ fun AddEditIdentityDocumentScreen(
         DatePickerDialog(
             onDismissRequest = { showIssuePicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { viewModel.onIssueDateChange(it.toDateString()) }
-                    showIssuePicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
+                Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                    Button(
+                        onClick = {
+                            pickerState.selectedDateMillis?.let { viewModel.onIssueDateChange(it.toDateString()) }
+                            showIssuePicker = false
+                        },
+                        shape   = RoundedCornerShape(8.dp),
+                        colors  = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor   = MaterialTheme.colorScheme.primary
+                        ),
+                        border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                    ) { Text(stringResource(R.string.action_ok)) }
+                }
             },
-            dismissButton = { TextButton(onClick = { showIssuePicker = false }) { Text(stringResource(R.string.action_cancel)) } }
+            dismissButton = {
+                Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                    TextButton(onClick = { showIssuePicker = false }) { Text(stringResource(R.string.action_cancel)) }
+                }
+            }
         ) { DatePicker(state = pickerState) }
     }
 
@@ -870,8 +900,8 @@ internal fun IdentityOptionsSheet(
                     properties = propiedadesConTeclado(),
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
-                    text  = { OutlinedTextField(
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),value = renameText, onValueChange = { autoLockManager?.recordInteraction(); renameText = it; renameError = null }, singleLine = true, label = { Text(stringResource(R.string.tag_name_hint)) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth(), isError = renameError != null, supportingText = { renameError?.let { Text(it) } }) },
+                    text  = { AmberErrors { OutlinedTextField(
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),value = renameText, onValueChange = { autoLockManager?.recordInteraction(); renameText = it; renameError = null }, singleLine = true, label = { Text(stringResource(R.string.tag_name_hint)) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth(), isError = renameError != null, supportingText = { renameError?.let { Text(it) } }) } },
                     confirmButton = {
                         Button(onClick = {
                             val trimmed = renameText.trim()
@@ -926,7 +956,7 @@ internal fun IdentityOptionsSheet(
                         }
                     }
                 }
-                if (newTagError != null) { Text(newTagError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp)) }
+                if (newTagError != null) { Text(newTagError!!, color = warningColor(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp)) }
             } else {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(8.dp)).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)).clickable { showLockedDialog = true }, verticalAlignment = Alignment.CenterVertically) {

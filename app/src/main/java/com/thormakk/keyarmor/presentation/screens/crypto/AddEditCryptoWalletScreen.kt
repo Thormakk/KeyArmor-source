@@ -2,6 +2,7 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment", "DEPRECATION")
 package com.thormakk.keyarmor.presentation.screens.crypto
 
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.exclude
@@ -1690,7 +1691,7 @@ internal fun CryptoOptionsSheet(
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
                     text  = {
-                        OutlinedTextField(
+                        AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                             value           = renameText,
                             onValueChange   = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -1700,7 +1701,7 @@ internal fun CryptoOptionsSheet(
                             modifier        = Modifier.fillMaxWidth(),
                             isError         = renameError != null,
                             supportingText  = { renameError?.let { Text(it) } }
-                        )
+                        ) }
                     },
                     confirmButton = {
                         Button(

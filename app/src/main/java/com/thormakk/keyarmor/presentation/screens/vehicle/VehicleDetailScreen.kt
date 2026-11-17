@@ -1,6 +1,10 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.vehicle
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -126,6 +130,8 @@ fun VehicleDetailScreen(
     onPlansClick:       () -> Unit = {},
     onAttachmentsClick: (String) -> Unit = {},
     onShareClick:       (String) -> Unit = {},
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel: AddEditVehicleViewModel = hiltViewModel()
 ) {
     val uiState    by viewModel.uiState.collectAsStateWithLifecycle()
@@ -189,9 +195,15 @@ fun VehicleDetailScreen(
             text  = { Text(stringResource(if (viewModel.canProtectNew) R.string.protect_unlock_body else R.string.protect_unlock_body_free),
                 color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showUnlockDialog = false; viewModel.setProtected(false) }) {
-                    Text(stringResource(R.string.lock_action_unlock))
-                }
+                Button(
+                    onClick = { showUnlockDialog = false; viewModel.setProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showUnlockDialog = false }) {
@@ -208,7 +220,12 @@ fun VehicleDetailScreen(
                 color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showProtectPremium = false; onPlansClick() }) {
+                Button(
+                    onClick = { showProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) {
                     Text(stringResource(R.string.plans_upgrade_cta))
                 }
             },
@@ -403,7 +420,7 @@ fun VehicleDetailScreen(
             val mergedGapColor  = MaterialTheme.colorScheme.background
 
             val brandModel = listOf(uiState.make, uiState.model).filter { it.isNotEmpty() }.joinToString(" – ")
-            val heroShown  = brandModel.isNotEmpty() || uiState.inheritedFrom != null
+            val heroShown  = true
             val hasYear    = uiState.year.isNotEmpty()
             val hasPlate   = uiState.licensePlate.isNotEmpty()
             val hasVin     = uiState.vin.isNotEmpty()
@@ -450,17 +467,25 @@ fun VehicleDetailScreen(
                             modifier       = Modifier.fillMaxWidth()
                         ) {
                             Column {
-                                if (brandModel.isNotEmpty()) {
+                                run {
                                     Row(
                                         modifier          = Modifier.padding(start = 16.dp, end = 4.dp, top = 14.dp, bottom = 14.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        VehicleAwareAvatar(make = uiState.make, size = 40.dp)
+                                        VehicleAwareAvatar(
+                                            make     = uiState.make,
+                                            size     = 40.dp,
+                                            modifier = Modifier.sharedAvatar("vehicle_avatar_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                                        )
                                         Spacer(Modifier.width(14.dp))
                                         Column(modifier = Modifier.weight(1f)) {
-                                            Text(vehicleFallbackTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                            Spacer(Modifier.height(5.dp))
-                                            Text(brandModel, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                                            if (brandModel.isNotEmpty()) {
+                                                Text(vehicleFallbackTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                Spacer(Modifier.height(5.dp))
+                                                Text(brandModel, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                                            } else {
+                                                Text(vehicleFallbackTitle, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                                            }
                                         }
                                         if ((!isReadOnly || uiState.isProtected) && !uiState.isNew) {
                                             val greenLock = if (contrastRatio(MaterialTheme.colorScheme.background, SuccessGreen) < 3f)

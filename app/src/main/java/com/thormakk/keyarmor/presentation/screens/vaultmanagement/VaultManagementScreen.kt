@@ -122,6 +122,7 @@ fun VaultManagementScreen(
 
     if (uiState.protectedKeptCount > 0) {
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = { viewModel.dismissProtectedKept() },
             title = { Text(pluralStringResource(R.plurals.protect_vault_kept_title, uiState.protectedKeptCount, uiState.protectedKeptCount)) },
             text  = { Text(pluralStringResource(R.plurals.protect_vault_kept_body, uiState.protectedKeptCount, uiState.protectedKeptCount)) },
@@ -210,7 +211,7 @@ fun VaultManagementScreen(
                     color = sectionTitleColor()) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = topBarColors()

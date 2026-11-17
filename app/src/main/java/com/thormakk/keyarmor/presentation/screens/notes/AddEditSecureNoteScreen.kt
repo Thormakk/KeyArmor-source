@@ -1,5 +1,13 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.notes
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import androidx.compose.foundation.layout.safeDrawing
 import com.thormakk.keyarmor.presentation.components.sigueAlTeclado
 import androidx.compose.foundation.layout.ime
@@ -138,6 +146,8 @@ private val MergedCardRadius = 14.dp
 fun AddEditSecureNoteScreen(
     onBack:      () -> Unit,
     onSaved:     () -> Unit,
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel: AddEditSecureNoteViewModel = hiltViewModel()
 ) {
     val uiState              by viewModel.uiState.collectAsStateWithLifecycle()
@@ -386,10 +396,20 @@ fun AddEditSecureNoteScreen(
         ) {
             val mergedGapColor = MaterialTheme.colorScheme.background
 
-            OutlinedTextField(
+            AmberErrors { OutlinedTextField(
                 value         = uiState.title,
                 onValueChange = { autoLockManager?.recordInteraction(); viewModel.onTitleChange(it) },
                 placeholder   = { Text(stringResource(R.string.notes_field_title_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                leadingIcon     = {
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Outlined.StickyNote2,
+                        contentDescription = null,
+                        tint               = notesAccentColor(),
+                        modifier           = Modifier
+                            .sharedAvatar("note_icon_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                            .size(24.dp)
+                    )
+                },
                 isError         = uiState.titleError || uiState.cloneNameError,
                 supportingText  = when {
                     uiState.cloneNameError -> { { Text(stringResource(R.string.clone_name_error), color = MaterialTheme.colorScheme.error) } }
@@ -409,7 +429,7 @@ fun AddEditSecureNoteScreen(
                 ),
                 shape  = entryItemShape(isFirst = true, isLast = false, radius = MergedCardRadius),
                 colors = titleFieldColors()
-            )
+            ) }
 
             EntryGroupDivider(
                 startInset = 0.dp,
@@ -689,7 +709,7 @@ internal fun NoteOptionsSheet(
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
                     text  = {
-                        OutlinedTextField(
+                        AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                             value           = renameText,
                             onValueChange   = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -700,7 +720,7 @@ internal fun NoteOptionsSheet(
                             modifier        = Modifier.fillMaxWidth(),
                             isError         = renameError != null,
                             supportingText  = { renameError?.let { Text(it) } }
-                        )
+                        ) }
                     },
                     confirmButton = {
                         Button(
@@ -875,7 +895,7 @@ internal fun NoteOptionsSheet(
             if (newTagError != null) {
                 Text(
                     text     = newTagError!!,
-                    color    = MaterialTheme.colorScheme.error,
+                    color    = warningColor(),
                     style    = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp)
                 )

@@ -23,7 +23,7 @@ object ClipboardUtil {
         fun clipboardClearManager(): ClipboardClearManager
     }
 
-    fun copySensitive(context: Context, text: String) {
+    fun copySensitive(context: Context, text: String, mostrarAviso: Boolean = true) {
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("keyarmor", text)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -32,7 +32,7 @@ object ClipboardUtil {
             }
         }
         cm.setPrimaryClip(clip)
-        com.thormakk.keyarmor.presentation.components.CopyFeedback.show(context)
+        if (mostrarAviso) com.thormakk.keyarmor.presentation.components.CopyFeedback.show(context)
         programarBorrado(context)
     }
 

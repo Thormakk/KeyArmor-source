@@ -79,6 +79,7 @@ fun ForgotMasterPasswordLink(
 
     if (step == 1) {
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = { step = 0 },
             title = { Text(stringResource(R.string.forgot_master_title)) },
             text  = {
@@ -110,6 +111,7 @@ fun ForgotMasterPasswordLink(
         val phrase = stringResource(R.string.delete_all_confirm_phrase)
         val matches = typed.trim().equals(phrase, ignoreCase = true)
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.cuadroConTeclado(),
         properties = propiedadesConTeclado(),
             onDismissRequest = { if (!viewModel.inProgress) step = 0 },

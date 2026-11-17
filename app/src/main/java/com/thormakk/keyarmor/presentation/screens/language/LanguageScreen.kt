@@ -131,16 +131,20 @@ fun LanguageScreen(
     val currentLanguage by viewModel.currentLanguage.collectAsStateWithLifecycle()
     var selected by remember(currentLanguage) { mutableStateOf(currentLanguage) }
 
+    val lockBg        = Color(0xFF0D1B2A)
+    val lockOnBg      = Color(0xFFE8EAF0)
+    val lockOnVariant = Color(0xFF9AA3B2)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(lockBg)
             .padding(horizontal = 7.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
-        AppLogoWithVignette(size = 80)
+        AppLogoWithVignette(size = 80, bgColor = lockBg)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -148,13 +152,13 @@ fun LanguageScreen(
             text = "KeyArmor",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = lockOnBg
         )
 
         Text(
             text = "Seleccioná tu idioma / Choose your language",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = lockOnVariant,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
 
@@ -189,7 +193,7 @@ fun LanguageScreen(
                         text       = lang.name,
                         style      = MaterialTheme.typography.bodyLarge,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        color      = MaterialTheme.colorScheme.onBackground,
+                        color      = lockOnBg,
                         modifier   = Modifier.weight(1f)
                     )
                     if (isSelected) {

@@ -96,7 +96,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -137,6 +136,8 @@ import com.thormakk.keyarmor.presentation.screens.vault.QuickFilter
 import com.thormakk.keyarmor.presentation.util.LocalAutoLockManager
 import com.thormakk.keyarmor.presentation.util.highlightText
 import com.thormakk.keyarmor.presentation.components.TextoDeUnaLinea
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 
 private enum class ExportDialogStep { NONE, FORMAT, CSV_WARNING, CSV_AUTH, PASSWORD }
 
@@ -207,20 +208,24 @@ fun PartialExportScreen(
     }
 
     if (step == ExportDialogStep.FORMAT) {
+        var formatoElegido by remember { mutableStateOf(chosenFormat ?: PartialExportFormat.JSON) }
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.surface,
             onDismissRequest = { resetDialogFlow() },
-            title = { Text(stringResource(R.string.export_selection_dialog_title)) },
+            title = { Text(stringResource(R.string.export_selection_dialog_title), fontWeight = FontWeight.SemiBold) },
             text  = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     FormatOption(
+                        selected = formatoElegido == PartialExportFormat.JSON,
                         title    = stringResource(R.string.export_selection_format_json),
                         subtitle = stringResource(R.string.export_selection_format_json_desc),
-                        onClick  = { chosenFormat = PartialExportFormat.JSON; step = ExportDialogStep.PASSWORD }
+                        onClick  = { formatoElegido = PartialExportFormat.JSON }
                     )
                     FormatOption(
+                        selected = formatoElegido == PartialExportFormat.CSV,
                         title    = stringResource(R.string.export_selection_format_csv),
                         subtitle = stringResource(R.string.export_selection_format_csv_desc),
-                        onClick  = { chosenFormat = PartialExportFormat.CSV; step = ExportDialogStep.CSV_WARNING }
+                        onClick  = { formatoElegido = PartialExportFormat.CSV }
                     )
                     if (uiState.selectionHasNonPasswordTypes) {
                         Text(
@@ -231,13 +236,25 @@ fun PartialExportScreen(
                         )
                     }
                     FormatOption(
+                        selected = formatoElegido == PartialExportFormat.PDF,
                         title    = stringResource(R.string.export_selection_format_pdf),
                         subtitle = stringResource(R.string.export_selection_format_pdf_desc),
-                        onClick  = { chosenFormat = PartialExportFormat.PDF; step = ExportDialogStep.PASSWORD }
+                        onClick  = { formatoElegido = PartialExportFormat.PDF }
                     )
                 }
             },
-            confirmButton = {},
+            confirmButton = {
+                Button(
+                    onClick = {
+                        chosenFormat = formatoElegido
+                        step = if (formatoElegido == PartialExportFormat.CSV) ExportDialogStep.CSV_WARNING
+                               else ExportDialogStep.PASSWORD
+                    },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.ie_export_button)) }
+            },
             dismissButton = {
                 TextButton(onClick = { resetDialogFlow() }) { Text(stringResource(R.string.action_cancel)) }
             }
@@ -830,8 +847,11 @@ fun PartialExportScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                     ) {
                         TextButton(onClick = { resetDialogFlow() }) { Text(stringResource(R.string.action_cancel)) }
-                        TextButton(
+                        Button(
                             enabled = canConfirm,
+                            shape   = RoundedCornerShape(8.dp),
+                            colors  = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                            border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
                             onClick = {
                                 step = ExportDialogStep.NONE
                                 when (format) {
@@ -1055,19 +1075,45 @@ private fun SearchResultRow(
 
 @Composable
 private fun FormatOption(
+    selected: Boolean,
     title:    String,
     subtitle: String,
     onClick:  () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp, horizontal = 4.dp)
+    Surface(
+        onClick  = onClick,
+        shape    = RoundedCornerShape(8.dp),
+        color    = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
+        border   = BorderStroke(
+            width = if (selected) 1.5.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        ),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            modifier          = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick  = null,
+                colors   = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+            )
+            Spacer(Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text       = title,
+                    style      = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text  = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

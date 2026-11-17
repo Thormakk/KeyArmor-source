@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.util
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 
@@ -398,7 +399,7 @@ private fun BiometricGateFallbackDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                OutlinedTextField(
+                AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
                     value         = input,
                     onValueChange = { autoLockManager?.recordInteraction(); input = it; error = null },
@@ -432,7 +433,7 @@ private fun BiometricGateFallbackDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester)
-                )
+                ) }
             }
         },
         confirmButton = {

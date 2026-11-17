@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.twofactor
 
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
@@ -362,7 +364,7 @@ fun AddEditTwoFactorScreen(
                     HorizontalDivider(modifier = Modifier.weight(1f))
                 }
 
-                OutlinedTextField(
+                AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                     value         = uiState.secret,
                     onValueChange = { autoLockManager?.recordInteraction(); viewModel.onSecretChange(it) },
@@ -375,7 +377,7 @@ fun AddEditTwoFactorScreen(
                     modifier      = Modifier.fillMaxWidth(),
                     shape         = RoundedCornerShape(8.dp),
                     colors        = fieldColors()
-                )
+                ) }
 
                 if (previewTotp != null) {
                     Surface(
@@ -680,8 +682,8 @@ internal fun TwoFactorOptionsSheet(
                     properties = propiedadesConTeclado(),
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
-                    text  = { OutlinedTextField(
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),value = renameText, onValueChange = { autoLockManager?.recordInteraction(); renameText = it; renameError = null }, singleLine = true, label = { Text(stringResource(R.string.tag_name_hint)) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth(), isError = renameError != null, supportingText = { renameError?.let { Text(it) } }) },
+                    text  = { AmberErrors { OutlinedTextField(
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),value = renameText, onValueChange = { autoLockManager?.recordInteraction(); renameText = it; renameError = null }, singleLine = true, label = { Text(stringResource(R.string.tag_name_hint)) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth(), isError = renameError != null, supportingText = { renameError?.let { Text(it) } }) } },
                     confirmButton = {
                         Button(onClick = {
                             val trimmed = renameText.trim()
@@ -736,7 +738,7 @@ internal fun TwoFactorOptionsSheet(
                         }
                     }
                 }
-                if (newTagError != null) { Text(newTagError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp)) }
+                if (newTagError != null) { Text(newTagError!!, color = warningColor(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp)) }
             } else {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(8.dp)).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)).clickable { showLockedDialog = true }, verticalAlignment = Alignment.CenterVertically) {

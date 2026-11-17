@@ -1,5 +1,6 @@
 package com.thormakk.keyarmor.passkey
 
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.ui.theme.appButtonColors
 import android.content.Intent
 import android.os.Build
@@ -723,7 +724,7 @@ private fun VaultUnlockForPasskeyScreen(
                     )
                 }
             } else {
-                OutlinedTextField(
+                AmberErrors { OutlinedTextField(
                     value                = password,
                     onValueChange        = { password = it },
                     label                = { Text(stringResource(R.string.auth_master_password)) },
@@ -742,7 +743,7 @@ private fun VaultUnlockForPasskeyScreen(
                         errorSupportingTextColor = dangerColor()
                     ),
                     modifier = Modifier.fillMaxWidth()
-                )
+                ) }
                 hasError?.let { mensaje ->
                     Spacer(Modifier.height(4.dp))
                     Text(

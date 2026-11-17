@@ -1,11 +1,14 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package com.thormakk.keyarmor.presentation.screens.generator
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -59,13 +62,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -73,6 +79,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.thormakk.keyarmor.R
 import com.thormakk.keyarmor.presentation.coachmark.coachMarkAnchor
 import com.thormakk.keyarmor.presentation.components.SectionTitleFontSize
+import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.sectionTitleColor
 import com.thormakk.keyarmor.presentation.components.topBarColors
 import com.thormakk.keyarmor.presentation.util.ClipboardUtil
@@ -84,6 +91,7 @@ import com.thormakk.keyarmor.ui.theme.PasswordStrengthGood
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthStrong
 import com.thormakk.keyarmor.ui.theme.PasswordStrengthWeak
 import com.thormakk.keyarmor.presentation.components.TextoDeUnaLinea
+import com.thormakk.keyarmor.security.PassphraseStrength
 
 @Composable
 private fun GeneratorMode.displayLabel(): String = when (this) {
@@ -121,6 +129,7 @@ fun PasswordGeneratorScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
+                actions = { CaptureAllowedBadge() },
                 colors = topBarColors(MaterialTheme.colorScheme.background)
             )
         },
@@ -188,12 +197,42 @@ internal fun PasswordGeneratorContent(
             ) {
                 val letterColor = MaterialTheme.colorScheme.onSurface
                 val digitColor  = MaterialTheme.colorScheme.primary
-                Text(
-                    text      = colorizePassword(uiState.password, letterColor, digitColor),
-                    style     = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, fontFamily = MonoFontFamily),
+                val passwordText = colorizePassword(uiState.password, letterColor, digitColor)
+                val lineHeight   = 24.sp
+                val reservedLines = with(LocalDensity.current) { (lineHeight * 2).toDp() }
+                val measurer     = rememberTextMeasurer()
+                val baseStyle    = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize   = 17.sp,
+                    fontFamily = MonoFontFamily,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
+                    lineHeight = lineHeight,
+                    textAlign  = TextAlign.Center
                 )
+                BoxWithConstraints(
+                    modifier         = Modifier.fillMaxWidth().height(reservedLines),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val widthPx = constraints.maxWidth
+                    val fittedSize = remember(uiState.password, widthPx) {
+                        var size = 17f
+                        while (size > 10f) {
+                            val layout = measurer.measure(
+                                text        = passwordText,
+                                style       = baseStyle.copy(fontSize = size.sp),
+                                maxLines    = 2,
+                                constraints = Constraints(maxWidth = widthPx)
+                            )
+                            if (!layout.hasVisualOverflow) break
+                            size -= 0.5f
+                        }
+                        size
+                    }
+                    Text(
+                        text     = passwordText,
+                        style    = baseStyle.copy(fontSize = fittedSize.sp),
+                        maxLines = 2
+                    )
+                }
             }
 
             Row(
@@ -265,307 +304,329 @@ internal fun PasswordGeneratorContent(
                 }
             }
 
-            when (uiState.mode) {
-
-                GeneratorMode.STANDARD, GeneratorMode.PRONOUNCEABLE -> {
-
-                    Row(
-                        modifier          = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+            Column {
+                AnimatedVisibility(visible = uiState.mode != GeneratorMode.PASSPHRASE) {
+                    Column(
+                        modifier            = Modifier.padding(bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text  = stringResource(R.string.generator_length),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text       = "${uiState.length}",
-                            style      = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Row(
-                        modifier          = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick  = { if (uiState.length > 6) viewModel.onLengthChange(uiState.length - 1) },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Text("−", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                        }
-                        Slider(
-                            value         = uiState.length.toFloat(),
-                            onValueChange = { viewModel.onLengthChange(it.toInt()) },
-                            valueRange    = 6f..32f,
-                            steps         = 25,
-                            modifier      = Modifier.weight(1f).height(20.dp),
-                            colors        = SliderDefaults.colors(
-                                thumbColor                = MaterialTheme.colorScheme.primary,
-                                activeTrackColor          = MaterialTheme.colorScheme.primary,
-                                inactiveTrackColor        = MaterialTheme.colorScheme.surfaceVariant,
-                                activeTickColor           = Color.Transparent,
-                                inactiveTickColor         = Color.Transparent
-                            ),
-                            thumb = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.primary,
-                                            RoundedCornerShape(50)
-                                        )
-                                )
-                            },
-                            track = { sliderState ->
-                                SliderDefaults.Track(
-                                    sliderState  = sliderState,
-                                    modifier     = Modifier.height(2.dp),
-                                    colors       = SliderDefaults.colors(
-                                        activeTrackColor   = MaterialTheme.colorScheme.primary,
-                                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        activeTickColor    = Color.Transparent,
-                                        inactiveTickColor  = Color.Transparent
-                                    )
-                                )
-                            }
-                        )
-                        IconButton(
-                            onClick  = { if (uiState.length < 32) viewModel.onLengthChange(uiState.length + 1) },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Text("+", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    Row(
-                        modifier              = Modifier.fillMaxWidth().padding(horizontal = 36.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("6",  style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("32", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-
-                    if (uiState.mode == GeneratorMode.STANDARD) {
                         Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier          = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CharTypeChip(
-                                symbol   = "Aa",
-                                label    = stringResource(R.string.generator_uppercase),
-                                selected = uiState.useUpper,
-                                onClick  = { viewModel.onUpperToggle(!uiState.useUpper) },
-                                modifier = Modifier.weight(1f)
+                            Text(
+                                text  = stringResource(R.string.generator_length),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
-                            CharTypeChip(
-                                symbol   = "aa",
-                                label    = stringResource(R.string.generator_lowercase),
-                                selected = uiState.useLower,
-                                onClick  = { viewModel.onLowerToggle(!uiState.useLower) },
-                                modifier = Modifier.weight(1f)
-                            )
-                            CharTypeChip(
-                                symbol   = "123",
-                                label    = stringResource(R.string.generator_numbers),
-                                selected = uiState.useDigits,
-                                onClick  = { viewModel.onDigitsToggle(!uiState.useDigits) },
-                                modifier = Modifier.weight(1f)
-                            )
-                            CharTypeChip(
-                                symbol   = "!@#",
-                                label    = stringResource(R.string.generator_symbols),
-                                selected = uiState.useSymbols,
-                                onClick  = { viewModel.onSymbolsToggle(!uiState.useSymbols) },
-                                modifier = Modifier.weight(1f)
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text       = "${uiState.length}",
+                                style      = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color      = MaterialTheme.colorScheme.primary
                             )
                         }
-                    } else {
                         Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier          = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            CharTypeChip(
-                                symbol   = "Aa",
-                                label    = stringResource(R.string.generator_uppercase),
-                                selected = uiState.useUpper,
-                                onClick  = { viewModel.onUpperToggle(!uiState.useUpper) },
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(modifier = Modifier.weight(2f))
-                        }
-
-                        if (uiState.useUpper) {
-                            val maxUpper = (uiState.length / 2).coerceAtLeast(1)
-                            Row(
-                                modifier          = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
+                            IconButton(
+                                onClick  = { if (uiState.length > 6) viewModel.onLengthChange(uiState.length - 1) },
+                                modifier = Modifier.size(36.dp)
                             ) {
-                                Text(
-                                    text     = stringResource(R.string.generator_upper_count_label),
-                                    style    = MaterialTheme.typography.bodyMedium,
-                                    color    = MaterialTheme.colorScheme.onBackground,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                IconButton(
-                                    onClick  = { viewModel.onUpperCountChange(uiState.upperCount - 1) },
-                                    enabled  = uiState.upperCount > 1,
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Text("−", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("−", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            }
+                            Slider(
+                                value         = uiState.length.toFloat(),
+                                onValueChange = { viewModel.onLengthChange(it.toInt()) },
+                                valueRange    = 6f..32f,
+                                steps         = 25,
+                                modifier      = Modifier.weight(1f).height(20.dp),
+                                colors        = SliderDefaults.colors(
+                                    thumbColor                = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor          = MaterialTheme.colorScheme.primary,
+                                    inactiveTrackColor        = MaterialTheme.colorScheme.surfaceVariant,
+                                    activeTickColor           = Color.Transparent,
+                                    inactiveTickColor         = Color.Transparent
+                                ),
+                                thumb = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary,
+                                                RoundedCornerShape(50)
+                                            )
+                                    )
+                                },
+                                track = { sliderState ->
+                                    SliderDefaults.Track(
+                                        sliderState  = sliderState,
+                                        modifier     = Modifier.height(2.dp),
+                                        colors       = SliderDefaults.colors(
+                                            activeTrackColor   = MaterialTheme.colorScheme.primary,
+                                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            activeTickColor    = Color.Transparent,
+                                            inactiveTickColor  = Color.Transparent
+                                        )
+                                    )
                                 }
-                                Text(
-                                    text       = "${uiState.upperCount}",
-                                    style      = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.primary,
-                                    modifier   = Modifier.width(28.dp),
-                                    textAlign  = TextAlign.Center
-                                )
-                                IconButton(
-                                    onClick  = { viewModel.onUpperCountChange(uiState.upperCount + 1) },
-                                    enabled  = uiState.upperCount < maxUpper,
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Text("+", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                }
+                            )
+                            IconButton(
+                                onClick  = { if (uiState.length < 32) viewModel.onLengthChange(uiState.length + 1) },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Text("+", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                         }
-                    }
-
-                    if (uiState.mode == GeneratorMode.STANDARD &&
-                        (uiState.useUpper || uiState.useDigits || uiState.useSymbols)) {
-                        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                            if (uiState.useUpper) {
-                                MinCountRow(
-                                    label        = stringResource(R.string.generator_count_uppercase_label),
-                                    count        = uiState.countUpper,
-                                    canDecrement = uiState.countUpper > 1,
-                                    canIncrement = uiState.countUpper < uiState.maxCountUpper(),
-                                    onDecrement  = { viewModel.onCountUpperChange(uiState.countUpper - 1) },
-                                    onIncrement  = { viewModel.onCountUpperChange(uiState.countUpper + 1) }
-                                )
-                            }
-                            if (uiState.useDigits) {
-                                MinCountRow(
-                                    label        = stringResource(R.string.generator_count_digits_label),
-                                    count        = uiState.countDigits,
-                                    canDecrement = uiState.countDigits > 1,
-                                    canIncrement = uiState.countDigits < uiState.maxCountDigits(),
-                                    onDecrement  = { viewModel.onCountDigitsChange(uiState.countDigits - 1) },
-                                    onIncrement  = { viewModel.onCountDigitsChange(uiState.countDigits + 1) }
-                                )
-                            }
-                            if (uiState.useSymbols) {
-                                MinCountRow(
-                                    label        = stringResource(R.string.generator_count_symbols_label),
-                                    count        = uiState.countSymbols,
-                                    canDecrement = uiState.countSymbols > 1,
-                                    canIncrement = uiState.countSymbols < uiState.maxCountSymbols(),
-                                    onDecrement  = { viewModel.onCountSymbolsChange(uiState.countSymbols - 1) },
-                                    onIncrement  = { viewModel.onCountSymbolsChange(uiState.countSymbols + 1) }
-                                )
-                            }
+                        Row(
+                            modifier              = Modifier.fillMaxWidth().padding(horizontal = 36.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("6",  style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("32", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-
-                    HorizontalDivider(color = Cream300)
-
-                    ToggleOptionRow(
-                        title    = stringResource(R.string.generator_exclude_ambiguous),
-                        subtitle = stringResource(R.string.generator_exclude_ambiguous_subtitle),
-                        checked  = uiState.excludeAmbiguous,
-                        onToggle = { viewModel.onExcludeAmbiguousToggle(it) }
-                    )
                 }
 
-                GeneratorMode.PASSPHRASE -> {
-
-                    Row(
-                        modifier          = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                AnimatedContent(targetState = uiState.mode, label = "generatorOptions") { mode ->
+                    Column(
+                        modifier            = Modifier.padding(bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text     = stringResource(R.string.generator_words_label),
-                            style    = MaterialTheme.typography.bodyMedium,
-                            color    = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(
-                            onClick  = { viewModel.onWordCountChange(uiState.wordCount - 1) },
-                            enabled  = uiState.wordCount > 2,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Text("−", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                        }
-                        Text(
-                            text       = "${uiState.wordCount}",
-                            style      = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary,
-                            modifier   = Modifier.width(28.dp),
-                            textAlign  = TextAlign.Center
-                        )
-                        IconButton(
-                            onClick  = { viewModel.onWordCountChange(uiState.wordCount + 1) },
-                            enabled  = uiState.wordCount < 8,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Text("+", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                        }
-                    }
+                        when (mode) {
 
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text  = stringResource(R.string.generator_word_separator_label),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        val hyphenDashLabel      = stringResource(R.string.generator_separator_hyphen_dash)
-                        val hyphenUnderscoreLabel = stringResource(R.string.generator_separator_hyphen_underscore)
-                        val dotLabel             = stringResource(R.string.generator_separator_dot)
-                        val spaceLabel           = stringResource(R.string.generator_separator_space)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(
-                                "-"  to hyphenDashLabel,
-                                "_"  to hyphenUnderscoreLabel,
-                                "."  to dotLabel,
-                                " "  to spaceLabel
-                            ).forEach { (sep, label) ->
-                                val selected = uiState.separator == sep
-                                FilterChip(
-                                    selected = selected,
-                                    onClick  = { viewModel.onSeparatorChange(sep) },
-                                    label    = {
-                                        Text(
-                                            text      = label,
-                                            style     = MaterialTheme.typography.labelSmall,
-                                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                            GeneratorMode.STANDARD, GeneratorMode.PRONOUNCEABLE -> {
+
+                                if (mode == GeneratorMode.STANDARD) {
+                                    Row(
+                                        modifier              = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        CharTypeChip(
+                                            symbol   = "Aa",
+                                            label    = stringResource(R.string.generator_uppercase),
+                                            selected = uiState.useUpper,
+                                            onClick  = { viewModel.onUpperToggle(!uiState.useUpper) },
+                                            modifier = Modifier.weight(1f)
                                         )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Color.Transparent,
-                                        selectedLabelColor     = MaterialTheme.colorScheme.primary,
-                                        labelColor             = MaterialTheme.colorScheme.onSurfaceVariant
-                                    ),
-                                    border = if (selected)
-                                        BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
-                                    else
-                                        BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-                                )
+                                        CharTypeChip(
+                                            symbol   = "aa",
+                                            label    = stringResource(R.string.generator_lowercase),
+                                            selected = uiState.useLower,
+                                            onClick  = { viewModel.onLowerToggle(!uiState.useLower) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        CharTypeChip(
+                                            symbol   = "123",
+                                            label    = stringResource(R.string.generator_numbers),
+                                            selected = uiState.useDigits,
+                                            onClick  = { viewModel.onDigitsToggle(!uiState.useDigits) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        CharTypeChip(
+                                            symbol   = "!@#",
+                                            label    = stringResource(R.string.generator_symbols),
+                                            selected = uiState.useSymbols,
+                                            onClick  = { viewModel.onSymbolsToggle(!uiState.useSymbols) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                } else {
+                                    Row(
+                                        modifier              = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        CharTypeChip(
+                                            symbol   = "Aa",
+                                            label    = stringResource(R.string.generator_uppercase),
+                                            selected = uiState.useUpper,
+                                            onClick  = { viewModel.onUpperToggle(!uiState.useUpper) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.weight(2f))
+                                    }
+
+                                    if (uiState.useUpper) {
+                                        val maxUpper = (uiState.length / 2).coerceAtLeast(1)
+                                        Row(
+                                            modifier          = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text     = stringResource(R.string.generator_upper_count_label),
+                                                style    = MaterialTheme.typography.bodyMedium,
+                                                color    = MaterialTheme.colorScheme.onBackground,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            IconButton(
+                                                onClick  = { viewModel.onUpperCountChange(uiState.upperCount - 1) },
+                                                enabled  = uiState.upperCount > 1,
+                                                modifier = Modifier.size(36.dp)
+                                            ) {
+                                                Text("−", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                            }
+                                            Text(
+                                                text       = "${uiState.upperCount}",
+                                                style      = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Bold,
+                                                color      = MaterialTheme.colorScheme.primary,
+                                                modifier   = Modifier.width(28.dp),
+                                                textAlign  = TextAlign.Center
+                                            )
+                                            IconButton(
+                                                onClick  = { viewModel.onUpperCountChange(uiState.upperCount + 1) },
+                                                enabled  = uiState.upperCount < maxUpper,
+                                                modifier = Modifier.size(36.dp)
+                                            ) {
+                                                Text("+", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (mode == GeneratorMode.STANDARD &&
+                                    (uiState.useUpper || uiState.useDigits || uiState.useSymbols)) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                                        if (uiState.useUpper) {
+                                            MinCountRow(
+                                                label        = stringResource(R.string.generator_count_uppercase_label),
+                                                count        = uiState.countUpper,
+                                                canDecrement = uiState.countUpper > 1,
+                                                canIncrement = uiState.countUpper < uiState.maxCountUpper(),
+                                                onDecrement  = { viewModel.onCountUpperChange(uiState.countUpper - 1) },
+                                                onIncrement  = { viewModel.onCountUpperChange(uiState.countUpper + 1) }
+                                            )
+                                        }
+                                        if (uiState.useDigits) {
+                                            MinCountRow(
+                                                label        = stringResource(R.string.generator_count_digits_label),
+                                                count        = uiState.countDigits,
+                                                canDecrement = uiState.countDigits > 1,
+                                                canIncrement = uiState.countDigits < uiState.maxCountDigits(),
+                                                onDecrement  = { viewModel.onCountDigitsChange(uiState.countDigits - 1) },
+                                                onIncrement  = { viewModel.onCountDigitsChange(uiState.countDigits + 1) }
+                                            )
+                                        }
+                                        if (uiState.useSymbols) {
+                                            MinCountRow(
+                                                label        = stringResource(R.string.generator_count_symbols_label),
+                                                count        = uiState.countSymbols,
+                                                canDecrement = uiState.countSymbols > 1,
+                                                canIncrement = uiState.countSymbols < uiState.maxCountSymbols(),
+                                                onDecrement  = { viewModel.onCountSymbolsChange(uiState.countSymbols - 1) },
+                                                onIncrement  = { viewModel.onCountSymbolsChange(uiState.countSymbols + 1) }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            GeneratorMode.PASSPHRASE -> {
+
+                                Row(
+                                    modifier          = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text     = stringResource(R.string.generator_words_label),
+                                        style    = MaterialTheme.typography.bodyMedium,
+                                        color    = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(
+                                        onClick  = { viewModel.onWordCountChange(uiState.wordCount - 1) },
+                                        enabled  = uiState.wordCount > PassphraseStrength.MIN_WORDS,
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Text("−", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    }
+                                    Text(
+                                        text       = "${uiState.wordCount}",
+                                        style      = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color      = MaterialTheme.colorScheme.primary,
+                                        modifier   = Modifier.width(28.dp),
+                                        textAlign  = TextAlign.Center
+                                    )
+                                    IconButton(
+                                        onClick  = { viewModel.onWordCountChange(uiState.wordCount + 1) },
+                                        enabled  = uiState.wordCount < PassphraseStrength.MAX_WORDS,
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Text("+", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text(
+                                        text  = stringResource(R.string.generator_word_separator_label),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    val hyphenDashLabel      = stringResource(R.string.generator_separator_hyphen_dash)
+                                    val hyphenUnderscoreLabel = stringResource(R.string.generator_separator_hyphen_underscore)
+                                    val dotLabel             = stringResource(R.string.generator_separator_dot)
+                                    val spaceLabel           = stringResource(R.string.generator_separator_space)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        listOf(
+                                            "-"  to hyphenDashLabel,
+                                            "_"  to hyphenUnderscoreLabel,
+                                            "."  to dotLabel,
+                                            " "  to spaceLabel
+                                        ).forEach { (sep, label) ->
+                                            val selected = uiState.separator == sep
+                                            FilterChip(
+                                                selected = selected,
+                                                onClick  = { viewModel.onSeparatorChange(sep) },
+                                                label    = {
+                                                    Text(
+                                                        text      = label,
+                                                        style     = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                                                    )
+                                                },
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    selectedContainerColor = Color.Transparent,
+                                                    selectedLabelColor     = MaterialTheme.colorScheme.primary,
+                                                    labelColor             = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                border = if (selected)
+                                                    BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                                                else
+                                                    BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+                }
 
-                    HorizontalDivider(color = Cream300)
-
-                    ToggleOptionRow(
-                        title    = stringResource(R.string.generator_capitalize_words_title),
-                        subtitle = stringResource(R.string.generator_capitalize_words_subtitle),
-                        checked  = uiState.capitalize,
-                        onToggle = { viewModel.onCapitalizeToggle(it) }
-                    )
+                AnimatedContent(
+                    targetState = uiState.mode == GeneratorMode.PASSPHRASE,
+                    label       = "generatorToggle"
+                ) { frase ->
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        HorizontalDivider(color = Cream300)
+                        if (frase) {
+                            ToggleOptionRow(
+                                title    = stringResource(R.string.generator_capitalize_words_title),
+                                subtitle = stringResource(R.string.generator_capitalize_words_subtitle),
+                                checked  = uiState.capitalize,
+                                onToggle = { viewModel.onCapitalizeToggle(it) }
+                            )
+                        } else {
+                            ToggleOptionRow(
+                                title    = stringResource(R.string.generator_exclude_ambiguous),
+                                subtitle = stringResource(R.string.generator_exclude_ambiguous_subtitle),
+                                checked  = uiState.excludeAmbiguous,
+                                onToggle = { viewModel.onExcludeAmbiguousToggle(it) }
+                            )
+                        }
+                    }
                 }
             }
 

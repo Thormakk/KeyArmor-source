@@ -1,7 +1,13 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.custom
 
+import com.thormakk.keyarmor.presentation.components.notesAccentColor
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import com.thormakk.keyarmor.presentation.components.sharedAvatar
 import com.thormakk.keyarmor.presentation.components.ReadOnlyGateDialog
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -133,6 +139,8 @@ fun CustomEntryDetailScreen(
     onShareClick:       (String) -> Unit = {},
     onAttachmentsClick: (String) -> Unit = {},
     onPlansClick:       () -> Unit = {},
+    sharedTransitionScope:   SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     viewModel:          AddEditCustomEntryViewModel = hiltViewModel()
 ) {
     val uiState         by viewModel.uiState.collectAsStateWithLifecycle()
@@ -227,9 +235,15 @@ fun CustomEntryDetailScreen(
             text  = { Text(stringResource(if (viewModel.canProtectNew) R.string.protect_unlock_body else R.string.protect_unlock_body_free),
                 color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
-                TextButton(onClick = { showUnlockDialog = false; viewModel.setProtected(false) }) {
-                    Text(stringResource(R.string.lock_action_unlock))
-                }
+                Button(
+                    onClick = { showUnlockDialog = false; viewModel.setProtected(false) },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.lock_action_unlock)) }
             },
             dismissButton = {
                 TextButton(onClick = { showUnlockDialog = false }) {
@@ -246,7 +260,12 @@ fun CustomEntryDetailScreen(
                 color = MaterialTheme.colorScheme.onBackground) },
             text  = { Text(stringResource(R.string.protect_premium_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium.justified()) },
             confirmButton = {
-                TextButton(onClick = { showProtectPremium = false; onPlansClick() }) {
+                Button(
+                    onClick = { showProtectPremium = false; onPlansClick() },
+                    shape  = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) {
                     Text(stringResource(R.string.plans_upgrade_cta))
                 }
             },
@@ -496,7 +515,17 @@ fun CustomEntryDetailScreen(
                         Box(modifier = Modifier.padding(horizontal = 4.dp)) {
                             DetailRow(
                                 label = stringResource(R.string.custom_field_name_placeholder),
-                                value = uiState.title
+                                value = uiState.title,
+                                leading = {
+                                    Icon(
+                                        imageVector        = Icons.Outlined.GridView,
+                                        contentDescription = null,
+                                        tint               = notesAccentColor(),
+                                        modifier           = Modifier
+                                            .sharedAvatar("custom_icon_${uiState.id}", sharedTransitionScope, animatedVisibilityScope)
+                                            .size(24.dp)
+                                    )
+                                }
                             )
                             if ((!isReadOnly || uiState.isProtected) && !uiState.isNew) {
                                 val greenLock = if (contrastRatio(MaterialTheme.colorScheme.background, SuccessGreen) < 3f)
@@ -863,7 +892,7 @@ private fun CustomFieldDetailRow(
                 IconButton(onClick = onDial, enabled = canDial, modifier = Modifier.size(40.dp)) {
                     Icon(
                         imageVector        = Icons.Default.Call,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.action_call),
                         tint               = if (canDial) MaterialTheme.colorScheme.primary
                                              else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         modifier           = Modifier.size(18.dp)

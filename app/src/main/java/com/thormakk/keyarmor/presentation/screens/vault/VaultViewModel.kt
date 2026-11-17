@@ -1,5 +1,7 @@
 package com.thormakk.keyarmor.presentation.screens.vault
 
+import com.thormakk.keyarmor.data.prefs.InheritancePrefs
+import com.thormakk.keyarmor.domain.usecase.DeleteVaultUseCase
 import com.thormakk.keyarmor.security.OrdenEnSesion
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -151,6 +153,8 @@ class VaultViewModel @Inject constructor(
     passkeyRepository:      PasskeyRepository,
     @ApplicationScope private val appScope: CoroutineScope,
     private val pinnedHubPrefs:         PinnedHubPrefs,
+    private val deleteVaultUseCase:     DeleteVaultUseCase,
+    private val inheritancePrefs:       InheritancePrefs,
     savedStateHandle:                   SavedStateHandle
 ) : ViewModel() {
 
@@ -655,11 +659,32 @@ class VaultViewModel @Inject constructor(
         return activeVaultPrefs.activeVaultId.removePrefix(VaultMetadata.INHERITED_PREFIX)
     }
 
+    fun deleteEmptyVault(vaultId: String, onDone: () -> Unit) {
+        viewModelScope.launch {
+            val meta = vaultMetadataRepository.getById(vaultId)
+            if (meta != null && meta.id != VaultMetadata.PRIMARY_VAULT_ID && !meta.isPrivate) {
+                try {
+                    val inheritedFrom = if (meta.isInherited) meta.ownerEmail.ifBlank { null } else null
+                    deleteVaultUseCase(vaultId, inheritedFrom, sendToTrash = false)
+                    if (activeVaultPrefs.activeVaultId == vaultId) {
+                        activeVaultPrefs.setActiveVault(VaultMetadata.PRIMARY_VAULT_ID)
+                    }
+                    if (meta.isInherited && meta.ownerEmail.isNotBlank()) {
+                        inheritancePrefs.markHeirVaultDismissed(meta.ownerEmail)
+                    }
+                } catch (_: Exception) {
+                }
+            }
+            onDone()
+        }
+    }
+
     private suspend fun checkAndNotifyEmptyVault(vaultId: String) {
         val remaining = repository.countActiveByVault(vaultId)
         if (remaining == 0) {
-            val name = vaultMetadataRepository.getById(vaultId)?.name ?: return
-            _emptyVaultEvent.tryEmit(vaultId to name)
+            val meta = vaultMetadataRepository.getById(vaultId) ?: return
+            if (meta.id == VaultMetadata.PRIMARY_VAULT_ID || meta.isPrivate) return
+            _emptyVaultEvent.tryEmit(vaultId to meta.name)
         }
     }
 }

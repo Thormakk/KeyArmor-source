@@ -1,5 +1,7 @@
 package com.thormakk.keyarmor.autofill
 
+import com.thormakk.keyarmor.presentation.components.AmberErrors
+import com.thormakk.keyarmor.presentation.components.warningColor
 import com.thormakk.keyarmor.presentation.components.propiedadesConTeclado
 import com.thormakk.keyarmor.presentation.components.cuadroConTeclado
 import android.content.Context
@@ -102,7 +104,7 @@ class AutofillSaveActivity : ComponentActivity() {
             @Composable {
                 Text(
                     stringResource(R.string.autofill_save_name_taken),
-                    color = MaterialTheme.colorScheme.error,
+                    color = warningColor(),
                 )
             }
         } else null
@@ -115,14 +117,14 @@ class AutofillSaveActivity : ComponentActivity() {
             text  = {
                 Column {
                     Text(stringResource(R.string.autofill_save_name_body, pending.baseTitle), style = MaterialTheme.typography.bodyMedium.justified())
-                    OutlinedTextField(
+                    AmberErrors { OutlinedTextField(
                         value         = nombre,
                         onValueChange = { nombre = it },
                         label         = { Text(stringResource(R.string.autofill_save_name_label)) },
                         singleLine    = true,
                         isError       = repetido,
                         supportingText = apoyo,
-                    )
+                    ) }
                 }
             },
             confirmButton = {

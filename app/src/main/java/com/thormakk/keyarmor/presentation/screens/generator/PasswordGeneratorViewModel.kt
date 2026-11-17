@@ -1,6 +1,8 @@
 package com.thormakk.keyarmor.presentation.screens.generator
 
 import androidx.lifecycle.ViewModel
+import com.thormakk.keyarmor.data.backup.ListaDePalabras
+import com.thormakk.keyarmor.security.PassphraseStrength
 import com.thormakk.keyarmor.security.PasswordStrengthCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +29,13 @@ data class GeneratorUiState(
     val countDigits:      Int           = 1,
     val countSymbols:     Int           = 1,
     val upperCount:       Int           = 1,
-    val wordCount:        Int           = 4,
+    val wordCount:        Int           = PassphraseStrength.DEFAULT_WORDS,
     val separator:        String        = "-",
     val capitalize:       Boolean       = false
 ) {
-    val strength: Int get() = PasswordStrengthCalculator.calculate(password).coerceAtLeast(0)
+    val strength: Int get() =
+        if (mode == GeneratorMode.PASSPHRASE) PassphraseStrength.level(wordCount)
+        else PasswordStrengthCalculator.calculate(password).coerceAtLeast(0)
 
     fun maxCountUpper(): Int {
         val other = (if (useDigits) countDigits else 0) + (if (useSymbols) countSymbols else 0)
@@ -48,7 +52,9 @@ data class GeneratorUiState(
 }
 
 @HiltViewModel
-class PasswordGeneratorViewModel @Inject constructor() : ViewModel() {
+class PasswordGeneratorViewModel @Inject constructor(
+    private val listaDePalabras: ListaDePalabras,
+) : ViewModel() {
 
     private val random = SecureRandom()
 
@@ -134,7 +140,7 @@ class PasswordGeneratorViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onWordCountChange(v: Int) {
-        _uiState.value = _uiState.value.copy(wordCount = v.coerceIn(2, 8))
+        _uiState.value = _uiState.value.copy(wordCount = v.coerceIn(PassphraseStrength.MIN_WORDS, PassphraseStrength.MAX_WORDS))
         regenerate()
     }
 
@@ -206,25 +212,12 @@ class PasswordGeneratorViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun generatePassphrase(s: GeneratorUiState): String {
-        val words = WORD_LIST
+        val words = listaDePalabras.palabras
         return (1..s.wordCount)
             .map { word ->
                 val w = words[random.nextInt(words.size)]
                 if (s.capitalize) w.replaceFirstChar { c -> c.uppercaseChar() } else w
             }
             .joinToString(s.separator)
-    }
-
-    companion object {
-        private val WORD_LIST = listOf(
-            "cielo", "tierra", "agua", "fuego", "viento", "luna", "sol", "mar",
-            "noche", "dia", "bosque", "roca", "rio", "flor", "arbol", "nieve",
-            "lluvia", "trueno", "rayo", "niebla", "arena", "lago", "monte", "valle",
-            "lobo", "aguila", "puma", "zorro", "tigre", "leon", "oso", "gato",
-            "perro", "caballo", "pajaro", "pez", "dragon", "sirena", "ninja", "pirata",
-            "mesa", "silla", "puerta", "ventana", "techo", "suelo", "muro", "torre",
-            "libro", "lapiz", "papel", "mapa", "llave", "espejo", "reloj", "bruja",
-            "magia", "estrella", "cometa", "planeta", "robot", "codigo", "clave", "juego"
-        )
     }
 }

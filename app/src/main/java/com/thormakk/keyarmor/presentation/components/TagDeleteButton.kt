@@ -44,6 +44,7 @@ fun TagDeleteButton(
 
     if (showInUseDialog) {
         AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = { showInUseDialog = false },
             title            = { Text(stringResource(R.string.vault_delete_tag)) },
             text             = { Text(stringResource(R.string.tag_in_use_warning), style = MaterialTheme.typography.bodyMedium.justified()) },

@@ -69,6 +69,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -97,6 +98,7 @@ data class VaultHubUiState(
     val passkeyCount:          Int          = 0,
     val identityDocumentCount: Int          = 0,
     val vehicleCount:          Int          = 0,
+    val hasArchivedEntries:    Boolean      = false,
     val weakPasswordCount:   Int          = 0,
     val mediumPasswordCount: Int          = 0,
     val strongPasswordCount: Int          = 0,
@@ -165,7 +167,10 @@ class VaultHubViewModel @Inject constructor(
     private val appNotificationController: com.thormakk.keyarmor.notifications.AppNotificationController,
     private val appConsentController:       com.thormakk.keyarmor.notifications.AppConsentController,
     private val inAppNotificationRepository: InAppNotificationRepository,
+    private val settingsViewPrefs:           com.thormakk.keyarmor.data.prefs.SettingsViewPrefs,
 ) : ViewModel() {
+
+    val settingsSimple: StateFlow<Boolean> = settingsViewPrefs.simple
 
     private val context: Context get() = contextoDelIdioma(contextInyectado)
 
@@ -427,6 +432,25 @@ class VaultHubViewModel @Inject constructor(
         viewModelScope.launch {
             reminderRepository.observeActive().collect { list ->
                 _uiState.value = _uiState.value.copy(reminderCount = list.size)
+            }
+        }
+
+        viewModelScope.launch {
+            combine(
+                listOf(
+                    vaultRepository.observeArchived().map { it.isNotEmpty() },
+                    bankAccountRepository.observeArchived().map { it.isNotEmpty() },
+                    creditCardRepository.observeArchived().map { it.isNotEmpty() },
+                    cryptoWalletRepository.observeArchived().map { it.isNotEmpty() },
+                    customEntryRepository.observeArchived().map { it.isNotEmpty() },
+                    secureNoteRepository.observeArchived().map { it.isNotEmpty() },
+                    twoFactorRepository.observeArchived().map { it.isNotEmpty() },
+                    passkeyRepository.observeArchived().map { it.isNotEmpty() },
+                    identityDocumentRepository.observeArchived().map { it.isNotEmpty() },
+                    vehicleRepository.observeArchived().map { it.isNotEmpty() },
+                )
+            ) { flags -> flags.any { it } }.collect { any ->
+                _uiState.value = _uiState.value.copy(hasArchivedEntries = any)
             }
         }
 
@@ -701,13 +725,13 @@ class VaultHubViewModel @Inject constructor(
                             bundle.vehicles.find { it.id == ref.id }
                                 ?.let { e ->
                                     val name = listOf(e.make, e.model).filter { s -> s.isNotBlank() }.joinToString(" ").ifEmpty { context.getString(com.thormakk.keyarmor.R.string.hub_pinned_fallback_vehicle) }
-                                    PinnedHubEntry(ref.id, ref.type, name, avatarLabel = name)
+                                    PinnedHubEntry(ref.id, ref.type, name, avatarLabel = e.make)
                                 }
                         HubEntryType.TWO_FACTOR ->
                             bundle.twoFactorAccounts.find { it.id == ref.id }
                                 ?.let { e ->
                                     val name = e.name.ifEmpty { e.issuer }.ifEmpty { context.getString(com.thormakk.keyarmor.R.string.hub_pinned_fallback_two_factor) }
-                                    PinnedHubEntry(ref.id, ref.type, name, avatarLabel = name)
+                                    PinnedHubEntry(ref.id, ref.type, name, url = e.url, avatarLabel = name)
                                 }
                     }
                 }

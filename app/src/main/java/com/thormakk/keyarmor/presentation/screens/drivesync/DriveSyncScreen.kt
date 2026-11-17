@@ -299,7 +299,7 @@ fun DriveSyncScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                         }
                     },
                     colors = topBarColors()
@@ -849,7 +849,7 @@ private fun DriveMainCard(
                         Text(
                             text  = stringResource(R.string.drive_storage_full),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
+                            color = warningColor()
                         )
                     }
                 }
@@ -1354,12 +1354,12 @@ private fun RestoreModeOption(
     onClick:      () -> Unit
 ) {
     val borderColor = when {
-        selected && isDestructive -> MaterialTheme.colorScheme.error
+        selected && isDestructive -> warningColor()
         selected                  -> MaterialTheme.colorScheme.primary
         else                      -> MaterialTheme.colorScheme.outlineVariant
     }
     val bgColor = when {
-        selected && isDestructive -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+        selected && isDestructive -> warningColor().copy(alpha = 0.15f)
         selected                  -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         else                      -> Color.Transparent
     }
@@ -1383,7 +1383,7 @@ private fun RestoreModeOption(
                 onClick  = null,
                 colors   = RadioButtonDefaults.colors(
                     selectedColor = if (isDestructive)
-                        MaterialTheme.colorScheme.error
+                        warningColor()
                     else
                         MaterialTheme.colorScheme.primary
                 )
@@ -1395,7 +1395,7 @@ private fun RestoreModeOption(
                     style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color      = if (isDestructive && selected)
-                        MaterialTheme.colorScheme.error
+                        warningColor()
                     else
                         MaterialTheme.colorScheme.onSurface
                 )

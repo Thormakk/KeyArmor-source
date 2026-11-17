@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.bank
 
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.seguirTextoMultilinea
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
@@ -481,6 +483,7 @@ fun CredentialPickerDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.bank_link_dialog_title)) },
         text  = {
@@ -742,7 +745,7 @@ internal fun BankOptionsSheet(
                     onDismissRequest = { renameTarget = null; renameError = null },
                     title = { Text(stringResource(R.string.tag_rename_title)) },
                     text  = {
-                        OutlinedTextField(
+                        AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                             value           = renameText,
                             onValueChange   = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -752,7 +755,7 @@ internal fun BankOptionsSheet(
                             modifier        = Modifier.fillMaxWidth(),
                             isError         = renameError != null,
                             supportingText  = { renameError?.let { Text(it) } }
-                        )
+                        ) }
                     },
                     confirmButton = {
                         Button(
@@ -928,7 +931,7 @@ internal fun BankOptionsSheet(
             if (newTagError != null) {
                 Text(
                     text     = newTagError!!,
-                    color    = MaterialTheme.colorScheme.error,
+                    color    = warningColor(),
                     style    = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 2.dp)
                 )

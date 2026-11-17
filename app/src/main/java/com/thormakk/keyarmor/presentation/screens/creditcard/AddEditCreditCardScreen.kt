@@ -2,6 +2,8 @@
 @file:Suppress("UNUSED_VALUE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE", "UnusedAssignment")
 package com.thormakk.keyarmor.presentation.screens.creditcard
 
+import com.thormakk.keyarmor.presentation.components.warningColor
+import com.thormakk.keyarmor.presentation.components.AmberErrors
 import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.ThemeTrialBadge
 import android.content.Intent
@@ -487,19 +489,28 @@ fun AddEditCreditCardScreen(
                 DatePickerDialog(
                     onDismissRequest = { showExpiryPicker = false },
                     confirmButton    = {
-                        TextButton(onClick = {
-                            pickerState.selectedDateMillis?.let { millis ->
-                                val cal = Calendar.getInstance().apply { timeInMillis = millis }
-                                val mm  = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
-                                val yy  = (cal.get(Calendar.YEAR) % 100).toString().padStart(2, '0')
-                                viewModel.onExpiryDateChange(mm + yy)
-                            }
-                            showExpiryPicker = false
-                        }) { Text(stringResource(android.R.string.ok)) }
+                        Box(Modifier.padding(end = 30.dp, bottom = 28.dp)) {
+                            Button(
+                                onClick = {
+                                    pickerState.selectedDateMillis?.let { millis ->
+                                        val cal = Calendar.getInstance().apply { timeInMillis = millis }
+                                        val mm  = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+                                        val yy  = (cal.get(Calendar.YEAR) % 100).toString().padStart(2, '0')
+                                        viewModel.onExpiryDateChange(mm + yy)
+                                    }
+                                    showExpiryPicker = false
+                                },
+                                shape  = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.primary),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                            ) { Text(stringResource(android.R.string.ok)) }
+                        }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showExpiryPicker = false }) {
-                            Text(stringResource(android.R.string.cancel))
+                        Box(Modifier.padding(end = 10.dp, bottom = 28.dp)) {
+                            TextButton(onClick = { showExpiryPicker = false }) {
+                                Text(stringResource(android.R.string.cancel))
+                            }
                         }
                     }
                 ) { DatePicker(state = pickerState) }
@@ -1007,7 +1018,7 @@ internal fun CreditCardOptionsSheet(
                     containerColor   = MaterialTheme.colorScheme.background,
                     title = { Text(stringResource(R.string.tag_rename_title)) },
                     text  = {
-                        OutlinedTextField(
+                        AmberErrors { OutlinedTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false),
                             value           = renameText,
                             onValueChange   = { autoLockManager?.recordInteraction(); renameText = it; renameError = null },
@@ -1017,7 +1028,7 @@ internal fun CreditCardOptionsSheet(
                             modifier        = Modifier.fillMaxWidth(),
                             isError         = renameError != null,
                             supportingText  = { renameError?.let { Text(it) } }
-                        )
+                        ) }
                     },
                     confirmButton = {
                         Button(
@@ -1193,7 +1204,7 @@ internal fun CreditCardOptionsSheet(
             if (newTagError != null) {
                 Text(
                     text     = newTagError!!,
-                    color    = MaterialTheme.colorScheme.error,
+                    color    = warningColor(),
                     style    = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 2.dp)
                 )

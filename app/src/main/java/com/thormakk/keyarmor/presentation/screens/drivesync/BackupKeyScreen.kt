@@ -80,12 +80,14 @@ import com.thormakk.keyarmor.data.prefs.UserPlan
 import com.thormakk.keyarmor.data.prefs.DrivePrefs
 import com.thormakk.keyarmor.data.repository.AuthRepository
 import com.thormakk.keyarmor.presentation.components.SectionTitleFontSize
+import com.thormakk.keyarmor.presentation.components.CaptureAllowedBadge
 import com.thormakk.keyarmor.presentation.components.TextoQueSeAjusta
 import com.thormakk.keyarmor.presentation.components.sectionTitleColor
 import com.thormakk.keyarmor.presentation.components.topBarColors
 import com.thormakk.keyarmor.presentation.util.rememberMandatoryBiometricGate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import androidx.compose.ui.graphics.Color
 
 @HiltViewModel
 class BackupKeyViewModel @Inject constructor(
@@ -227,6 +229,7 @@ fun BackupKeyScreen(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                         }
                     },
+                    actions = { CaptureAllowedBadge() },
                     colors = topBarColors()
                 )
             }
@@ -616,12 +619,20 @@ private fun HistorialPantalla(
             title = { Text(stringResource(R.string.bk_hist_delete_title)) },
             text  = { Text(stringResource(R.string.bk_hist_delete_body)) },
             confirmButton = {
-                TextButton(onClick = {
-                    viewModel.borrarRetirada(k.id)
-                    if (abierta == k.id) abierta = null
-                    aBorrar = null
-                    onChanged()
-                }) { Text(stringResource(R.string.bk_hist_delete)) }
+                Button(
+                    onClick = {
+                        viewModel.borrarRetirada(k.id)
+                        if (abierta == k.id) abierta = null
+                        aBorrar = null
+                        onChanged()
+                    },
+                    shape   = RoundedCornerShape(8.dp),
+                    colors  = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor   = MaterialTheme.colorScheme.primary
+                    ),
+                    border  = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary)
+                ) { Text(stringResource(R.string.bk_hist_delete)) }
             },
             dismissButton = { TextButton(onClick = { aBorrar = null }) { Text(stringResource(R.string.action_cancel)) } }
         )
